@@ -1,0 +1,40 @@
+{
+  "data": {
+    "data": {
+      "games": [
+        {
+          "gameId": "nba.g.2025011102",
+          "startDate": "2025-01-11-10:00",
+          "league": { "shortName": "NBA" },
+          "awayTeam": { "displayName": "New Orleans", "nickname": "Pelicans" },
+          "homeTeam": { "displayName": "Philadelphia", "nickname": "76ers" },
+          "activePropBets": [],
+          "closedPropBets": [
+            {
+              "id": 10,
+              "type": "RACE_TO_20",
+              "name": "Race to 20 Points",
+              "description": "Which team will reach 20 points first?",
+              "eventState": "PREGAME",
+              "players": [],
+              "options": [
+                {
+                  "name": "New Orleans Pelicans",
+                  "americanOdds": 105,
+                  "decimalOdds": "2.050",
+                  "optionDetails": [{ "key": "points", "value": "20" }]
+                },
+                {
+                  "name": "Philadelphia 76ers",
+                  "americanOdds": -145,
+                  "decimalOdds": "1.700",
+                  "optionDetails": [{ "key": "points", "value": "20" }]
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  }
+}

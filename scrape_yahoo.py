@@ -2,9 +2,9 @@
 Yahoo odds transport helpers.
 
 This module keeps the existing Yahoo game-id lookup and odds payload fetch
-behavior, while avoiding hard failures when optional scraping dependencies are
-not installed. The legacy wide-format parsing path remains available only when
-its optional dependencies can be imported successfully.
+behavior while improving reliability, diagnostics, and local execution clarity.
+The legacy wide-format parsing path remains available only when its optional
+dependencies can be imported successfully.
 """
 
 from __future__ import annotations
@@ -12,10 +12,13 @@ from __future__ import annotations
 import datetime
 import glob
 import json
+import logging
 import os
 import re
 import time
 from typing import Iterable, List, Optional
+
+from yahoo_nba_config import DEFAULT_CONFIG, LOGGER_NAME
 
 try:
     import pandas as pd
@@ -38,10 +41,14 @@ except Exception:  # pragma: no cover - invalid/missing in current repo state
     scrape_rules = None
 
 
+logger = logging.getLogger(LOGGER_NAME)
+
+
+def configure_logging(level: int = logging.INFO) -> None:
+    logging.basicConfig(level=level, format="%(levelname)s %(name)s: %(message)s")
+
+
 def numericize(df):
-    """
-    Backward-compatible helper for older dataframe-based notebooks.
-    """
     if pd is None:  # pragma: no cover - guarded by environment
         raise RuntimeError("pandas is required for numericize()")
 
@@ -58,29 +65,25 @@ def numericize(df):
 
 
 def convert_line(line: int) -> float:
-    """
-    Convert American odds to implied win probability.
-    """
     if line < 0:
         return abs(line) / (abs(line) + 100)
     return 100 / (100 + line)
 
 
 def payout(line: int) -> float:
-    """
-    Calculate profit on a winning $100 stake at American odds.
-    """
     return (100 / convert_line(line)) - 100
 
 
+def validate_game_id(game_id: str) -> bool:
+    return bool(re.fullmatch(r"nba\.g\.20\d{8}", str(game_id)))
+
+
+def backoff_seconds(attempt: int, base_seconds: float | None = None) -> float:
+    base = DEFAULT_CONFIG.fetch_retry_backoff_seconds if base_seconds is None else max(base_seconds, 0)
+    return base * max(attempt, 1)
+
+
 class ScrapeYahoo:
-    """
-    Yahoo NBA odds transport and cache helpers.
-
-    The raw fetch path is reusable without the old JSONPath parser. The
-    rule-based wide parser remains for backward compatibility only.
-    """
-
     START_DATE = datetime.datetime(2024, 10, 22)
     END_DATE = datetime.datetime(2025, 4, 13)
 
@@ -107,7 +110,25 @@ class ScrapeYahoo:
         if self.scraper is None:  # pragma: no cover - network dependency
             raise RuntimeError("cloudscraper is required for Yahoo fetch operations")
 
+    def _fetch_text_with_retry(self, url: str, operation: str) -> str:
+        self._require_scraper()
+        last_error = None
+        for attempt in range(1, DEFAULT_CONFIG.fetch_retry_attempts + 1):
+            try:
+                logger.info("%s attempt %s/%s: %s", operation, attempt, DEFAULT_CONFIG.fetch_retry_attempts, url)
+                response = self.scraper.get(url, timeout=DEFAULT_CONFIG.request_timeout_seconds)
+                response.raise_for_status()
+                return response.text
+            except Exception as exc:  # pragma: no cover - network dependency
+                last_error = exc
+                logger.warning("%s failed on attempt %s: %s", operation, attempt, exc)
+                if attempt < DEFAULT_CONFIG.fetch_retry_attempts:
+                    time.sleep(backoff_seconds(attempt))
+        raise RuntimeError(f"{operation} failed after retries: {last_error}") from last_error
+
     def make_yahoo_json_url(self, game_id: str) -> str:
+        if not validate_game_id(game_id):
+            raise ValueError(f"Invalid Yahoo NBA game id: {game_id}")
         return (
             "https://sports.yahoo.com/site/api/resource/"
             "sports.graphite.gameOdds;dataType=graphite;endpoint=graphite;"
@@ -115,22 +136,20 @@ class ScrapeYahoo:
         )
 
     def get_some_json(self, url: str):
-        scraper = self._create_scraper()
-        if scraper is None:  # pragma: no cover - network dependency
-            raise RuntimeError("cloudscraper is required for Yahoo fetch operations")
-        some_html = scraper.get(url).text
+        some_html = self._fetch_text_with_retry(url, "game_payload_fetch")
         return json.loads(some_html)
 
     def make_date_url(self, yyyy_mm_dd: str) -> str:
+        if not re.fullmatch(r"\d{4}-\d{2}-\d{2}", str(yyyy_mm_dd)):
+            raise ValueError(f"Date must be YYYY-MM-DD, got {yyyy_mm_dd}")
         return (
             "https://graphite.sports.yahoo.com/v1/query/shangrila/"
             f"leagueGameIdsByDate?startRange={yyyy_mm_dd}&endRange={yyyy_mm_dd}&leagues=nba"
         )
 
     def get_yahoo_ids_for_date(self, nice_date: str):
-        self._require_scraper()
         date_url = self.make_date_url(nice_date)
-        date_html = self.scraper.get(date_url).text
+        date_html = self._fetch_text_with_retry(date_url, "game_id_fetch")
         return set(re.findall(r"nba\.g\.202[\d]+", date_html))
 
     def fetch_yahoo_data(self, fetch_dir: str = "nba_scrapes/2024", start=START_DATE, end=END_DATE):
@@ -139,15 +158,17 @@ class ScrapeYahoo:
 
         os.makedirs(fetch_dir, exist_ok=True)
         date_range = pd.date_range(start, end).strftime("%Y-%m-%d")
+        summary = {"fetched": 0, "cached": 0, "fetch_failures": []}
 
         for date in date_range:
-            print(f"STARTING {date}")
+            logger.info("Starting Yahoo fetch for %s", date)
             yahoo_ids = self.get_yahoo_ids_for_date(date)
-            time.sleep(2)
+            time.sleep(DEFAULT_CONFIG.fetch_polite_sleep_seconds)
 
             for yahoo_game_id in yahoo_ids:
                 cache_path = f"{fetch_dir}/{yahoo_game_id}.json"
                 if os.path.exists(cache_path):
+                    summary["cached"] += 1
                     continue
 
                 game_url = self.make_yahoo_json_url(yahoo_game_id)
@@ -155,12 +176,15 @@ class ScrapeYahoo:
                     game_json = self.get_some_json(game_url)
                     with open(cache_path, "w", encoding="utf-8") as f:
                         json.dump(game_json, f)
-                except Exception:
-                    print(f"failed on {game_url}")
-                    time.sleep(10)
-                time.sleep(2)
+                    summary["fetched"] += 1
+                except Exception as exc:  # pragma: no cover - network dependency
+                    logger.error("Failed to fetch %s: %s", game_url, exc)
+                    summary["fetch_failures"].append({"game_id": yahoo_game_id, "url": game_url, "error": str(exc)})
+                    time.sleep(backoff_seconds(1))
+                time.sleep(DEFAULT_CONFIG.fetch_polite_sleep_seconds)
 
-            print(f"DONE WITH {date}")
+            logger.info("Done with %s", date)
+        return summary
 
     def preparse_rules(self):
         if scrape_rules is None or jsonpath_parse is None:
@@ -181,7 +205,7 @@ class ScrapeYahoo:
                 results = [item.value for item in jsonpath_expression.find(json_data)][0]
                 row[key] = results
             except Exception:
-                print(f"file: {filename} failed on {jsonpath_expression}")
+                logger.warning("Legacy parse failed for %s on %s", filename, jsonpath_expression)
         return row
 
     @staticmethod
@@ -237,9 +261,11 @@ class ScrapeYahoo:
         return joined
 
     def scrape_pages(self):
+        summaries = []
         for season_name, season_range in self.SEASONS.items():
             base_dir = f"{self.BASE_DIR}/{season_name}"
-            self.fetch_yahoo_data(base_dir, season_range[0], season_range[1])
+            summaries.append(self.fetch_yahoo_data(base_dir, season_range[0], season_range[1]))
+        return summaries
 
     def rebuild_summary_csv(self):
         if pd is None:  # pragma: no cover - optional dependency
@@ -247,7 +273,7 @@ class ScrapeYahoo:
 
         all_seasons = []
         for year in self.SEASONS.keys():
-            print(f"doing {year}")
+            logger.info("Rebuilding legacy summary CSV for %s", year)
             start_time = time.time()
 
             year_dir = f"{self.BASE_DIR}/{year}"
@@ -255,7 +281,7 @@ class ScrapeYahoo:
             df = self.make_dataframe(filenames)
             df.to_csv(f"{self.BASE_DIR}/csv/{year}_odds.csv")
 
-            print(f"took {time.time() - start_time}")
+            logger.info("Finished %s in %.2fs", year, time.time() - start_time)
             all_seasons.append(df)
 
         all_seasons_df = pd.concat(all_seasons)

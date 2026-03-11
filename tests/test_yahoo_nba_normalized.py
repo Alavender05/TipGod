@@ -8,11 +8,15 @@ from pathlib import Path
 
 from yahoo_nba_normalized import (
     OUTPUT_COLUMNS,
+    SKIP_MISSING_GAMES,
     american_to_decimal,
     canonical_matchup_key,
+    normalize_files_with_diagnostics,
     normalize_file,
     normalize_files,
     normalize_team_name,
+    parse_american_odds,
+    parse_numeric_line,
     write_csv,
     write_json,
 )
@@ -35,6 +39,14 @@ class YahooNBANormalizedTests(unittest.TestCase):
         self.assertEqual(normalize_team_name("Philadelphia 76ers"), "Philadelphia")
         self.assertEqual(normalize_team_name("Golden State Warriors"), "Golden State")
         self.assertIsNone(normalize_team_name("Team LeBron"))
+
+    def test_number_parsers(self):
+        self.assertEqual(parse_american_odds("+150"), 150)
+        self.assertEqual(parse_american_odds("-110"), -110)
+        self.assertIsNone(parse_american_odds("abc"))
+        self.assertEqual(parse_numeric_line("O 219.5"), 219.5)
+        self.assertEqual(parse_numeric_line("-7.5"), -7.5)
+        self.assertIsNone(parse_numeric_line("N/A"))
 
     def test_normalize_fixture_file(self):
         rows = normalize_file(FIXTURE_PATH)
@@ -75,6 +87,15 @@ class YahooNBANormalizedTests(unittest.TestCase):
                 self.assertEqual(reader.fieldnames, OUTPUT_COLUMNS)
                 csv_rows = list(reader)
                 self.assertEqual(len(csv_rows), 6)
+
+    def test_normalize_files_with_diagnostics_handles_empty_payload(self):
+        with tempfile.TemporaryDirectory() as temp_dir:
+            bad_path = Path(temp_dir) / "bad.json"
+            bad_path.write_text(json.dumps({"data": {"data": {}}}), encoding="utf-8")
+            rows, diagnostics = normalize_files_with_diagnostics([bad_path])
+            self.assertEqual(rows, [])
+            self.assertEqual(diagnostics["skip_reasons"][SKIP_MISSING_GAMES], 1)
+            self.assertEqual(diagnostics["files_scanned"], 1)
 
 
 if __name__ == "__main__":

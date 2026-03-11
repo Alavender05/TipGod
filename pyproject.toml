@@ -1,0 +1,17 @@
+[build-system]
+requires = ["setuptools>=61"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "tipgod-yahoo-nba"
+version = "0.1.0"
+description = "Yahoo-backed NBA odds normalization and analysis helpers"
+requires-python = ">=3.11"
+dependencies = [
+  "cloudscraper>=1.2.71",
+  "pandas>=2.2.0",
+  "jsonpath-ng>=1.7.0",
+]
+
+[project.optional-dependencies]
+dev = []

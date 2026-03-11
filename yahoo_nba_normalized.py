@@ -6,14 +6,18 @@ from __future__ import annotations
 
 import csv
 import json
+import logging
 import os
 import re
 from collections import Counter
 from datetime import datetime, timezone
 from pathlib import Path
-from typing import Dict, Iterable, List, Optional, Sequence, Tuple
+from typing import Iterable, List, Mapping, Optional, Sequence, Tuple
 
 from scrape_yahoo import ScrapeYahoo
+from yahoo_nba_config import DEFAULT_CONFIG, LOGGER_NAME
+
+logger = logging.getLogger(LOGGER_NAME)
 
 SOURCE_NAME = "yahoo"
 LEAGUE_NAME = "NBA"
@@ -34,6 +38,13 @@ OUTPUT_COLUMNS = [
     "odds_american",
     "odds_decimal",
 ]
+
+SKIP_MISSING_GAMES = "missing_games_array"
+SKIP_WRONG_LEAGUE = "wrong_league"
+SKIP_INVALID_MATCHUP = "invalid_matchup"
+SKIP_MISSING_EVENT_ID = "missing_event_id"
+SKIP_NO_SUPPORTED_MARKETS = "no_supported_markets"
+SKIP_PARSE_ERROR = "parse_error"
 
 NBA_TEAMS = {
     "Atlanta",
@@ -104,6 +115,29 @@ TEAM_ALIASES = {
 }
 
 
+def create_normalization_diagnostics() -> dict:
+    return {
+        "generated_at": datetime.now(timezone.utc).isoformat(),
+        "source": SOURCE_NAME,
+        "league": LEAGUE_NAME,
+        "files_scanned": 0,
+        "games_seen": 0,
+        "games_with_rows": 0,
+        "rows_written": 0,
+        "skip_reasons": {},
+        "parse_failures": [],
+        "fetch_failures": [],
+        "notes": [],
+    }
+
+
+def increment_skip_reason(diagnostics: dict | None, reason: str, count: int = 1) -> None:
+    if diagnostics is None:
+        return
+    skip_reasons = diagnostics.setdefault("skip_reasons", {})
+    skip_reasons[reason] = skip_reasons.get(reason, 0) + count
+
+
 def american_to_decimal(odds_american) -> Optional[float]:
     odds = parse_american_odds(odds_american)
     if odds in (None, 0):
@@ -146,9 +180,7 @@ def parse_decimal_odds(value) -> Optional[float]:
 
 
 def parse_american_odds(value) -> Optional[int]:
-    if value is None:
-        return None
-    if isinstance(value, bool):
+    if value is None or isinstance(value, bool):
         return None
     if isinstance(value, int):
         return value
@@ -201,13 +233,15 @@ def infer_scraped_at(payload: dict, source_path: os.PathLike[str] | str | None =
 
 def find_games(payload: dict) -> List[dict]:
     data = payload.get("data", {})
-    if isinstance(data, dict):
-        nested = data.get("data", {})
-        if isinstance(nested, dict):
-            games = nested.get("games")
-            if isinstance(games, list):
-                return [game for game in games if isinstance(game, dict)]
-    return []
+    if not isinstance(data, dict):
+        return []
+    nested = data.get("data", {})
+    if not isinstance(nested, dict):
+        return []
+    games = nested.get("games")
+    if not isinstance(games, list):
+        return []
+    return [game for game in games if isinstance(game, dict)]
 
 
 def extract_team_name(team_data: Optional[dict]) -> Optional[str]:
@@ -225,18 +259,25 @@ def extract_team_name(team_data: Optional[dict]) -> Optional[str]:
     return normalize_team_name(full_name)
 
 
-def extract_game_context(game: dict, source_path: os.PathLike[str] | str | None = None) -> Optional[dict]:
+def extract_game_context(
+    game: dict,
+    source_path: os.PathLike[str] | str | None = None,
+    diagnostics: dict | None = None,
+) -> Optional[dict]:
     league = game.get("league", {}).get("shortName")
     if league and str(league).upper() != LEAGUE_NAME:
+        increment_skip_reason(diagnostics, SKIP_WRONG_LEAGUE)
         return None
 
     away_team = extract_team_name(game.get("awayTeam"))
     home_team = extract_team_name(game.get("homeTeam"))
     if not is_valid_nba_matchup(home_team, away_team):
+        increment_skip_reason(diagnostics, SKIP_INVALID_MATCHUP)
         return None
 
     event_id = game.get("gameId")
     if not event_id:
+        increment_skip_reason(diagnostics, SKIP_MISSING_EVENT_ID)
         return None
 
     game_date = game.get("startDate") or game.get("startTime")
@@ -277,10 +318,7 @@ def choose_market(game: dict, market_type: str, base_category: str) -> Optional[
         if str(market.get("baseCategory") or "").upper() != base_category:
             continue
         candidates.append(market)
-
-    if not candidates:
-        return None
-    return sorted(candidates, key=market_priority)[0]
+    return sorted(candidates, key=market_priority)[0] if candidates else None
 
 
 def option_detail_value(option: dict, *keys: str) -> Optional[str]:
@@ -297,14 +335,8 @@ def option_detail_value(option: dict, *keys: str) -> Optional[str]:
 
 def infer_selection_from_option(option: dict, game_context: dict) -> Optional[str]:
     team_ids = option.get("teamIds") or []
-    away_team_id = (
-        option.get("_away_team_id")
-        or game_context.get("_away_team_id")
-    )
-    home_team_id = (
-        option.get("_home_team_id")
-        or game_context.get("_home_team_id")
-    )
+    away_team_id = option.get("_away_team_id") or game_context.get("_away_team_id")
+    home_team_id = option.get("_home_team_id") or game_context.get("_home_team_id")
     if away_team_id and away_team_id in team_ids:
         return "away"
     if home_team_id and home_team_id in team_ids:
@@ -337,6 +369,10 @@ def build_row(game_context: dict, market_type: str, selection: str, line, odds_a
     }
 
 
+def _finalize_market_rows(rows: List[dict], expected_count: int = 2) -> List[dict]:
+    return rows if len(rows) == expected_count else []
+
+
 def extract_moneyline_rows(game: dict, game_context: dict) -> List[dict]:
     market = choose_market(game, "MONEY_LINE", "MONEY_LINE")
     if not market:
@@ -351,7 +387,7 @@ def extract_moneyline_rows(game: dict, game_context: dict) -> List[dict]:
         decimal = parse_decimal_odds(option.get("decimalOdds")) or american_to_decimal(american)
         if selection and american is not None and decimal is not None:
             rows.append(build_row(game_context, "moneyline", selection, None, american, decimal))
-    return rows if len(rows) == 2 else []
+    return _finalize_market_rows(rows)
 
 
 def extract_spread_rows(game: dict, game_context: dict) -> List[dict]:
@@ -369,7 +405,7 @@ def extract_spread_rows(game: dict, game_context: dict) -> List[dict]:
         decimal = parse_decimal_odds(option.get("decimalOdds")) or american_to_decimal(american)
         if selection and line is not None and american is not None and decimal is not None:
             rows.append(build_row(game_context, "spread", selection, line, american, decimal))
-    return rows if len(rows) == 2 else []
+    return _finalize_market_rows(rows)
 
 
 def infer_total_selection(option: dict) -> Optional[str]:
@@ -404,33 +440,44 @@ def extract_total_rows(game: dict, game_context: dict) -> List[dict]:
         if not isinstance(option, dict):
             continue
         selection = infer_total_selection(option)
-        line = (
-            parse_numeric_line(option_detail_value(option, "over", "under"))
-            or parse_numeric_line(option.get("displayName"))
-            or parse_numeric_line(option.get("name"))
-        )
+        line = parse_numeric_line(option_detail_value(option, "over", "under")) or parse_numeric_line(option.get("displayName")) or parse_numeric_line(option.get("name"))
         american = parse_american_odds(option.get("americanOdds"))
         decimal = parse_decimal_odds(option.get("decimalOdds")) or american_to_decimal(american)
         if selection and line is not None and american is not None and decimal is not None:
             rows.append(build_row(game_context, "game_total", selection, line, american, decimal))
-    return rows if len(rows) == 2 else []
+    return _finalize_market_rows(rows)
 
 
-def normalize_game_payload(payload: dict, source_path: os.PathLike[str] | str | None = None) -> List[dict]:
+def normalize_game_payload(payload: dict, source_path: os.PathLike[str] | str | None = None, diagnostics: dict | None = None) -> List[dict]:
     rows: List[dict] = []
-    for game in find_games(payload):
-        game_context = extract_game_context(game, source_path=source_path)
+    games = find_games(payload)
+    if diagnostics is not None:
+        diagnostics["games_seen"] = diagnostics.get("games_seen", 0) + len(games)
+    if not games:
+        increment_skip_reason(diagnostics, SKIP_MISSING_GAMES)
+        return rows
+
+    for game in games:
+        game_context = extract_game_context(game, source_path=source_path, diagnostics=diagnostics)
         if not game_context:
             continue
 
-        away_team_id = game.get("awayTeam", {}).get("teamId")
-        home_team_id = game.get("homeTeam", {}).get("teamId")
-        game_context["_away_team_id"] = away_team_id
-        game_context["_home_team_id"] = home_team_id
+        game_context["_away_team_id"] = game.get("awayTeam", {}).get("teamId")
+        game_context["_home_team_id"] = game.get("homeTeam", {}).get("teamId")
 
-        rows.extend(extract_moneyline_rows(game, game_context))
-        rows.extend(extract_spread_rows(game, game_context))
-        rows.extend(extract_total_rows(game, game_context))
+        game_rows = []
+        game_rows.extend(extract_moneyline_rows(game, game_context))
+        game_rows.extend(extract_spread_rows(game, game_context))
+        game_rows.extend(extract_total_rows(game, game_context))
+
+        if not game_rows:
+            increment_skip_reason(diagnostics, SKIP_NO_SUPPORTED_MARKETS)
+            continue
+
+        if diagnostics is not None:
+            diagnostics["games_with_rows"] = diagnostics.get("games_with_rows", 0) + 1
+        rows.extend(game_rows)
+
     return rows
 
 
@@ -439,12 +486,20 @@ def normalize_file(path: os.PathLike[str] | str) -> List[dict]:
     return normalize_game_payload(payload, source_path=path)
 
 
-def discover_raw_files(base_dirs: Optional[Sequence[os.PathLike[str] | str]] = None) -> List[str]:
-    if base_dirs:
-        roots = [str(path) for path in base_dirs]
-    else:
-        roots = [ScrapeYahoo.BASE_DIR, "yahoo_scrapes"]
+def normalize_file_with_diagnostics(path: os.PathLike[str] | str, diagnostics: dict | None = None) -> List[dict]:
+    try:
+        payload = load_raw_yahoo_json(path)
+        return normalize_game_payload(payload, source_path=path, diagnostics=diagnostics)
+    except Exception as exc:
+        logger.warning("Failed to normalize %s: %s", path, exc)
+        increment_skip_reason(diagnostics, SKIP_PARSE_ERROR)
+        if diagnostics is not None:
+            diagnostics.setdefault("parse_failures", []).append({"path": str(path), "error": str(exc)})
+        return []
 
+
+def discover_raw_files(base_dirs: Optional[Sequence[os.PathLike[str] | str]] = None) -> List[str]:
+    roots = [str(path) for path in base_dirs] if base_dirs else list(DEFAULT_CONFIG.cache_roots)
     files: List[str] = []
     for root in roots:
         if os.path.isdir(root):
@@ -452,24 +507,21 @@ def discover_raw_files(base_dirs: Optional[Sequence[os.PathLike[str] | str]] = N
     return sorted(set(files))
 
 
-def normalize_files(paths: Iterable[os.PathLike[str] | str]) -> Tuple[List[dict], Counter]:
+def normalize_files_with_diagnostics(paths: Iterable[os.PathLike[str] | str]) -> Tuple[List[dict], dict]:
+    diagnostics = create_normalization_diagnostics()
     rows: List[dict] = []
-    skipped = Counter()
-
     for path in paths:
-        try:
-            file_rows = normalize_file(path)
-        except Exception:
-            skipped["parse_error"] += 1
-            continue
+        diagnostics["files_scanned"] += 1
+        rows.extend(normalize_file_with_diagnostics(path, diagnostics=diagnostics))
+    diagnostics["rows_written"] = len(rows)
+    if diagnostics["files_scanned"] == 0:
+        diagnostics.setdefault("notes", []).append("No raw Yahoo cache files were found.")
+    return rows, diagnostics
 
-        if not file_rows:
-            skipped["no_supported_markets"] += 1
-            continue
 
-        rows.extend(file_rows)
-
-    return rows, skipped
+def normalize_files(paths: Iterable[os.PathLike[str] | str]) -> Tuple[List[dict], Counter]:
+    rows, diagnostics = normalize_files_with_diagnostics(paths)
+    return rows, Counter(diagnostics.get("skip_reasons", {}))
 
 
 def to_dataframe(rows: Sequence[dict]):
@@ -495,6 +547,13 @@ def write_csv(rows: Sequence[dict], output_path: os.PathLike[str] | str):
         writer.writeheader()
         for row in rows:
             writer.writerow({column: row.get(column) for column in OUTPUT_COLUMNS})
+
+
+def write_diagnostics(diagnostics: Mapping[str, object], output_path: os.PathLike[str] | str):
+    output = Path(output_path)
+    output.parent.mkdir(parents=True, exist_ok=True)
+    with output.open("w", encoding="utf-8") as handle:
+        json.dump(dict(diagnostics), handle, indent=2)
 
 
 def summarize_rows(rows: Sequence[dict]) -> Counter:

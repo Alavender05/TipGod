@@ -1,0 +1,42 @@
+{
+  "data": {
+    "data": {
+      "games": [
+        {
+          "gameId": "nba.g.2025011101",
+          "startDate": "2025-01-11-10:00",
+          "league": { "shortName": "NBA" },
+          "awayTeam": { "displayName": "Boston", "nickname": "Celtics" },
+          "homeTeam": { "displayName": "Miami", "nickname": "Heat" },
+          "activePropBets": [
+            {
+              "id": 1,
+              "type": "PLAYER_POINTS",
+              "name": "Jayson Tatum Points",
+              "description": "How many points will Jayson Tatum score?",
+              "eventState": "PREGAME",
+              "players": [
+                { "name": "Jayson Tatum", "playerId": "nba.p.1" }
+              ],
+              "options": [
+                {
+                  "name": "Over 28.5",
+                  "americanOdds": -115,
+                  "decimalOdds": "1.870",
+                  "optionDetails": [{ "key": "over", "value": "28.5" }]
+                },
+                {
+                  "name": "Under 28.5",
+                  "americanOdds": -105,
+                  "decimalOdds": "1.950",
+                  "optionDetails": [{ "key": "under", "value": "28.5" }]
+                }
+              ]
+            }
+          ],
+          "closedPropBets": []
+        }
+      ]
+    }
+  }
+}
