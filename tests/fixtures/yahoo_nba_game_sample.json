@@ -1,0 +1,198 @@
+{
+  "data": {
+    "data": {
+      "games": [
+        {
+          "gameId": "nba.g.2025011020",
+          "status": "FINAL",
+          "startDate": "2025-01-10-10:00",
+          "startTime": "2025-01-10T14:00:00-10:00",
+          "league": {
+            "shortName": "NBA"
+          },
+          "awayTeam": {
+            "teamId": "nba.t.3",
+            "displayName": "New Orleans",
+            "nickname": "Pelicans"
+          },
+          "homeTeam": {
+            "teamId": "nba.t.20",
+            "displayName": "Philadelphia",
+            "nickname": "76ers"
+          },
+          "gameLineSixPack": [
+            {
+              "id": 207675323,
+              "name": "Totals",
+              "status": "CLOSED",
+              "type": "OVER_UNDER",
+              "period": "FULL_GAME",
+              "eventState": "PREGAME",
+              "baseCategory": "TOTALS",
+              "options": [
+                {
+                  "id": 644086623,
+                  "name": "Over 219.5",
+                  "americanOdds": -110,
+                  "decimalOdds": "1.910",
+                  "displayName": "O 219.5",
+                  "optionDetails": [
+                    {
+                      "key": "over",
+                      "value": "219.5"
+                    }
+                  ]
+                },
+                {
+                  "id": 644086624,
+                  "name": "Under 219.5",
+                  "americanOdds": -110,
+                  "decimalOdds": "1.910",
+                  "displayName": "U 219.5",
+                  "optionDetails": [
+                    {
+                      "key": "under",
+                      "value": "219.5"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "id": 207675345,
+              "name": "Money Line (US)",
+              "status": "CLOSED",
+              "type": "MONEY_LINE",
+              "period": "FULL_GAME",
+              "eventState": "PREGAME",
+              "baseCategory": "MONEY_LINE",
+              "options": [
+                {
+                  "id": 644086672,
+                  "name": "New Orleans Pelicans",
+                  "americanOdds": 225,
+                  "decimalOdds": "3.250",
+                  "teamIds": [
+                    "nba.t.3"
+                  ],
+                  "optionDetails": []
+                },
+                {
+                  "id": 644086673,
+                  "name": "Philadelphia 76ers",
+                  "americanOdds": -275,
+                  "decimalOdds": "1.350",
+                  "teamIds": [
+                    "nba.t.20"
+                  ],
+                  "optionDetails": []
+                }
+              ]
+            },
+            {
+              "id": 207675350,
+              "name": "Spread",
+              "status": "CLOSED",
+              "type": "SPREAD",
+              "period": "FULL_GAME",
+              "eventState": "PREGAME",
+              "baseCategory": "SPREAD",
+              "options": [
+                {
+                  "id": 644086682,
+                  "name": "New Orleans Pelicans +7.5",
+                  "americanOdds": -115,
+                  "decimalOdds": "1.870",
+                  "displayName": "+7.5",
+                  "teamIds": [
+                    "nba.t.3"
+                  ],
+                  "optionDetails": [
+                    {
+                      "key": "points",
+                      "value": "7.5"
+                    }
+                  ]
+                },
+                {
+                  "id": 644086683,
+                  "name": "Philadelphia 76ers -7.5",
+                  "americanOdds": -105,
+                  "decimalOdds": "1.950",
+                  "displayName": "-7.5",
+                  "teamIds": [
+                    "nba.t.20"
+                  ],
+                  "optionDetails": [
+                    {
+                      "key": "points",
+                      "value": "-7.5"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "id": 207705583,
+              "name": "Money Line (US)",
+              "status": "CLOSED",
+              "type": "MONEY_LINE",
+              "period": "FULL_GAME",
+              "eventState": "LIVE",
+              "baseCategory": "MONEY_LINE",
+              "options": [
+                {
+                  "id": 1,
+                  "name": "New Orleans Pelicans",
+                  "americanOdds": -1600,
+                  "decimalOdds": "1.060",
+                  "teamIds": [
+                    "nba.t.3"
+                  ]
+                },
+                {
+                  "id": 2,
+                  "name": "Philadelphia 76ers",
+                  "americanOdds": 825,
+                  "decimalOdds": "9.250",
+                  "teamIds": [
+                    "nba.t.20"
+                  ]
+                }
+              ]
+            }
+          ],
+          "firstHalfSixPack": [
+            {
+              "type": "FIRST_HALF_MONEY_LINE",
+              "period": "FIRST_HALF",
+              "eventState": "PREGAME",
+              "baseCategory": "MONEY_LINE",
+              "options": [
+                {
+                  "name": "New Orleans Pelicans",
+                  "americanOdds": 170,
+                  "decimalOdds": "2.700",
+                  "teamIds": [
+                    "nba.t.3"
+                  ]
+                },
+                {
+                  "name": "Philadelphia 76ers",
+                  "americanOdds": -210,
+                  "decimalOdds": "1.480",
+                  "teamIds": [
+                    "nba.t.20"
+                  ]
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  },
+  "meta": {
+    "headers": {}
+  }
+}
