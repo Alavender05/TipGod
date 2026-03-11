@@ -18,6 +18,29 @@ const BOOKMAKER_DISPLAY_NAMES = {
 };
 const SURFACE_ORDER = ["best-bets", "edges", "props", "parlay", "degen", "exploits"];
 
+const STORAGE_KEY = "tipgod_ui_state";
+
+function saveUIState() {
+  try {
+    localStorage.setItem(STORAGE_KEY, JSON.stringify({
+      activeSurfaceId: state.activeSurfaceId,
+      filters: state.filters,
+      showTable: state.showTable,
+    }));
+  } catch {
+    // localStorage unavailable (e.g. private browsing with strict settings) — ignore
+  }
+}
+
+function loadUIState() {
+  try {
+    const raw = localStorage.getItem(STORAGE_KEY);
+    return raw ? JSON.parse(raw) : null;
+  } catch {
+    return null;
+  }
+}
+
 const state = {
   sourceLabel: "",
   runSummary: null,
@@ -319,6 +342,7 @@ function renderSurfaceTabs() {
       state.activeSurfaceId = value;
       state.filters.primary = "All";
       state.filters.secondary = "All";
+      saveUIState();
       render();
     },
     (value) => state.surfaces.find((surface) => surface.id === value)?.label || value
@@ -341,11 +365,13 @@ function renderDynamicFilters() {
 
   renderChips(nodes.primaryFilters, primaryValues, state.filters.primary, (value) => {
     state.filters.primary = value;
+    saveUIState();
     render();
   });
 
   renderChips(nodes.secondaryFilters, secondaryValues, state.filters.secondary, (value) => {
     state.filters.secondary = value;
+    saveUIState();
     render();
   });
 }
@@ -669,6 +695,7 @@ function render() {
 
 nodes.listToggle.addEventListener("click", () => {
   state.showTable = !state.showTable;
+  saveUIState();
   render();
 });
 
@@ -679,7 +706,19 @@ async function init() {
   state.auConfig = dataset.auConfig;
   state.sourcePolicy = dataset.sourcePolicy;
   state.surfaces = hydrateSurfaces(dataset.payload);
-  state.activeSurfaceId = state.surfaces.find((surface) => surface.items.length)?.id || state.surfaces[0]?.id || "best-bets";
+
+  // Restore persisted UI state (surface, filters, showTable)
+  const saved = loadUIState();
+  const defaultSurfaceId = state.surfaces.find((surface) => surface.items.length)?.id || state.surfaces[0]?.id || "best-bets";
+  if (saved) {
+    const surfaceExists = state.surfaces.some((s) => s.id === saved.activeSurfaceId);
+    state.activeSurfaceId = surfaceExists ? saved.activeSurfaceId : defaultSurfaceId;
+    state.filters = { primary: saved.filters?.primary || "All", secondary: saved.filters?.secondary || "All" };
+    state.showTable = saved.showTable ?? false;
+  } else {
+    state.activeSurfaceId = defaultSurfaceId;
+  }
+
   render();
 }
 

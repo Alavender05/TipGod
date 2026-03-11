@@ -39,17 +39,22 @@ const ADAPTERS = [
  *
  * @param {import('playwright').Browser} browser
  * @param {object[]} bookmakerConfigs - BookmakerConfig[] from moneyline_bookmakers.json
- * @returns {Promise<Record<string, RawGameOdds[]>>} keyed by adapter slug
+ * @returns {Promise<{ oddsMap: Record<string, RawGameOdds[]>, adapterHealth: Record<string, AdapterHealth> }>}
  */
 async function runAllAdapters(browser, bookmakerConfigs) {
   const configBySlug = new Map(bookmakerConfigs.map((c) => [c.slug, c]));
-  const results = {};
+  const oddsMap = {};
+  /** @type {Record<string, { raw_games: number, error: string | null, started_at: string, finished_at: string }>} */
+  const adapterHealth = {};
 
   for (const adapter of ADAPTERS) {
     const config = configBySlug.get(adapter.slug);
+    const startedAt = new Date().toISOString();
+
     if (!config) {
       console.warn(`[adapters/index] No config found for slug "${adapter.slug}", skipping.`);
-      results[adapter.slug] = [];
+      adapterHealth[adapter.slug] = { raw_games: 0, error: 'no_config', started_at: startedAt, finished_at: new Date().toISOString() };
+      oddsMap[adapter.slug] = [];
       continue;
     }
 
@@ -58,17 +63,22 @@ async function runAllAdapters(browser, bookmakerConfigs) {
       page = await browser.newPage({ viewport: { width: 1440, height: 1800 } });
       console.log(`[adapters/index] Running ${adapter.name} adapter...`);
       const odds = await adapter.fetchOdds(page, config);
+      const finishedAt = new Date().toISOString();
       console.log(`[adapters/index] ${adapter.name}: ${odds.length} raw game(s) found.`);
-      results[adapter.slug] = odds;
+      oddsMap[adapter.slug] = odds;
+      adapterHealth[adapter.slug] = { raw_games: odds.length, error: null, started_at: startedAt, finished_at: finishedAt };
     } catch (error) {
-      console.error(`[adapters/index] ${adapter.name} adapter threw: ${error.message}`);
-      results[adapter.slug] = [];
+      const finishedAt = new Date().toISOString();
+      const msg = error.message || String(error);
+      console.error(`[adapters/index] ${adapter.name} adapter threw: ${msg}`);
+      oddsMap[adapter.slug] = [];
+      adapterHealth[adapter.slug] = { raw_games: 0, error: msg, started_at: startedAt, finished_at: finishedAt };
     } finally {
       if (page) await page.close().catch(() => {});
     }
   }
 
-  return results;
+  return { oddsMap, adapterHealth };
 }
 
 // ─── buildEnrichment ─────────────────────────────────────────────────────────

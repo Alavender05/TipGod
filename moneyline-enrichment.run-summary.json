@@ -1,0 +1,111 @@
+{
+  "started_at": "2026-03-11T06:00:15.918Z",
+  "enriched_at": "2026-03-11T06:00:15.931Z",
+  "demo": true,
+  "approved_bookmakers": [
+    "ladbrokes",
+    "sportsbet",
+    "pointsbet",
+    "bet365"
+  ],
+  "failed_adapters": [],
+  "total_enrichable_items": 119,
+  "total_enriched_items": 112,
+  "overall_coverage_pct": 94,
+  "per_book": {
+    "ladbrokes": {
+      "raw_games_found": 32,
+      "adapter_success": true,
+      "error": null,
+      "started_at": "2026-03-11T06:00:15.918Z",
+      "finished_at": "2026-03-11T06:00:15.931Z"
+    },
+    "sportsbet": {
+      "raw_games_found": 32,
+      "adapter_success": true,
+      "error": null,
+      "started_at": "2026-03-11T06:00:15.918Z",
+      "finished_at": "2026-03-11T06:00:15.931Z"
+    },
+    "pointsbet": {
+      "raw_games_found": 32,
+      "adapter_success": true,
+      "error": null,
+      "started_at": "2026-03-11T06:00:15.918Z",
+      "finished_at": "2026-03-11T06:00:15.931Z"
+    },
+    "bet365": {
+      "raw_games_found": 32,
+      "adapter_success": true,
+      "error": null,
+      "started_at": "2026-03-11T06:00:15.918Z",
+      "finished_at": "2026-03-11T06:00:15.931Z"
+    }
+  },
+  "surfaces": [
+    {
+      "surface_id": "best-bets",
+      "label": "Best Bets",
+      "total_items": 94,
+      "enrichable_items": 94,
+      "enriched_items": 87,
+      "books_with_coverage": [
+        "ladbrokes",
+        "sportsbet",
+        "bet365",
+        "pointsbet"
+      ],
+      "coverage_pct": 93
+    },
+    {
+      "surface_id": "edges",
+      "label": "Edges",
+      "total_items": 27,
+      "enrichable_items": 0,
+      "enriched_items": 0,
+      "books_with_coverage": [],
+      "coverage_pct": 0
+    },
+    {
+      "surface_id": "props",
+      "label": "Props",
+      "total_items": 120,
+      "enrichable_items": 0,
+      "enriched_items": 0,
+      "books_with_coverage": [],
+      "coverage_pct": 0
+    },
+    {
+      "surface_id": "parlay",
+      "label": "Parlay",
+      "total_items": 54,
+      "enrichable_items": 0,
+      "enriched_items": 0,
+      "books_with_coverage": [],
+      "coverage_pct": 0
+    },
+    {
+      "surface_id": "degen",
+      "label": "Degen",
+      "total_items": 120,
+      "enrichable_items": 0,
+      "enriched_items": 0,
+      "books_with_coverage": [],
+      "coverage_pct": 0
+    },
+    {
+      "surface_id": "exploits",
+      "label": "Exploits",
+      "total_items": 25,
+      "enrichable_items": 25,
+      "enriched_items": 25,
+      "books_with_coverage": [
+        "ladbrokes",
+        "sportsbet",
+        "bet365",
+        "pointsbet"
+      ],
+      "coverage_pct": 100
+    }
+  ]
+}

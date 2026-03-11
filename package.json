@@ -1,9 +1,11 @@
 {
   "scripts": {
     "scan:nba-surfaces": "node scan-capping-pro-nba-surfaces.js",
-    "summarize:nba-surfaces": "python3 scripts/summarize_capping_pro_nba_surfaces.py capping-pro-nba-surfaces.json",
+    "summarize:nba-surfaces": "node scripts/summarize.js capping-pro-nba-surfaces.json",
     "typecheck": "tsc --noEmit",
-    "enrich:moneyline": "node enrich-moneyline.js"
+    "enrich:moneyline": "node enrich-moneyline.js",
+    "test": "node --test tests/*.test.js",
+    "demo:enrichment": "node scripts/generate-demo-enrichment.js"
   },
   "dependencies": {
     "playwright": "^1.58.2"

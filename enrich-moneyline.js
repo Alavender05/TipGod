@@ -75,18 +75,22 @@ async function run() {
   // 3. Launch browser
   const browser = await chromium.launch({ headless: true });
   let bookOddsMap = {};
+  let adapterHealth = {};
 
   try {
     // 4. Run all 4 adapters
-    bookOddsMap = await runAllAdapters(browser, bookmakerConfigs);
+    const adapterResult = await runAllAdapters(browser, bookmakerConfigs);
+    bookOddsMap   = adapterResult.oddsMap;
+    adapterHealth = adapterResult.adapterHealth;
   } finally {
     await browser.close();
   }
 
-  // Log per-book raw counts
+  // Log per-book health summary
   for (const slug of APPROVED_BOOKMAKERS) {
-    const count = (bookOddsMap[slug] || []).length;
-    console.log(`[enrich-moneyline] ${slug}: ${count} raw game(s)`);
+    const health = adapterHealth[slug] || {};
+    const status = health.error ? `ERROR: ${health.error}` : `OK (${health.raw_games} games)`;
+    console.log(`[enrich-moneyline] ${slug}: ${status}`);
   }
 
   // 5. Build enrichment cache: matchupStr → MoneylineEnrichment | null
@@ -140,7 +144,7 @@ async function run() {
   console.log(`[enrich-moneyline] Wrote enriched dataset → ${path.basename(OUTPUT_PATH)}`);
 
   // 9. Write run summary
-  const runSummary = buildRunSummary(startedAt, enrichedAt, enrichedSurfaces, bookOddsMap);
+  const runSummary = buildRunSummary(startedAt, enrichedAt, enrichedSurfaces, bookOddsMap, adapterHealth);
   fs.writeFileSync(RUN_SUMMARY_PATH, JSON.stringify(runSummary, null, 2), 'utf8');
   console.log(`[enrich-moneyline] Wrote run summary → ${path.basename(RUN_SUMMARY_PATH)}`);
   console.log(`[enrich-moneyline] Done.`);
@@ -192,9 +196,10 @@ function computeCoverageStats(surfaceId, enrichedItems) {
  * @param {string} enrichedAt
  * @param {Array} enrichedSurfaces
  * @param {Record<string, Array>} bookOddsMap
+ * @param {Record<string, object>} adapterHealth
  * @returns {object}
  */
-function buildRunSummary(startedAt, enrichedAt, enrichedSurfaces, bookOddsMap) {
+function buildRunSummary(startedAt, enrichedAt, enrichedSurfaces, bookOddsMap, adapterHealth) {
   const surfaceSummaries = enrichedSurfaces.map((s) => ({
     surface_id: s.id,
     label: s.label,
@@ -206,16 +211,25 @@ function buildRunSummary(startedAt, enrichedAt, enrichedSurfaces, bookOddsMap) {
 
   const perBook = {};
   for (const slug of APPROVED_BOOKMAKERS) {
+    const health = adapterHealth[slug] || {};
     perBook[slug] = {
-      raw_games_found: (bookOddsMap[slug] || []).length,
-      adapter_success: (bookOddsMap[slug] || []).length > 0,
+      raw_games_found: health.raw_games ?? (bookOddsMap[slug] || []).length,
+      adapter_success: health.error === null || health.error === undefined,
+      error: health.error || null,
+      started_at: health.started_at || null,
+      finished_at: health.finished_at || null,
     };
   }
+
+  const failedAdapters = Object.entries(perBook)
+    .filter(([, v]) => !v.adapter_success)
+    .map(([slug]) => slug);
 
   return {
     started_at: startedAt,
     enriched_at: enrichedAt,
     approved_bookmakers: APPROVED_BOOKMAKERS,
+    failed_adapters: failedAdapters,
     total_enrichable_items: totalEnrichable,
     total_enriched_items: totalEnriched,
     overall_coverage_pct: totalEnrichable > 0

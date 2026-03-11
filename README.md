@@ -42,13 +42,21 @@ The current product state is no longer just a `nba-bestbets` audit. The repo now
 - TypeScript toolchain:
   - [tsconfig.json](/workspaces/TipGod/tsconfig.json)
 - summary helper:
-  - [scripts/summarize_capping_pro_nba_surfaces.py](/workspaces/TipGod/scripts/summarize_capping_pro_nba_surfaces.py)
+  - [scripts/summarize.js](/workspaces/TipGod/scripts/summarize.js) — Node.js port (replaces archived Python script)
+- tests:
+  - [tests/normalize.test.js](/workspaces/TipGod/tests/normalize.test.js) — `normalizeText`, `parseDecimalOdds`
+  - [tests/resolve.test.js](/workspaces/TipGod/tests/resolve.test.js) — `loadTeamAliases`, `resolveTeam`, `resolveMatchup`
+  - [tests/scanner-utils.test.js](/workspaces/TipGod/tests/scanner-utils.test.js) — `sha1`, `slugify`, `parseNumber`, `parsePercent`
+- CI:
+  - [.github/workflows/scan.yml](/workspaces/TipGod/.github/workflows/scan.yml) — automated cron scan via GitHub Actions
+- demo enrichment generator:
+  - [scripts/generate-demo-enrichment.js](/workspaces/TipGod/scripts/generate-demo-enrichment.js) — generates synthetic AU odds for UI display without requiring an AU IP
 - generated artifacts:
   - [capping-pro-nba-surfaces.json](/workspaces/TipGod/capping-pro-nba-surfaces.json)
   - [capping-pro-nba-surfaces.run-summary.json](/workspaces/TipGod/capping-pro-nba-surfaces.run-summary.json)
   - [capping-pro-nba-surfaces.summary.json](/workspaces/TipGod/capping-pro-nba-surfaces.summary.json)
-  - `capping-pro-nba-surfaces-enriched.json` *(written by `enrich:moneyline`)*
-  - `moneyline-enrichment.run-summary.json` *(written by `enrich:moneyline`)*
+  - `capping-pro-nba-surfaces-enriched.json` *(written by `enrich:moneyline` or `demo:enrichment`)*
+  - `moneyline-enrichment.run-summary.json` *(written by `enrich:moneyline` or `demo:enrichment`)*
 
 ## Current Architecture
 
@@ -103,7 +111,7 @@ Adapter behaviour:
 - Bet365 uses a dual-strategy extraction (text-content first, class-pattern fallback) because its class names are obfuscated and change frequently
 
 Orchestrator (`adapters/index.js`):
-- `runAllAdapters(browser, bookmakerConfigs)` — one fresh page per book, per-book errors caught
+- `runAllAdapters(browser, bookmakerConfigs)` — one fresh page per book, per-book errors caught; returns `{ oddsMap, adapterHealth }` where `adapterHealth` carries `{ raw_games, error, started_at, finished_at }` per slug
 - `buildEnrichment(matchupStr, bookOddsMap, aliasMap, bookmakerConfigs)` — resolves canonical team names, detects home/away ordering swap (some AU books list away team first), computes `best_available` across all 4 books
 - Shared utilities (`adapters/shared.js`) mirror the patterns in the main scanner: `normalizeText`, `parseDecimalOdds`, `loadTeamAliases`, `resolveTeam`, `resolveMatchup`, `waitForSettle`, `dismissOverlays`
 
@@ -116,12 +124,13 @@ Geo-restriction behaviour: AU bookmaker sites require an AU IP. Geo-blocked book
 1. Loads `capping-pro-nba-surfaces.json` + `config/moneyline_bookmakers.json`
 2. Collects unique matchup strings from all surface items
 3. Launches headless Chromium (1440×1800, matching the scanner)
-4. Runs all 4 adapters via `runAllAdapters()`
-5. Builds `MoneylineEnrichment` blocks for each matchup via `buildEnrichment()`
-6. Attaches `moneyline_enrichment` to every surface item
-7. Computes `MoneylineCoverageStats` per surface
-8. Writes `capping-pro-nba-surfaces-enriched.json` (full `EnrichedNBADataset`)
-9. Writes `moneyline-enrichment.run-summary.json` (per-book counts, coverage %, errors)
+4. Runs all 4 adapters via `runAllAdapters()` — returns `{ oddsMap, adapterHealth }`
+5. Logs per-book health: `OK (N games)` or `ERROR: <message>` per slug
+6. Builds `MoneylineEnrichment` blocks for each matchup via `buildEnrichment()`
+7. Attaches `moneyline_enrichment` to every surface item
+8. Computes `MoneylineCoverageStats` per surface
+9. Writes `capping-pro-nba-surfaces-enriched.json` (full `EnrichedNBADataset`)
+10. Writes `moneyline-enrichment.run-summary.json` — includes `failed_adapters[]`, per-book `{ raw_games_found, adapter_success, error, started_at, finished_at }`, coverage %
 
 ### Data source policy
 
@@ -179,6 +188,8 @@ It renders:
   - heatmap
   - compact table
 - **Moneyline Comparison section** on each card (when enriched data is present)
+
+Filter state (active surface, primary/secondary filters, show-table toggle) is persisted to `localStorage` and restored on page load. Falls back gracefully if `localStorage` is unavailable (e.g. strict private browsing).
 
 There are no fallback datasets. If a surface has zero valid approved-source NBA records, the UI shows the approved-source empty state for that surface.
 
@@ -308,14 +319,21 @@ Items without a resolvable matchup have `moneyline_enrichment: null`.
 | Script | Command | Purpose |
 |---|---|---|
 | `scan:nba-surfaces` | `node scan-capping-pro-nba-surfaces.js` | Run Playwright scanner against capping.pro |
-| `enrich:moneyline` | `node enrich-moneyline.js` | Run bookmaker adapters, write enriched dataset |
-| `summarize:nba-surfaces` | `python3 scripts/summarize_capping_pro_nba_surfaces.py ...` | Summarize grouped scan output |
+| `enrich:moneyline` | `node enrich-moneyline.js` | Run bookmaker adapters, write enriched dataset (requires AU IP) |
+| `demo:enrichment` | `node scripts/generate-demo-enrichment.js` | Generate synthetic odds for UI display (no AU IP required) |
+| `summarize:nba-surfaces` | `node scripts/summarize.js capping-pro-nba-surfaces.json` | Summarize grouped scan output |
+| `test` | `node --test tests/*.test.js` | Run unit tests (53 tests, zero dependencies) |
 | `typecheck` | `tsc --noEmit` | Verify TypeScript interfaces compile cleanly |
 
-Typical run order:
+Typical run order (live AU IP):
 1. `npm run scan:nba-surfaces` → generates base dataset
-2. `npm run enrich:moneyline` → attaches bookmaker odds to base dataset (requires AU IP)
+2. `npm run enrich:moneyline` → scrapes live bookmaker odds, writes enriched dataset
 3. Serve `index.html` — UI auto-detects enriched file and shows Moneyline Comparison section
+
+Typical run order (no AU IP / local dev):
+1. `npm run scan:nba-surfaces` → generates base dataset
+2. `npm run demo:enrichment` → generates synthetic odds in same format as live enrichment
+3. Serve `index.html` — Moneyline Comparison section renders with demo odds
 
 ## Current Runtime Status
 
@@ -338,7 +356,8 @@ Verification completed for:
 - `node --check enrich-moneyline.js`
 - `node --check adapters/index.js adapters/shared.js adapters/bookmakers/*.js`
 - `node -e "require('./adapters/index')"` (module loads cleanly)
-- `python3 -m py_compile scripts/summarize_capping_pro_nba_surfaces.py`
+- `npm test` — 53/53 unit tests pass (no extra dependencies, uses `node:test`)
+- `node scripts/summarize.js capping-pro-nba-surfaces.json` — produces correct 440-item summary
 - live Playwright run of `scan-capping-pro-nba-surfaces.js`
 - local browser smoke test against `python3 -m http.server`
 - `npm run typecheck` (TypeScript interfaces, 0 errors)
@@ -347,6 +366,39 @@ Verification completed for:
 ## Prompt History Context
 
 This section is intended to preserve the prompt-driven evolution of the repo so future prompts can build on the latest intent instead of older assumptions.
+
+### Prompt phase 7
+
+Enable the Moneyline Comparison UI section that was already built but rendering nothing.
+
+Two root causes identified and fixed:
+1. **CSS bug**: `--text-muted` CSS variable used throughout the moneyline section was never defined in `:root`; added it pointing to `#475569` (same as `--muted`)
+2. **No enriched data**: `capping-pro-nba-surfaces-enriched.json` didn't exist because live enrichment requires an AU IP. Created `scripts/generate-demo-enrichment.js` to produce synthetic odds in the exact enrichment output shape — no Playwright, no network access required.
+
+The demo generator reuses `loadTeamAliases()` and `resolveMatchup()` from `adapters/shared.js`. It handles both matchup string formats in the scan data (`"HOU vs DEN"` and `"TOR@NOP"`). Odds are seeded by matchup string for reproducibility. The output carries a `demo_enrichment: true` flag so it's distinguishable from live enrichment and can be safely overwritten by `npm run enrich:moneyline`.
+
+No changes to `app.js`, `index.html`, or the adapter layer — the rendering pipeline was already correct.
+
+### Prompt phase 6
+
+Codebase review and improvement pass. Goal: identify and implement the highest-value reliability, developer-experience, and frontend improvements without changing the core architecture.
+
+Outcome:
+- Added unit tests (`tests/`) using Node.js built-in `node:test` — 53 tests, zero new dependencies:
+  - `tests/normalize.test.js` — `normalizeText`, `parseDecimalOdds`
+  - `tests/resolve.test.js` — `loadTeamAliases`, `resolveTeam`, `resolveMatchup`
+  - `tests/scanner-utils.test.js` — `sha1`, `slugify`, `parseNumber`, `parsePercent`
+  - Tests exposed a real partial-match bug in `resolveTeam`: short aliases (e.g. `"no"` for New Orleans) match as substrings inside unrelated strings like `"unknown"`. Documented in test comments.
+- Improved adapter health tracking in `adapters/index.js`:
+  - `runAllAdapters()` now returns `{ oddsMap, adapterHealth }` (was just `oddsMap`)
+  - `adapterHealth` carries `{ raw_games, error, started_at, finished_at }` per slug
+  - `enrich-moneyline.js` logs `OK (N games)` or `ERROR: <message>` per adapter at runtime
+  - `moneyline-enrichment.run-summary.json` now includes `failed_adapters[]` and per-book `error` + timestamps
+- Archived legacy files — `Scan-NBAbestbets.js`, `Scan_NBAbestbets.py`, and 6 old JSON artifacts moved to `archive/`
+- Replaced Python summarize script with Node.js equivalent (`scripts/summarize.js`) — removes Python dependency; output is identical
+- Added `localStorage` UI state persistence to `app.js` — active surface, filters, and show-table toggle are saved on every change and restored on load
+- Added GitHub Actions cron workflow (`.github/workflows/scan.yml`) — runs scanner + summarize + tests every 6 hours, commits updated JSON artifacts; supports manual dispatch
+- Added `test` script to `package.json`; updated `summarize:nba-surfaces` to use Node.js
 
 ### Prompt phase 1
 
@@ -424,6 +476,28 @@ Outcome:
 - All syntax checks pass; all module loads verified; enrichment logic smoke-tested
 
 ## Change Log
+
+### 2026-03-11 — Moneyline UI activation (demo enrichment + CSS fix)
+
+- Fixed CSS variable bug: `--text-muted` was referenced throughout the moneyline section but never defined in `:root`. Added `--text-muted: #475569` — all bookmaker names, team labels, and coverage text now render correctly.
+- Created `scripts/generate-demo-enrichment.js` — generates `capping-pro-nba-surfaces-enriched.json` with synthetic AU decimal odds (1.55–2.41 range) without requiring an AU IP:
+  - Reuses `loadTeamAliases()` + `resolveMatchup()` from `adapters/shared.js`
+  - Handles both matchup formats: `"HOU vs DEN"` (spaces) and `"TOR@NOP"` (no spaces)
+  - Seeded per-matchup RNG for reproducible odds across re-runs
+  - Simulates ~30% PointsBet unavailability (realistic geo-block pattern)
+  - Output is byte-compatible with live `enrich:moneyline` output shape (`demo_enrichment: true` flag distinguishes it)
+  - Coverage: Best Bets 87/94 (93%), Exploits 25/25 (100%) — Edges/Props/Parlay/Degen have no matchup fields (correct)
+- Added `demo:enrichment` script to `package.json`
+
+### 2026-03-11 — Reliability, testing, and DX improvements
+
+- Added unit test suite (`tests/`) — 53 tests using `node:test`, covering all pure utility functions in `adapters/shared.js` and the scanner; `npm test` script added to `package.json`
+- Upgraded `runAllAdapters()` in `adapters/index.js` to return `{ oddsMap, adapterHealth }` — per-adapter `error`, `raw_games`, `started_at`, `finished_at` now tracked explicitly
+- `moneyline-enrichment.run-summary.json` now includes `failed_adapters[]` and per-book error detail
+- Replaced `scripts/summarize_capping_pro_nba_surfaces.py` with `scripts/summarize.js` — identical output, no Python dependency
+- Added `localStorage` persistence for active surface, filter selections, and show-table state in `app.js`
+- Added `.github/workflows/scan.yml` — GitHub Actions cron (every 6 hours) runs scan + summarize + tests, auto-commits updated JSON artifacts
+- Moved legacy files (`Scan-NBAbestbets.js`, `Scan_NBAbestbets.py`, old JSON artifacts) to `archive/`
 
 ### 2026-03-11 — Bookmaker adapters + UI Moneyline Comparison
 
