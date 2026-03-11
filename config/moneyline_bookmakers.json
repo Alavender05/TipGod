@@ -1,0 +1,58 @@
+{
+  "description": "AU bookmakers approved for NBA moneyline (head-to-head) enrichment only. Managed separately from au_sportsbooks.json which covers all supported markets.",
+  "league_id": "NBA",
+  "market_canonical": "head-to-head",
+  "odds_format": "decimal",
+  "currency": "AUD",
+  "timezone": "Australia/Sydney",
+  "bookmakers": [
+    {
+      "id": "ladbrokes_au",
+      "slug": "ladbrokes",
+      "name": "Ladbrokes",
+      "region": "AU",
+      "odds_format": "decimal",
+      "currency": "AUD",
+      "timezone": "Australia/Sydney",
+      "moneyline_market_name": "Head To Head",
+      "base_url": "https://www.ladbrokes.com.au",
+      "nba_path": "/sports/basketball/nba"
+    },
+    {
+      "id": "sportsbet_au",
+      "slug": "sportsbet",
+      "name": "Sportsbet",
+      "region": "AU",
+      "odds_format": "decimal",
+      "currency": "AUD",
+      "timezone": "Australia/Sydney",
+      "moneyline_market_name": "Head To Head",
+      "base_url": "https://www.sportsbet.com.au",
+      "nba_path": "/basketball/nba"
+    },
+    {
+      "id": "pointsbet_au",
+      "slug": "pointsbet",
+      "name": "PointsBet",
+      "region": "AU",
+      "odds_format": "decimal",
+      "currency": "AUD",
+      "timezone": "Australia/Sydney",
+      "moneyline_market_name": "Match Winner",
+      "base_url": "https://pointsbet.com.au",
+      "nba_path": "/sports/basketball/nba"
+    },
+    {
+      "id": "bet365_au",
+      "slug": "bet365",
+      "name": "Bet365",
+      "region": "AU",
+      "odds_format": "decimal",
+      "currency": "AUD",
+      "timezone": "Australia/Sydney",
+      "moneyline_market_name": "Match Betting",
+      "base_url": "https://www.bet365.com.au",
+      "nba_path": "/#/AS/B1/C20601769/D6/E1453/F10/"
+    }
+  ]
+}

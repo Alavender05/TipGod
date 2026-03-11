@@ -154,6 +154,26 @@
       "url_patterns": [
         "https://www.unibet.com.au/*"
       ]
+    },
+    {
+      "id": "pointsbet_au",
+      "name": "PointsBet",
+      "slug": "pointsbet",
+      "region": "AU",
+      "odds_format": "decimal",
+      "currency": "AUD",
+      "timezone": "Australia/Sydney",
+      "supported_markets": [
+        "line",
+        "total points",
+        "head-to-head",
+        "player props",
+        "team total"
+      ],
+      "scraping_method": "html",
+      "url_patterns": [
+        "https://pointsbet.com.au/*"
+      ]
     }
   ]
 }

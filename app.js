@@ -1,11 +1,21 @@
 const DATA_FILE = {
   label: "Approved source",
   path: "./capping-pro-nba-surfaces.json",
+  enrichedPath: "./capping-pro-nba-surfaces-enriched.json",
   summaryPath: "./capping-pro-nba-surfaces.run-summary.json",
 };
 
 const AU_CONFIG_PATH = "./config/au_sportsbooks.json";
 const SOURCE_POLICY_PATH = "./config/source_policy.json";
+
+// Moneyline enrichment — 4 approved AU bookmakers only
+const APPROVED_BOOKMAKERS = ["ladbrokes", "sportsbet", "pointsbet", "bet365"];
+const BOOKMAKER_DISPLAY_NAMES = {
+  ladbrokes: "Ladbrokes",
+  sportsbet: "Sportsbet",
+  pointsbet: "PointsBet",
+  bet365: "Bet365",
+};
 const SURFACE_ORDER = ["best-bets", "edges", "props", "parlay", "degen", "exploits"];
 
 const state = {
@@ -143,10 +153,14 @@ async function loadJson(filePath) {
 }
 
 async function loadDataset() {
-  const [auConfig, sourcePolicy, payload, runSummary] = await Promise.all([
+  // Prefer the enriched dataset if available; fall back to the base dataset.
+  const payload = await loadJson(DATA_FILE.enrichedPath).catch(
+    () => loadJson(DATA_FILE.path).catch(() => ({ surfaces: [] }))
+  );
+
+  const [auConfig, sourcePolicy, runSummary] = await Promise.all([
     loadJson(AU_CONFIG_PATH),
     loadJson(SOURCE_POLICY_PATH),
-    loadJson(DATA_FILE.path).catch(() => ({ surfaces: [] })),
     loadJson(DATA_FILE.summaryPath).catch(() => null),
   ]);
 
@@ -380,6 +394,78 @@ function itemTopline(item, surfaceLabel) {
   return chips.join("");
 }
 
+function renderMoneylineComparison(item) {
+  const enrichment = item.moneyline_enrichment;
+
+  // No enrichment data at all — show nothing (not even no-data message)
+  // This keeps cards clean when running against the base (non-enriched) dataset
+  if (!enrichment) return "";
+
+  const availableQuotes = APPROVED_BOOKMAKERS.filter(
+    (slug) => enrichment.quotes[slug]?.is_available
+  );
+  const coverageCount = availableQuotes.length;
+
+  // All 4 books unavailable — show no-data message
+  if (coverageCount === 0) {
+    return `
+      <div class="moneyline-no-data">
+        <span>No moneyline data available</span>
+      </div>
+    `;
+  }
+
+  const best = enrichment.best_available;
+  const homeLabel = enrichment.home_team
+    ? enrichment.home_team.split(" ").pop()   // e.g. "Lakers" from "Los Angeles Lakers"
+    : "Home";
+  const awayLabel = enrichment.away_team
+    ? enrichment.away_team.split(" ").pop()
+    : "Away";
+
+  const rows = APPROVED_BOOKMAKERS.map((slug) => {
+    const quote = enrichment.quotes[slug];
+    const available = quote?.is_available;
+    const displayName = BOOKMAKER_DISPLAY_NAMES[slug] || slug;
+
+    if (!available) {
+      return `
+        <div class="moneyline-row" data-available="false">
+          <span class="ml-book-name">${displayName}</span>
+          <span class="ml-unavailable">—</span>
+        </div>
+      `;
+    }
+
+    const homeOdds = quote.home_odds != null ? quote.home_odds.toFixed(2) : "—";
+    const awayOdds = quote.away_odds != null ? quote.away_odds.toFixed(2) : "—";
+    const homeBest = best.home_best_bookmaker === slug ? " best-odds" : "";
+    const awayBest = best.away_best_bookmaker === slug ? " best-odds" : "";
+
+    return `
+      <div class="moneyline-row" data-available="true">
+        <span class="ml-book-name">${displayName}</span>
+        <span class="ml-odds ml-home-odds${homeBest}">${homeOdds}</span>
+        <span class="ml-odds ml-away-odds${awayBest}">${awayOdds}</span>
+      </div>
+    `;
+  }).join("");
+
+  return `
+    <div class="moneyline-comparison">
+      <div class="moneyline-header">
+        <span class="moneyline-label">Moneyline</span>
+        <span class="moneyline-coverage">${coverageCount} of 4 books</span>
+      </div>
+      <div class="moneyline-matchup-labels">
+        <span class="ml-team ml-home">${homeLabel}</span>
+        <span class="ml-team ml-away">${awayLabel}</span>
+      </div>
+      <div class="moneyline-rows">${rows}</div>
+    </div>
+  `;
+}
+
 function pickCardMarkup(item, items, surfaceLabel, featured = false) {
   const secondary = secondaryMetric(item);
   const metaPills = [
@@ -400,6 +486,7 @@ function pickCardMarkup(item, items, surfaceLabel, featured = false) {
       <div class="pick-text">${item.selection || item.subtitle || "Selection unavailable"}</div>
       ${meterMarkup(item, items)}
       <div class="pick-meta-grid">${metaPills.join("")}</div>
+      ${renderMoneylineComparison(item)}
       <p class="subtext">${item.reason || "Approved-source NBA item."}</p>
       <div class="edge-strip" style="width: ${Math.round(metricRatio(item, items) * 100)}%; background: ${toneColor(metricRatio(item, items))};"></div>
     </article>
