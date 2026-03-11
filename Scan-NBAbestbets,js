@@ -1,0 +1,818 @@
+const { chromium } = require('playwright');
+const crypto = require('crypto');
+
+const PAGE_URL = 'https://capping.pro/nba-bestbets';
+const OUTPUT_PATH = 'nba-bestbets-scan.json';
+
+const SELECTORS = {
+  pageRoot: '.nba-best-bets-container',
+  loading: [
+    '.nba-best-bets-loading',
+    '.refreshing-overlay',
+    '.nba-modal-loading',
+    'text=/Loading NBA Best Bets Analysis/i',
+    'text=/Updating results/i',
+    'text=/Refreshing/i',
+  ],
+  cards: '.nba-best-bets-grid .nba-best-bet-card',
+  noResults: '.no-results, .nba-best-bets-error',
+  dateInput: 'input.date-picker, input[type="date"]',
+  categoryTabs: '.category-tabs .category-tab',
+  matchupToggle: '.matchup-toggle input[type="checkbox"]',
+  refreshButton: '.refresh-btn',
+  injuryFilterButton: '.injury-filter-button',
+  injuryDropdown: '.injury-filter-dropdown',
+  injuryCheckboxes: '.injury-filter-dropdown input[type="checkbox"]',
+  injuryShowAll: '.injury-filter-dropdown .filter-action-btn:text-is("Show All")',
+  injuryHideAll: '.injury-filter-dropdown .filter-action-btn:text-is("Hide All")',
+  pointsSlider: '#points-threshold',
+  assistsSlider: '#assists-threshold',
+  reboundsSlider: '#rebounds-threshold',
+  modalRoots: '.nba-modal-overlay .nba-modal-content, .ios-bottom-sheet.open',
+  modalClose: '.nba-modal-close-btn, .nba-modal-close-x, .ios-bottom-sheet-close, button[aria-label="Close"]',
+};
+
+const MAX_DATES = 3;
+const MAX_TEAMS = 32;
+const RETRY_COUNT = 2;
+
+function sha1(input) {
+  return crypto.createHash('sha1').update(String(input)).digest('hex');
+}
+
+function normalizeText(value) {
+  return String(value || '').replace(/\s+/g, ' ').trim();
+}
+
+function buildScanPath(parts) {
+  return parts.filter(Boolean).join(' > ');
+}
+
+function uniqueBy(items, keyFn) {
+  const seen = new Set();
+  const result = [];
+  for (const item of items) {
+    const key = keyFn(item);
+    if (seen.has(key)) continue;
+    seen.add(key);
+    result.push(item);
+  }
+  return result;
+}
+
+async function isVisible(locator) {
+  try {
+    return await locator.first().isVisible();
+  } catch {
+    return false;
+  }
+}
+
+async function clickWithRetry(page, locator, description) {
+  let lastError = null;
+  for (let attempt = 0; attempt <= RETRY_COUNT; attempt += 1) {
+    try {
+      await locator.first().scrollIntoViewIfNeeded();
+      await locator.first().click({ timeout: 5_000 });
+      return;
+    } catch (error) {
+      lastError = error;
+      if (attempt === RETRY_COUNT) break;
+      await page.waitForTimeout(500);
+      try {
+        await locator.first().click({ timeout: 5_000, force: true });
+        return;
+      } catch (forceError) {
+        lastError = forceError;
+      }
+    }
+  }
+  throw new Error(`Failed to click ${description}: ${lastError.message}`);
+}
+
+async function selectWithRetry(page, locator, value, label) {
+  let lastError = null;
+  for (let attempt = 0; attempt <= RETRY_COUNT; attempt += 1) {
+    try {
+      await locator.selectOption(value);
+      return;
+    } catch (error) {
+      lastError = error;
+      try {
+        await locator.evaluate((node, nextValue) => {
+          node.value = nextValue;
+          node.dispatchEvent(new Event('input', { bubbles: true }));
+          node.dispatchEvent(new Event('change', { bubbles: true }));
+        }, value);
+        return;
+      } catch (evalError) {
+        lastError = evalError;
+      }
+      await page.waitForTimeout(400);
+    }
+  }
+  throw new Error(`Failed to set ${label}: ${lastError.message}`);
+}
+
+async function setSelectByLabel(page, labelText, value) {
+  let lastError = null;
+  for (let attempt = 0; attempt <= RETRY_COUNT; attempt += 1) {
+    try {
+      await page.evaluate(
+        ({ label, nextValue }) => {
+          const labels = Array.from(document.querySelectorAll('label'));
+          const labelNode = labels.find((node) =>
+            node.textContent.replace(/\s+/g, ' ').trim().startsWith(label)
+          );
+          if (!labelNode) throw new Error(`Label not found: ${label}`);
+
+          let select = labelNode.nextElementSibling;
+          if (!select || select.tagName !== 'SELECT') {
+            select = labelNode.parentElement ? labelNode.parentElement.querySelector('select') : null;
+          }
+          if (!select) throw new Error(`Select not found for label: ${label}`);
+
+          select.value = nextValue;
+          select.dispatchEvent(new Event('input', { bubbles: true }));
+          select.dispatchEvent(new Event('change', { bubbles: true }));
+        },
+        { label: labelText, nextValue: value }
+      );
+      return;
+    } catch (error) {
+      lastError = error;
+      await page.waitForTimeout(300);
+    }
+  }
+  throw new Error(`Failed to set select "${labelText}": ${lastError.message}`);
+}
+
+async function setRangeValue(page, selector, value) {
+  const locator = page.locator(selector);
+  await locator.evaluate((node, nextValue) => {
+    node.value = String(nextValue);
+    node.dispatchEvent(new Event('input', { bubbles: true }));
+    node.dispatchEvent(new Event('change', { bubbles: true }));
+  }, value);
+}
+
+async function dismissOverlays(page) {
+  const dismissors = [
+    page.getByRole('button', { name: /accept|agree|ok|got it|close/i }),
+    page.locator('button[aria-label="Close"]'),
+    page.locator('[data-testid*="close"]'),
+    page.locator('.modal button, .popup button').filter({ hasText: /close|accept|agree/i }),
+  ];
+
+  for (const locator of dismissors) {
+    if (await isVisible(locator)) {
+      try {
+        await locator.first().click({ timeout: 2_000 });
+        await page.waitForTimeout(500);
+      } catch {
+        // Best effort only.
+      }
+    }
+  }
+}
+
+async function waitForDomStability(page, previousHash = null) {
+  await page.waitForLoadState('domcontentloaded');
+
+  for (const loadingSelector of SELECTORS.loading) {
+    const loading = page.locator(loadingSelector);
+    try {
+      if (await loading.first().isVisible({ timeout: 1_000 })) {
+        await loading.first().waitFor({ state: 'hidden', timeout: 15_000 }).catch(() => {});
+      }
+    } catch {
+      // Ignore missing loading indicators.
+    }
+  }
+
+  let stableCount = 0;
+  let lastHash = '';
+  let guard = 0;
+
+  while (stableCount < 3 && guard < 30) {
+    const state = await getVisibleContentSignature(page);
+    if (state.hash === lastHash || (previousHash && state.hash !== previousHash)) {
+      stableCount += 1;
+    } else {
+      stableCount = 0;
+    }
+    lastHash = state.hash;
+    guard += 1;
+    await page.waitForTimeout(350);
+  }
+
+  return getVisibleContentSignature(page);
+}
+
+async function getVisibleContentSignature(page) {
+  const payload = await page.evaluate((selectors) => {
+    const nodes = Array.from(document.querySelectorAll(selectors.cards))
+      .filter((node) => {
+        const style = window.getComputedStyle(node);
+        const rect = node.getBoundingClientRect();
+        return style.visibility !== 'hidden' && style.display !== 'none' && rect.width > 0 && rect.height > 0;
+      })
+      .map((node) => node.textContent.replace(/\s+/g, ' ').trim());
+
+    const noResultsNode = document.querySelector(selectors.noResults);
+    const noResults = noResultsNode ? noResultsNode.textContent.replace(/\s+/g, ' ').trim() : '';
+
+    return {
+      cards: nodes,
+      noResults,
+      cardCount: nodes.length,
+    };
+  }, SELECTORS);
+
+  return {
+    ...payload,
+    hash: sha1(JSON.stringify(payload)),
+  };
+}
+
+async function extractVisibleItems(page, scanPathParts, groupLabels) {
+  const cards = page.locator(SELECTORS.cards);
+  const count = await cards.count();
+  const records = [];
+
+  for (let i = 0; i < count; i += 1) {
+    const card = cards.nth(i);
+    if (!(await card.isVisible().catch(() => false))) continue;
+
+    const cardData = await card.evaluate((node) => {
+      const text = (selector) => {
+        const found = node.querySelector(selector);
+        return found ? found.textContent.replace(/\s+/g, ' ').trim() : null;
+      };
+
+      const statItems = Array.from(node.querySelectorAll('.bet-stats .stat-item')).map((item) =>
+        item.textContent.replace(/\s+/g, ' ').trim()
+      );
+
+      return {
+        player_name: text('.player-name'),
+        position: text('.position-badge'),
+        matchup: text('.team-matchup'),
+        confidence: text('.confidence-value'),
+        recommended_play: text('.threshold-value'),
+        edge_reason: text('.edge-reason'),
+        tier: text('.tier-badge'),
+        games_analyzed: text('.games-analyzed'),
+        stat_items: statItems,
+        raw_html_snippet: node.outerHTML,
+      };
+    });
+
+    const recommendedPlay = normalizeText(cardData.recommended_play);
+    const matchup = normalizeText(cardData.matchup);
+    const playerName = normalizeText(cardData.player_name);
+    const [line, marketGuess] = (() => {
+      const match = recommendedPlay.match(/^(\d+(?:\.\d+)?\+?)\s+(.*)$/i);
+      if (!match) return [null, null];
+      return [match[1], match[2]];
+    })();
+
+    const record = {
+      page_url: PAGE_URL,
+      scan_path: buildScanPath(scanPathParts),
+      group_labels_used_to_reach_item: { ...groupLabels },
+      matchup: matchup || null,
+      market: marketGuess || null,
+      selection: recommendedPlay || null,
+      line,
+      odds: null,
+      sportsbook: null,
+      model_edge_or_confidence: {
+        confidence_percent: normalizeText(cardData.confidence) || null,
+        hit_rate_percent: extractLabeledValue(cardData.stat_items, 'Hit Rate'),
+        edge_reason: normalizeText(cardData.edge_reason) || null,
+      },
+      timestamp: groupLabels.date || null,
+      analyst_source_label: 'Algorithm-driven',
+      supporting_text: [
+        normalizeText(cardData.edge_reason),
+        ...cardData.stat_items.map(normalizeText),
+      ].filter(Boolean),
+      raw_html_snippet: cardData.raw_html_snippet,
+      extraction_confidence: scoreExtractionConfidence({
+        playerName,
+        matchup,
+        recommendedPlay,
+        confidence: cardData.confidence,
+      }),
+      ambiguities: buildAmbiguities({
+        market: marketGuess,
+        odds: null,
+        sportsbook: null,
+      }),
+      _dedupe_key: `${playerName}|${matchup}|${recommendedPlay}|${normalizeText(cardData.tier)}`,
+    };
+
+    records.push(record);
+  }
+
+  return uniqueBy(records, (item) => item._dedupe_key);
+}
+
+function extractLabeledValue(values, label) {
+  const found = values.find((value) => value.toLowerCase().includes(label.toLowerCase()));
+  return found || null;
+}
+
+function scoreExtractionConfidence(parts) {
+  let score = 0.55;
+  if (parts.playerName) score += 0.1;
+  if (parts.matchup) score += 0.1;
+  if (parts.recommendedPlay) score += 0.15;
+  if (parts.confidence) score += 0.1;
+  return Math.min(0.95, Number(score.toFixed(2)));
+}
+
+function buildAmbiguities(parts) {
+  const ambiguities = [];
+  if (!parts.market) ambiguities.push('market derived from recommendation text or unavailable');
+  if (!parts.odds) ambiguities.push('odds not visible');
+  if (!parts.sportsbook) ambiguities.push('sportsbook not visible');
+  return ambiguities;
+}
+
+async function extractModalDetails(page) {
+  const modal = page.locator(SELECTORS.modalRoots).first();
+  if (!(await isVisible(modal))) return null;
+
+  return modal.evaluate((node) => {
+    const text = (selector) => {
+      const found = node.querySelector(selector);
+      return found ? found.textContent.replace(/\s+/g, ' ').trim() : null;
+    };
+
+    return {
+      detail_confidence: text('.nba-confidence-number'),
+      detail_play: text('.nba-play-value'),
+      supporting_text: Array.from(
+        node.querySelectorAll('.nba-insight-item, .nba-insight-text')
+      ).map((item) => item.textContent.replace(/\s+/g, ' ').trim()),
+      raw_html_snippet: node.outerHTML,
+    };
+  });
+}
+
+async function closeModalIfOpen(page) {
+  const modal = page.locator(SELECTORS.modalRoots).first();
+  if (!(await isVisible(modal))) return;
+
+  const close = page.locator(SELECTORS.modalClose).first();
+  if (await isVisible(close)) {
+    await clickWithRetry(page, close, 'modal close button');
+  } else {
+    await page.keyboard.press('Escape').catch(() => {});
+  }
+
+  await page.waitForTimeout(400);
+}
+
+async function getSelectOptions(page, labelText) {
+  const options = await page.evaluate((label) => {
+    const labels = Array.from(document.querySelectorAll('label'));
+    const labelNode = labels.find((node) => node.textContent.replace(/\s+/g, ' ').trim().startsWith(label));
+    if (!labelNode) return [];
+
+    let select = labelNode.nextElementSibling;
+    if (!select || select.tagName !== 'SELECT') {
+      select = labelNode.parentElement ? labelNode.parentElement.querySelector('select') : null;
+    }
+    if (!select) return [];
+
+    return Array.from(select.options).map((option) => ({
+      value: option.value,
+      label: option.textContent.replace(/\s+/g, ' ').trim(),
+    }));
+  }, labelText);
+
+  return options;
+}
+
+async function getCategoryStates(page) {
+  const tabs = page.locator(SELECTORS.categoryTabs);
+  const count = await tabs.count();
+  const states = [];
+
+  for (let i = 0; i < count; i += 1) {
+    const tab = tabs.nth(i);
+    const label = normalizeText(await tab.textContent());
+    if (!label) continue;
+    states.push({ label, index: i });
+  }
+
+  return uniqueBy(states, (state) => state.label);
+}
+
+async function getDateStates(page) {
+  const locator = page.locator(SELECTORS.dateInput).first();
+  if (!(await isVisible(locator))) return [];
+
+  const currentValue = await locator.inputValue();
+  if (!currentValue) return [];
+
+  const dates = [currentValue];
+  const current = new Date(`${currentValue}T00:00:00`);
+  for (let offset = 1; offset < MAX_DATES; offset += 1) {
+    const next = new Date(current);
+    next.setDate(current.getDate() + offset);
+    dates.push(next.toISOString().slice(0, 10));
+  }
+
+  return dates;
+}
+
+async function getSliderStates(page, selector) {
+  const locator = page.locator(selector).first();
+  if (!(await isVisible(locator))) return [];
+
+  const values = await locator.evaluate((node) => {
+    const min = Number(node.min || 0);
+    const max = Number(node.max || 0);
+    const step = Number(node.step || 1);
+    const current = Number(node.value || min);
+    const mid = min + Math.round((max - min) / (2 * step)) * step;
+    return Array.from(new Set([current, min, mid, max])).sort((a, b) => a - b);
+  });
+
+  return values;
+}
+
+async function detectControlGroups(page) {
+  const groups = [];
+  if (await isVisible(page.locator(SELECTORS.dateInput))) groups.push('date');
+  if ((await getSelectOptions(page, 'Lookback Period')).length) groups.push('lookback');
+  if ((await getCategoryStates(page)).length) groups.push('category');
+  if ((await getSelectOptions(page, 'Position')).length) groups.push('position');
+  if ((await getSelectOptions(page, 'Team:')).length) groups.push('team');
+  if (await isVisible(page.locator(SELECTORS.matchupToggle))) groups.push('include_opponent');
+  if ((await getSelectOptions(page, 'Min Confidence')).length) groups.push('min_confidence');
+  if (await isVisible(page.locator(SELECTORS.injuryFilterButton))) groups.push('injury_filter');
+  if (await isVisible(page.locator(SELECTORS.pointsSlider))) groups.push('thresholds');
+  return groups;
+}
+
+async function getInjuryStates(page) {
+  if (!(await isVisible(page.locator(SELECTORS.injuryFilterButton)))) {
+    return [{ label: 'default', mode: 'default' }];
+  }
+
+  await clickWithRetry(page, page.locator(SELECTORS.injuryFilterButton), 'injury filter');
+  await page.waitForTimeout(250);
+
+  const states = await page.evaluate((selectors) => {
+    const options = Array.from(document.querySelectorAll(selectors.injuryCheckboxes)).map((input) => {
+      const label = input.parentElement ? input.parentElement.textContent.replace(/\s+/g, ' ').trim() : '';
+      return {
+        label,
+        value: input.value || label,
+      };
+    });
+
+    return [
+      { label: 'default', mode: 'default' },
+      { label: 'show_all', mode: 'show_all' },
+      ...options.slice(0, 2).map((option) => ({
+        label: `exclude:${option.label}`,
+        mode: 'single_toggle',
+        value: option.value,
+      })),
+    ];
+  }, SELECTORS);
+
+  await page.keyboard.press('Escape').catch(() => {});
+  return uniqueBy(states, (state) => state.label);
+}
+
+async function applyInjuryState(page, state) {
+  if (!(await isVisible(page.locator(SELECTORS.injuryFilterButton)))) return;
+
+  await clickWithRetry(page, page.locator(SELECTORS.injuryFilterButton), 'injury filter');
+  await page.waitForTimeout(250);
+
+  if (state.mode === 'show_all') {
+    const showAllButton = page.locator(SELECTORS.injuryShowAll).first();
+    if (await isVisible(showAllButton)) {
+      await clickWithRetry(page, showAllButton, 'injury show all');
+    }
+  } else if (state.mode === 'single_toggle') {
+    const checkboxes = page.locator(SELECTORS.injuryCheckboxes);
+    const count = await checkboxes.count();
+    for (let i = 0; i < count; i += 1) {
+      const checkbox = checkboxes.nth(i);
+      const value = await checkbox.inputValue().catch(() => '');
+      const label = await checkbox.evaluate((node) =>
+        node.parentElement ? node.parentElement.textContent.replace(/\s+/g, ' ').trim() : ''
+      );
+      const matches = value === state.value || label.includes(state.value || '');
+      if (!matches) continue;
+      const checked = await checkbox.isChecked().catch(() => true);
+      if (checked) {
+        await checkbox.uncheck().catch(async () => {
+          await checkbox.setChecked(false);
+        });
+      }
+      break;
+    }
+  }
+
+  await page.keyboard.press('Escape').catch(() => {});
+  await page.waitForTimeout(250);
+}
+
+async function scanBetCardDetails(page, baseRecords, globalItemKeys) {
+  const cards = page.locator(SELECTORS.cards);
+  const count = await cards.count();
+
+  for (let i = 0; i < count; i += 1) {
+    const card = cards.nth(i);
+    if (!(await card.isVisible().catch(() => false))) continue;
+
+    const summaryKey = await card.evaluate((node) => {
+      const pick = node.querySelector('.threshold-value')?.textContent || '';
+      const matchup = node.querySelector('.team-matchup')?.textContent || '';
+      const player = node.querySelector('.player-name')?.textContent || '';
+      const tier = node.querySelector('.tier-badge')?.textContent || '';
+      return [player, matchup, pick, tier].map((value) => value.replace(/\s+/g, ' ').trim()).join('|');
+    });
+
+    if (globalItemKeys.has(`${summaryKey}|detail`)) continue;
+
+    try {
+      await clickWithRetry(page, card, `bet card ${i + 1}`);
+      await page.waitForTimeout(500);
+      const details = await extractModalDetails(page);
+      if (details) {
+        const target = baseRecords.find((record) => record._dedupe_key === summaryKey);
+        if (target) {
+          target.supporting_text = uniqueBy(
+            [...target.supporting_text, ...details.supporting_text.filter(Boolean)],
+            (item) => item
+          );
+          target.raw_html_snippet = target.raw_html_snippet;
+          target.detail_raw_html_snippet = details.raw_html_snippet;
+          if (!target.model_edge_or_confidence.confidence_percent && details.detail_confidence) {
+            target.model_edge_or_confidence.confidence_percent = details.detail_confidence;
+          }
+        }
+        globalItemKeys.add(`${summaryKey}|detail`);
+      }
+    } catch {
+      // Summary extraction is still valid.
+    } finally {
+      await closeModalIfOpen(page);
+      await waitForDomStability(page);
+    }
+  }
+}
+
+async function scanState(page, context, output, visitedStateFingerprints, globalItemKeys) {
+  const signature = await waitForDomStability(page, context.previousHash);
+  const stateKey = `${context.pathKey}|${signature.hash}`;
+  if (visitedStateFingerprints.has(stateKey)) return;
+  visitedStateFingerprints.add(stateKey);
+
+  const visibleItems = await extractVisibleItems(page, context.scanPathParts, context.groupLabels);
+  const meaningfulChange = visibleItems.length > 0 || signature.noResults;
+  if (!meaningfulChange) return;
+
+  for (const item of visibleItems) {
+    if (globalItemKeys.has(item._dedupe_key)) continue;
+    globalItemKeys.add(item._dedupe_key);
+    output.push(item);
+  }
+
+  await scanBetCardDetails(page, visibleItems, globalItemKeys);
+}
+
+async function run() {
+  const browser = await chromium.launch({ headless: true });
+  const page = await browser.newPage({ viewport: { width: 1440, height: 2000 } });
+
+  const output = [];
+  const visitedStateFingerprints = new Set();
+  const globalItemKeys = new Set();
+
+  try {
+    await page.goto(PAGE_URL, { waitUntil: 'domcontentloaded', timeout: 60_000 });
+    await dismissOverlays(page);
+    await page.locator(SELECTORS.pageRoot).waitFor({ state: 'visible', timeout: 30_000 });
+    await waitForDomStability(page);
+
+    const detectedGroups = await detectControlGroups(page);
+    console.error('Detected control groups:', detectedGroups.join(', '));
+
+    const dateStates = detectedGroups.includes('date') ? await getDateStates(page) : [null];
+    const baseDateLocator = page.locator(SELECTORS.dateInput).first();
+
+    for (const dateValue of dateStates) {
+      if (dateValue) {
+        await selectDate(page, baseDateLocator, dateValue);
+      }
+
+      const lookbackOptions = detectedGroups.includes('lookback')
+        ? await getSelectOptions(page, 'Lookback Period')
+        : [{ value: null, label: null }];
+
+      for (const lookback of lookbackOptions.slice(0, 3)) {
+        if (lookback.value) {
+          await setSelectByLabel(page, 'Lookback Period', lookback.value);
+        }
+
+        const categoryStates = detectedGroups.includes('category')
+          ? await getCategoryStates(page)
+          : [{ label: null, index: -1 }];
+
+        for (const category of categoryStates) {
+          if (category.index >= 0) {
+            await clickWithRetry(page, page.locator(SELECTORS.categoryTabs).nth(category.index), category.label);
+          }
+
+          const positionOptions = detectedGroups.includes('position')
+            ? await getSelectOptions(page, 'Position')
+            : [{ value: null, label: null }];
+
+          for (const position of positionOptions.slice(0, 6)) {
+            if (position.value) {
+              await setSelectByLabel(page, 'Position', position.value);
+            }
+
+            const teamOptions = detectedGroups.includes('team')
+              ? (await getSelectOptions(page, 'Team:')).slice(0, MAX_TEAMS)
+              : [{ value: null, label: null }];
+
+            for (const team of teamOptions) {
+              if (team.value) {
+                await setSelectByLabel(page, 'Team:', team.value);
+              }
+
+              const includeOpponentStates = [];
+              if (team.value && team.value !== 'ALL' && (await isVisible(page.locator(SELECTORS.matchupToggle)))) {
+                includeOpponentStates.push(false, true);
+              } else {
+                includeOpponentStates.push(null);
+              }
+
+              for (const includeOpponent of includeOpponentStates) {
+                if (typeof includeOpponent === 'boolean') {
+                  const toggle = page.locator(SELECTORS.matchupToggle).first();
+                  const checked = await toggle.isChecked().catch(() => false);
+                  if (checked !== includeOpponent) {
+                    await toggle.setChecked(includeOpponent);
+                  }
+                }
+
+                const confidenceOptions = detectedGroups.includes('min_confidence')
+                  ? await getSelectOptions(page, 'Min Confidence')
+                  : [{ value: null, label: null }];
+
+                for (const confidence of confidenceOptions.slice(0, 6)) {
+                  if (confidence.value) {
+                    await setSelectByLabel(page, 'Min Confidence', confidence.value);
+                  }
+
+                  const injuryStates = detectedGroups.includes('injury_filter')
+                    ? await getInjuryStates(page)
+                    : [{ label: 'default', mode: 'default' }];
+
+                  for (const injuryState of injuryStates) {
+                    if (injuryState.mode !== 'default') {
+                      await applyInjuryState(page, injuryState);
+                      await waitForDomStability(page);
+                    }
+
+                    const scanPathParts = [
+                      dateValue,
+                      lookback.label,
+                      category.label,
+                      position.label,
+                      team.label,
+                      typeof includeOpponent === 'boolean'
+                        ? includeOpponent
+                          ? 'Include Opponent'
+                          : 'Exclude Opponent'
+                        : null,
+                      confidence.label,
+                      injuryState.label !== 'default' ? injuryState.label : null,
+                    ].filter(Boolean);
+
+                    const groupLabels = {
+                      date: dateValue || null,
+                      lookback_period: lookback.label || null,
+                      category: category.label || null,
+                      position: position.label || null,
+                      team: team.label || null,
+                      include_opponent:
+                        typeof includeOpponent === 'boolean' ? (includeOpponent ? 'checked' : 'unchecked') : null,
+                      min_confidence: confidence.label || null,
+                      injury_filter: injuryState.label !== 'default' ? injuryState.label : null,
+                    };
+
+                    await scanState(
+                      page,
+                      {
+                        scanPathParts,
+                        groupLabels,
+                        pathKey: buildScanPath(scanPathParts),
+                        previousHash: null,
+                      },
+                      output,
+                      visitedStateFingerprints,
+                      globalItemKeys
+                    );
+
+                    if (detectedGroups.includes('thresholds')) {
+                      const sliderConfigs = [
+                        { selector: SELECTORS.pointsSlider, label: 'Points' },
+                        { selector: SELECTORS.assistsSlider, label: 'Assists' },
+                        { selector: SELECTORS.reboundsSlider, label: 'Rebounds' },
+                      ];
+
+                      for (const slider of sliderConfigs) {
+                        const values = await getSliderStates(page, slider.selector);
+                        let repeatedCount = 0;
+                        let lastHash = null;
+
+                        for (const sliderValue of values) {
+                          await setRangeValue(page, slider.selector, sliderValue);
+                          const signature = await waitForDomStability(page);
+                          if (signature.hash === lastHash) {
+                            repeatedCount += 1;
+                          } else {
+                            repeatedCount = 0;
+                          }
+                          lastHash = signature.hash;
+
+                          const sliderPath = [...scanPathParts, `${slider.label} ${sliderValue}+`];
+                          const sliderLabels = {
+                            ...groupLabels,
+                            [`${slider.label.toLowerCase()}_threshold`]: String(sliderValue),
+                          };
+
+                          await scanState(
+                            page,
+                            {
+                              scanPathParts: sliderPath,
+                              groupLabels: sliderLabels,
+                              pathKey: buildScanPath(sliderPath),
+                              previousHash: signature.hash,
+                            },
+                            output,
+                            visitedStateFingerprints,
+                            globalItemKeys
+                          );
+
+                          if (repeatedCount >= 1) break;
+                        }
+                      }
+                    }
+
+                    if (injuryState.mode !== 'default') {
+                      await applyInjuryState(page, { label: 'reset', mode: 'show_all' });
+                      await waitForDomStability(page);
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  } finally {
+    // Remove private dedupe helpers before writing output.
+    const clean = output.map(({ _dedupe_key, ...rest }) => rest);
+    const json = JSON.stringify(clean, null, 2);
+    require('fs').writeFileSync(OUTPUT_PATH, json);
+    console.log(json);
+    await browser.close();
+  }
+}
+
+async function selectDate(page, locator, value) {
+  try {
+    await locator.fill(value);
+    await locator.dispatchEvent('input');
+    await locator.dispatchEvent('change');
+  } catch {
+    await locator.evaluate((node, nextValue) => {
+      node.value = nextValue;
+      node.dispatchEvent(new Event('input', { bubbles: true }));
+      node.dispatchEvent(new Event('change', { bubbles: true }));
+    }, value);
+  }
+  await waitForDomStability(page);
+}
+
+run().catch((error) => {
+  console.error(error);
+  process.exitCode = 1;
+});
