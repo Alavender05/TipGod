@@ -717,3 +717,54 @@ This section is intended to act as the running history log for the project so fu
     - duplicate rates
     - repeated matchups
     - any selector or traversal fixes needed after the first real run
+
+- First verified runtime pass completed in the workspace on `2026-03-11` using:
+  - JavaScript scanner:
+    - `node v24.11.1`
+    - output:
+      - `nba-bestbets-scan.json`
+      - `nba-bestbets-scan.run-summary.json`
+      - `nba-bestbets-scan.summary.json`
+  - Python parity scanner:
+    - `python3`
+    - output:
+      - `nba-bestbets-scan-python.json`
+      - `nba-bestbets-scan-python.run-summary.json`
+
+- First real run summary:
+  - total extracted items:
+    - `0`
+  - strongest scan paths:
+    - none; the live route exposed no NBA best-bet states or cards
+  - duplicate rate:
+    - `0.0000`
+  - repeated matchups:
+    - none
+
+- Live-site findings from the first real run:
+  - `https://capping.pro/nba-bestbets` stayed on the `nba-bestbets` route but hydrated into an NFL dashboard shell instead of the expected NBA best-bets view.
+  - observed network activity hit `capping.pro/api/nfl/*` endpoints rather than `capping.pro/api/nba/*`.
+  - both scanners detected:
+    - `0` control groups
+    - `1` visited state
+    - `0` visible extractable cards
+
+- Selector and traversal fixes made after the first real run:
+  - changed the page-root wait target from `.nba-best-bets-container` to `#root` so the scanners no longer fail before emitting artifacts when the upstream page shape is wrong
+  - added run-summary sidecar files capturing:
+    - raw extracted card count
+    - unique item count
+    - duplicate item count
+    - visited state count
+    - repeated content hash count
+    - detail modal failures
+    - selector activation failures
+    - detected control groups
+    - empty states after interaction
+  - added a reproducible summary helper:
+    - `python3 scripts/summarize_nba_bestbets_scan.py nba-bestbets-scan.json`
+
+- Current parity status:
+  - JavaScript and Python scanners now agree on the live result:
+    - empty output caused by upstream route/content mismatch rather than scanner divergence
+  - no additional selector fixes are justified until the site serves the NBA page again or a new NBA route is identified

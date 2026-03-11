@@ -3,13 +3,14 @@ import hashlib
 import json
 import logging
 import re
-from datetime import datetime, timedelta
+from datetime import UTC, datetime, timedelta
 from pathlib import Path
 
 from playwright.async_api import async_playwright
 
 PAGE_URL = "https://capping.pro/nba-bestbets"
 OUTPUT_PATH = Path("nba-bestbets-scan-python.json")
+RUN_SUMMARY_PATH = Path("nba-bestbets-scan-python.run-summary.json")
 MAX_DATES = 3
 MAX_TEAMS = 32
 MAX_RETRIES = 2
@@ -18,7 +19,7 @@ logging.basicConfig(level=logging.INFO, format="%(asctime)s %(levelname)s %(mess
 LOGGER = logging.getLogger("nba_bestbets_reader")
 
 S = {
-    "root": ".nba-best-bets-container",
+    "root": "#root",
     "cards": ".nba-best-bets-grid .nba-best-bet-card",
     "no_results": ".no-results, .nba-best-bets-error",
     "date": "input.date-picker, input[type='date']",
@@ -55,6 +56,34 @@ def path(parts):
 
 def sha(value):
     return hashlib.sha1(value.encode("utf-8")).hexdigest()
+
+
+def create_run_stats():
+    return {
+        "page_url": PAGE_URL,
+        "scanner": "python",
+        "runtime": "python",
+        "started_at": datetime.now(UTC).isoformat().replace("+00:00", "Z"),
+        "raw_extracted_cards": 0,
+        "unique_items": 0,
+        "duplicate_items": 0,
+        "visited_states": 0,
+        "repeated_content_hashes": 0,
+        "detail_modal_failures": 0,
+        "selector_activation_failures": {},
+        "empty_states_after_interaction": [],
+        "repeated_content_paths": [],
+        "detected_control_groups": [],
+        "finished_at": None,
+    }
+
+
+def note_activation_failure(stats, group, error):
+    bucket = stats["selector_activation_failures"].setdefault(group, {"count": 0, "samples": []})
+    bucket["count"] += 1
+    sample = norm(str(error))
+    if sample and sample not in bucket["samples"] and len(bucket["samples"]) < 5:
+        bucket["samples"].append(sample)
 
 
 async def visible(locator):
@@ -447,7 +476,7 @@ async def close_modal(page):
     await page.wait_for_timeout(300)
 
 
-async def enrich_with_details(page, items, detail_keys):
+async def enrich_with_details(page, items, detail_keys, stats):
     cards = page.locator(S["cards"])
     for i in range(await cards.count()):
         card = cards.nth(i)
@@ -477,27 +506,50 @@ async def enrich_with_details(page, items, detail_keys):
                         target["model_edge_or_confidence"]["confidence_percent"] = details["detail_confidence"]
                 detail_keys.add(f"{summary_key}|detail")
         except Exception:
+            stats["detail_modal_failures"] += 1
             LOGGER.warning("detail extraction failed", exc_info=True)
         finally:
             await close_modal(page)
             await wait_for_content_change(page)
 
 
-async def scan_state(page, scan_parts, labels, output, visited_states, global_keys, detail_keys, previous_hash=None):
+async def scan_state(page, scan_parts, labels, output, visited_states, global_keys, detail_keys, stats, hash_owners, previous_hash=None):
     signature = await wait_for_content_change(page, previous_hash)
     state_key = f"{path(scan_parts)}|{signature['hash']}"
     if state_key in visited_states:
         return
     visited_states.add(state_key)
+    stats["visited_states"] = len(visited_states)
+    scan_path = path(scan_parts)
+    first_path = hash_owners.get(signature["hash"])
+    if first_path and first_path != scan_path:
+        stats["repeated_content_hashes"] += 1
+        if len(stats["repeated_content_paths"]) < 20:
+            stats["repeated_content_paths"].append({
+                "hash": signature["hash"],
+                "first_path": first_path,
+                "repeated_path": scan_path,
+            })
+    else:
+        hash_owners[signature["hash"]] = scan_path
     items = deduplicate_items(await extract_visible_items(page, scan_parts, labels))
+    stats["raw_extracted_cards"] += len(items)
     if not items and not signature.get("noResults"):
+        if len(stats["empty_states_after_interaction"]) < 25:
+            stats["empty_states_after_interaction"].append({
+                "scan_path": scan_path,
+                "content_hash": signature["hash"],
+                "no_results_text": signature.get("noResults") or None,
+            })
         return
     for item in items:
         if item["_dedupe_key"] in global_keys:
+            stats["duplicate_items"] += 1
             continue
         global_keys.add(item["_dedupe_key"])
         output.append(item)
-    await enrich_with_details(page, items, detail_keys)
+    stats["unique_items"] = len(output)
+    await enrich_with_details(page, items, detail_keys, stats)
 
 
 async def build_reader():
@@ -505,6 +557,8 @@ async def build_reader():
     visited_states = set()
     global_keys = set()
     detail_keys = set()
+    hash_owners = {}
+    stats = create_run_stats()
 
     async with async_playwright() as playwright:
         browser = await playwright.chromium.launch(headless=True)
@@ -515,32 +569,61 @@ async def build_reader():
             await page.locator(S["root"]).wait_for(state="visible", timeout=30000)
             await wait_for_content_change(page)
             groups = {group["name"]: group for group in await get_control_groups(page)}
+            stats["detected_control_groups"] = list(groups.keys())
             LOGGER.info("Detected groups: %s", ", ".join(groups.keys()))
 
             date_states = groups.get("date", {"states": [{"label": "", "value": None}]})["states"]
             for date_state in date_states:
                 if groups.get("date") and date_state["value"]:
-                    await activate_control(page, groups["date"], date_state)
+                    try:
+                        await activate_control(page, groups["date"], date_state)
+                    except Exception as exc:
+                        note_activation_failure(stats, "date", exc)
+                        continue
 
                 lookback_states = groups.get("lookback_period", {"states": [{"label": "", "value": None}]})["states"]
                 for lookback_state in lookback_states:
                     if groups.get("lookback_period") and lookback_state["value"] is not None:
-                        await activate_control(page, groups["lookback_period"], lookback_state)
+                        try:
+                            ok = await activate_control(page, groups["lookback_period"], lookback_state)
+                            if not ok:
+                                raise RuntimeError(f"activation returned false for {lookback_state['label']}")
+                        except Exception as exc:
+                            note_activation_failure(stats, "lookback_period", exc)
+                            continue
 
                     category_states = groups.get("category", {"states": [{"label": "", "value": None}]})["states"]
                     for category_state in category_states:
                         if groups.get("category") and category_state["value"] is not None:
-                            await activate_control(page, groups["category"], category_state)
+                            try:
+                                ok = await activate_control(page, groups["category"], category_state)
+                                if not ok:
+                                    raise RuntimeError(f"activation returned false for {category_state['label']}")
+                            except Exception as exc:
+                                note_activation_failure(stats, "category", exc)
+                                continue
 
                         position_states = groups.get("position", {"states": [{"label": "", "value": None}]})["states"]
                         for position_state in position_states:
                             if groups.get("position") and position_state["value"] is not None:
-                                await activate_control(page, groups["position"], position_state)
+                                try:
+                                    ok = await activate_control(page, groups["position"], position_state)
+                                    if not ok:
+                                        raise RuntimeError(f"activation returned false for {position_state['label']}")
+                                except Exception as exc:
+                                    note_activation_failure(stats, "position", exc)
+                                    continue
 
                             team_states = groups.get("team", {"states": [{"label": "", "value": None}]})["states"]
                             for team_state in team_states:
                                 if groups.get("team") and team_state["value"] is not None:
-                                    await activate_control(page, groups["team"], team_state)
+                                    try:
+                                        ok = await activate_control(page, groups["team"], team_state)
+                                        if not ok:
+                                            raise RuntimeError(f"activation returned false for {team_state['label']}")
+                                    except Exception as exc:
+                                        note_activation_failure(stats, "team", exc)
+                                        continue
 
                                 include_states = [{"label": "", "value": None}]
                                 if groups.get("include_opponent") and team_state["value"] and str(team_state["value"]).upper() != "ALL" and await visible(page.locator(S["toggle"])):
@@ -548,18 +631,36 @@ async def build_reader():
 
                                 for include_state in include_states:
                                     if groups.get("include_opponent") and include_state["value"] is not None:
-                                        await activate_control(page, groups["include_opponent"], include_state)
+                                        try:
+                                            ok = await activate_control(page, groups["include_opponent"], include_state)
+                                            if not ok:
+                                                raise RuntimeError(f"activation returned false for {include_state['label']}")
+                                        except Exception as exc:
+                                            note_activation_failure(stats, "include_opponent", exc)
+                                            continue
 
                                     confidence_states = groups.get("min_confidence", {"states": [{"label": "", "value": None}]})["states"]
                                     for confidence_state in confidence_states:
                                         if groups.get("min_confidence") and confidence_state["value"] is not None:
-                                            await activate_control(page, groups["min_confidence"], confidence_state)
+                                            try:
+                                                ok = await activate_control(page, groups["min_confidence"], confidence_state)
+                                                if not ok:
+                                                    raise RuntimeError(f"activation returned false for {confidence_state['label']}")
+                                            except Exception as exc:
+                                                note_activation_failure(stats, "min_confidence", exc)
+                                                continue
 
                                         injury_states = groups.get("injury_filter", {"states": [{"label": "default", "value": "default"}]})["states"]
                                         for injury_state in injury_states:
                                             if groups.get("injury_filter") and injury_state["value"] != "default":
-                                                await activate_control(page, groups["injury_filter"], injury_state)
-                                                await wait_for_content_change(page)
+                                                try:
+                                                    ok = await activate_control(page, groups["injury_filter"], injury_state)
+                                                    if not ok:
+                                                        raise RuntimeError(f"activation returned false for {injury_state['label']}")
+                                                    await wait_for_content_change(page)
+                                                except Exception as exc:
+                                                    note_activation_failure(stats, "injury_filter", exc)
+                                                    continue
 
                                             scan_parts = [
                                                 date_state["label"] or None,
@@ -581,7 +682,7 @@ async def build_reader():
                                                 "min_confidence": confidence_state["label"] or None,
                                                 "injury_filter": None if injury_state["value"] == "default" else injury_state["label"],
                                             }
-                                            await scan_state(page, scan_parts, labels, output, visited_states, global_keys, detail_keys)
+                                            await scan_state(page, scan_parts, labels, output, visited_states, global_keys, detail_keys, stats, hash_owners)
 
                                             for slider_name in ["points_threshold", "assists_threshold", "rebounds_threshold"]:
                                                 group = groups.get(slider_name)
@@ -590,28 +691,43 @@ async def build_reader():
                                                 last_hash = None
                                                 repeats = 0
                                                 for slider_state in group["states"]:
-                                                    await activate_control(page, group, slider_state)
+                                                    try:
+                                                        ok = await activate_control(page, group, slider_state)
+                                                        if not ok:
+                                                            raise RuntimeError(f"activation returned false for {slider_name}={slider_state['label']}")
+                                                    except Exception as exc:
+                                                        note_activation_failure(stats, slider_name, exc)
+                                                        break
                                                     signature = await wait_for_content_change(page)
                                                     repeats = repeats + 1 if signature["hash"] == last_hash else 0
                                                     last_hash = signature["hash"]
                                                     slider_parts = scan_parts + [f"{slider_name} {slider_state['label']}+"]
                                                     slider_labels = {**labels, slider_name: slider_state["label"]}
-                                                    await scan_state(page, slider_parts, slider_labels, output, visited_states, global_keys, detail_keys, signature["hash"])
+                                                    await scan_state(page, slider_parts, slider_labels, output, visited_states, global_keys, detail_keys, stats, hash_owners, signature["hash"])
                                                     if repeats >= 1:
                                                         break
 
                                             if groups.get("injury_filter") and injury_state["value"] != "default":
-                                                await activate_control(page, groups["injury_filter"], {"label": "show_all", "value": "show_all"})
-                                                await wait_for_content_change(page)
+                                                try:
+                                                    ok = await activate_control(page, groups["injury_filter"], {"label": "show_all", "value": "show_all"})
+                                                    if not ok:
+                                                        raise RuntimeError("activation returned false for injury reset")
+                                                    await wait_for_content_change(page)
+                                                except Exception as exc:
+                                                    note_activation_failure(stats, "injury_filter_reset", exc)
         finally:
             await browser.close()
-    return [{k: v for k, v in item.items() if k != "_dedupe_key"} for item in output]
+    clean = [{k: v for k, v in item.items() if k != "_dedupe_key"} for item in output]
+    stats["unique_items"] = len(clean)
+    stats["finished_at"] = datetime.now(UTC).isoformat().replace("+00:00", "Z")
+    return clean, stats
 
 
 async def main():
     try:
-        records = await build_reader()
+        records, stats = await build_reader()
         OUTPUT_PATH.write_text(json.dumps(records, indent=2), encoding="utf-8")
+        RUN_SUMMARY_PATH.write_text(json.dumps(stats, indent=2), encoding="utf-8")
         print(json.dumps(records, indent=2))
         LOGGER.info("Wrote %s records to %s", len(records), OUTPUT_PATH)
     except Exception:

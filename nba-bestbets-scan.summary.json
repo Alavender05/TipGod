@@ -1,0 +1,26 @@
+{
+  "scan_file": "nba-bestbets-scan.json",
+  "run_summary_file": "nba-bestbets-scan.run-summary.json",
+  "scanner": "javascript",
+  "runtime": "node v24.11.1",
+  "started_at": "2026-03-11T00:57:58.159Z",
+  "finished_at": "2026-03-11T00:58:05.029Z",
+  "total_extracted_items": 0,
+  "raw_extracted_cards": 0,
+  "duplicate_items": 0,
+  "duplicate_rate": 0.0,
+  "visited_states": 1,
+  "repeated_content_hashes": 0,
+  "detail_modal_failures": 0,
+  "detected_control_groups": [],
+  "strongest_scan_paths": [],
+  "repeated_matchups": [],
+  "selector_activation_failures": {},
+  "likely_selector_or_traversal_issues": [
+    {
+      "type": "empty_state_after_interaction",
+      "scan_path": "",
+      "content_hash": "7ed128685931f886f249a63dc250467fac7a1cbe"
+    }
+  ]
+}

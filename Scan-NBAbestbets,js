@@ -1,11 +1,13 @@
 const { chromium } = require('playwright');
 const crypto = require('crypto');
+const fs = require('fs');
 
 const PAGE_URL = 'https://capping.pro/nba-bestbets';
 const OUTPUT_PATH = 'nba-bestbets-scan.json';
+const RUN_SUMMARY_PATH = 'nba-bestbets-scan.run-summary.json';
 
 const SELECTORS = {
-  pageRoot: '.nba-best-bets-container',
+  pageRoot: '#root',
   loading: [
     '.nba-best-bets-loading',
     '.refreshing-overlay',
@@ -46,6 +48,42 @@ function normalizeText(value) {
 
 function buildScanPath(parts) {
   return parts.filter(Boolean).join(' > ');
+}
+
+function createRunStats() {
+  return {
+    page_url: PAGE_URL,
+    scanner: 'javascript',
+    runtime: `node ${process.version}`,
+    started_at: new Date().toISOString(),
+    raw_extracted_cards: 0,
+    unique_items: 0,
+    duplicate_items: 0,
+    visited_states: 0,
+    repeated_content_hashes: 0,
+    detail_modal_failures: 0,
+    selector_activation_failures: {},
+    empty_states_after_interaction: [],
+    repeated_content_paths: [],
+    detected_control_groups: [],
+    finished_at: null,
+  };
+}
+
+function noteActivationFailure(stats, group, error) {
+  const bucket = stats.selector_activation_failures[group] || {
+    count: 0,
+    samples: [],
+  };
+  bucket.count += 1;
+  if (bucket.samples.length < 5) {
+    bucket.samples.push(normalizeText(error && error.message ? error.message : String(error)));
+  }
+  stats.selector_activation_failures[group] = bucket;
+}
+
+function writeJsonFile(outputPath, payload) {
+  fs.writeFileSync(outputPath, `${JSON.stringify(payload, null, 2)}\n`);
 }
 
 function uniqueBy(items, keyFn) {
@@ -528,7 +566,7 @@ async function applyInjuryState(page, state) {
   await page.waitForTimeout(250);
 }
 
-async function scanBetCardDetails(page, baseRecords, globalItemKeys) {
+async function scanBetCardDetails(page, baseRecords, globalItemKeys, stats) {
   const cards = page.locator(SELECTORS.cards);
   const count = await cards.count();
 
@@ -565,8 +603,8 @@ async function scanBetCardDetails(page, baseRecords, globalItemKeys) {
         }
         globalItemKeys.add(`${summaryKey}|detail`);
       }
-    } catch {
-      // Summary extraction is still valid.
+    } catch (error) {
+      stats.detail_modal_failures += 1;
     } finally {
       await closeModalIfOpen(page);
       await waitForDomStability(page);
@@ -574,23 +612,48 @@ async function scanBetCardDetails(page, baseRecords, globalItemKeys) {
   }
 }
 
-async function scanState(page, context, output, visitedStateFingerprints, globalItemKeys) {
+async function scanState(page, context, output, visitedStateFingerprints, globalItemKeys, stats) {
   const signature = await waitForDomStability(page, context.previousHash);
   const stateKey = `${context.pathKey}|${signature.hash}`;
   if (visitedStateFingerprints.has(stateKey)) return;
   visitedStateFingerprints.add(stateKey);
+  stats.visited_states = visitedStateFingerprints.size;
+  if (context.hashOwners.has(signature.hash) && context.hashOwners.get(signature.hash) !== context.pathKey) {
+    stats.repeated_content_hashes += 1;
+    if (stats.repeated_content_paths.length < 20) {
+      stats.repeated_content_paths.push({
+        hash: signature.hash,
+        first_path: context.hashOwners.get(signature.hash),
+        repeated_path: context.pathKey,
+      });
+    }
+  } else {
+    context.hashOwners.set(signature.hash, context.pathKey);
+  }
 
   const visibleItems = await extractVisibleItems(page, context.scanPathParts, context.groupLabels);
   const meaningfulChange = visibleItems.length > 0 || signature.noResults;
+  stats.raw_extracted_cards += visibleItems.length;
+  if (!meaningfulChange && stats.empty_states_after_interaction.length < 25) {
+    stats.empty_states_after_interaction.push({
+      scan_path: context.pathKey,
+      content_hash: signature.hash,
+      no_results_text: signature.noResults || null,
+    });
+  }
   if (!meaningfulChange) return;
 
   for (const item of visibleItems) {
-    if (globalItemKeys.has(item._dedupe_key)) continue;
+    if (globalItemKeys.has(item._dedupe_key)) {
+      stats.duplicate_items += 1;
+      continue;
+    }
     globalItemKeys.add(item._dedupe_key);
     output.push(item);
   }
 
-  await scanBetCardDetails(page, visibleItems, globalItemKeys);
+  stats.unique_items = output.length;
+  await scanBetCardDetails(page, visibleItems, globalItemKeys, stats);
 }
 
 async function run() {
@@ -600,6 +663,8 @@ async function run() {
   const output = [];
   const visitedStateFingerprints = new Set();
   const globalItemKeys = new Set();
+  const hashOwners = new Map();
+  const stats = createRunStats();
 
   try {
     await page.goto(PAGE_URL, { waitUntil: 'domcontentloaded', timeout: 60_000 });
@@ -608,6 +673,7 @@ async function run() {
     await waitForDomStability(page);
 
     const detectedGroups = await detectControlGroups(page);
+    stats.detected_control_groups = detectedGroups;
     console.error('Detected control groups:', detectedGroups.join(', '));
 
     const dateStates = detectedGroups.includes('date') ? await getDateStates(page) : [null];
@@ -615,7 +681,12 @@ async function run() {
 
     for (const dateValue of dateStates) {
       if (dateValue) {
-        await selectDate(page, baseDateLocator, dateValue);
+        try {
+          await selectDate(page, baseDateLocator, dateValue);
+        } catch (error) {
+          noteActivationFailure(stats, 'date', error);
+          continue;
+        }
       }
 
       const lookbackOptions = detectedGroups.includes('lookback')
@@ -624,7 +695,12 @@ async function run() {
 
       for (const lookback of lookbackOptions.slice(0, 3)) {
         if (lookback.value) {
-          await setSelectByLabel(page, 'Lookback Period', lookback.value);
+          try {
+            await setSelectByLabel(page, 'Lookback Period', lookback.value);
+          } catch (error) {
+            noteActivationFailure(stats, 'lookback_period', error);
+            continue;
+          }
         }
 
         const categoryStates = detectedGroups.includes('category')
@@ -633,7 +709,12 @@ async function run() {
 
         for (const category of categoryStates) {
           if (category.index >= 0) {
-            await clickWithRetry(page, page.locator(SELECTORS.categoryTabs).nth(category.index), category.label);
+            try {
+              await clickWithRetry(page, page.locator(SELECTORS.categoryTabs).nth(category.index), category.label);
+            } catch (error) {
+              noteActivationFailure(stats, 'category', error);
+              continue;
+            }
           }
 
           const positionOptions = detectedGroups.includes('position')
@@ -642,7 +723,12 @@ async function run() {
 
           for (const position of positionOptions.slice(0, 6)) {
             if (position.value) {
-              await setSelectByLabel(page, 'Position', position.value);
+              try {
+                await setSelectByLabel(page, 'Position', position.value);
+              } catch (error) {
+                noteActivationFailure(stats, 'position', error);
+                continue;
+              }
             }
 
             const teamOptions = detectedGroups.includes('team')
@@ -651,7 +737,12 @@ async function run() {
 
             for (const team of teamOptions) {
               if (team.value) {
-                await setSelectByLabel(page, 'Team:', team.value);
+                try {
+                  await setSelectByLabel(page, 'Team:', team.value);
+                } catch (error) {
+                  noteActivationFailure(stats, 'team', error);
+                  continue;
+                }
               }
 
               const includeOpponentStates = [];
@@ -664,9 +755,14 @@ async function run() {
               for (const includeOpponent of includeOpponentStates) {
                 if (typeof includeOpponent === 'boolean') {
                   const toggle = page.locator(SELECTORS.matchupToggle).first();
-                  const checked = await toggle.isChecked().catch(() => false);
-                  if (checked !== includeOpponent) {
-                    await toggle.setChecked(includeOpponent);
+                  try {
+                    const checked = await toggle.isChecked().catch(() => false);
+                    if (checked !== includeOpponent) {
+                      await toggle.setChecked(includeOpponent);
+                    }
+                  } catch (error) {
+                    noteActivationFailure(stats, 'include_opponent', error);
+                    continue;
                   }
                 }
 
@@ -676,7 +772,12 @@ async function run() {
 
                 for (const confidence of confidenceOptions.slice(0, 6)) {
                   if (confidence.value) {
-                    await setSelectByLabel(page, 'Min Confidence', confidence.value);
+                    try {
+                      await setSelectByLabel(page, 'Min Confidence', confidence.value);
+                    } catch (error) {
+                      noteActivationFailure(stats, 'min_confidence', error);
+                      continue;
+                    }
                   }
 
                   const injuryStates = detectedGroups.includes('injury_filter')
@@ -685,8 +786,13 @@ async function run() {
 
                   for (const injuryState of injuryStates) {
                     if (injuryState.mode !== 'default') {
-                      await applyInjuryState(page, injuryState);
-                      await waitForDomStability(page);
+                      try {
+                        await applyInjuryState(page, injuryState);
+                        await waitForDomStability(page);
+                      } catch (error) {
+                        noteActivationFailure(stats, 'injury_filter', error);
+                        continue;
+                      }
                     }
 
                     const scanPathParts = [
@@ -718,16 +824,18 @@ async function run() {
 
                     await scanState(
                       page,
-                      {
-                        scanPathParts,
-                        groupLabels,
-                        pathKey: buildScanPath(scanPathParts),
-                        previousHash: null,
-                      },
-                      output,
-                      visitedStateFingerprints,
-                      globalItemKeys
-                    );
+                        {
+                          scanPathParts,
+                          groupLabels,
+                          pathKey: buildScanPath(scanPathParts),
+                          previousHash: null,
+                          hashOwners,
+                        },
+                        output,
+                        visitedStateFingerprints,
+                        globalItemKeys,
+                        stats
+                      );
 
                     if (detectedGroups.includes('thresholds')) {
                       const sliderConfigs = [
@@ -742,7 +850,12 @@ async function run() {
                         let lastHash = null;
 
                         for (const sliderValue of values) {
-                          await setRangeValue(page, slider.selector, sliderValue);
+                          try {
+                            await setRangeValue(page, slider.selector, sliderValue);
+                          } catch (error) {
+                            noteActivationFailure(stats, `${slider.label.toLowerCase()}_threshold`, error);
+                            break;
+                          }
                           const signature = await waitForDomStability(page);
                           if (signature.hash === lastHash) {
                             repeatedCount += 1;
@@ -764,10 +877,12 @@ async function run() {
                               groupLabels: sliderLabels,
                               pathKey: buildScanPath(sliderPath),
                               previousHash: signature.hash,
+                              hashOwners,
                             },
                             output,
                             visitedStateFingerprints,
-                            globalItemKeys
+                            globalItemKeys,
+                            stats
                           );
 
                           if (repeatedCount >= 1) break;
@@ -776,8 +891,12 @@ async function run() {
                     }
 
                     if (injuryState.mode !== 'default') {
-                      await applyInjuryState(page, { label: 'reset', mode: 'show_all' });
-                      await waitForDomStability(page);
+                      try {
+                        await applyInjuryState(page, { label: 'reset', mode: 'show_all' });
+                        await waitForDomStability(page);
+                      } catch (error) {
+                        noteActivationFailure(stats, 'injury_filter_reset', error);
+                      }
                     }
                   }
                 }
@@ -790,9 +909,11 @@ async function run() {
   } finally {
     // Remove private dedupe helpers before writing output.
     const clean = output.map(({ _dedupe_key, ...rest }) => rest);
-    const json = JSON.stringify(clean, null, 2);
-    require('fs').writeFileSync(OUTPUT_PATH, json);
-    console.log(json);
+    stats.unique_items = clean.length;
+    stats.finished_at = new Date().toISOString();
+    writeJsonFile(OUTPUT_PATH, clean);
+    writeJsonFile(RUN_SUMMARY_PATH, stats);
+    console.log(JSON.stringify(clean, null, 2));
     await browser.close();
   }
 }

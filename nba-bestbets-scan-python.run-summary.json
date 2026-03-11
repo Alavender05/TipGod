@@ -1,0 +1,23 @@
+{
+  "page_url": "https://capping.pro/nba-bestbets",
+  "scanner": "python",
+  "runtime": "python",
+  "started_at": "2026-03-11T00:59:02.133009Z",
+  "raw_extracted_cards": 0,
+  "unique_items": 0,
+  "duplicate_items": 0,
+  "visited_states": 1,
+  "repeated_content_hashes": 0,
+  "detail_modal_failures": 0,
+  "selector_activation_failures": {},
+  "empty_states_after_interaction": [
+    {
+      "scan_path": "",
+      "content_hash": "075ad72f915f91896d2c8a68193b02a0e9da39bd",
+      "no_results_text": null
+    }
+  ],
+  "repeated_content_paths": [],
+  "detected_control_groups": [],
+  "finished_at": "2026-03-11T00:59:09.406388Z"
+}
