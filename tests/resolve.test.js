@@ -62,12 +62,14 @@ test('resolveTeam: resolves with surrounding whitespace', () => {
   assert.equal(resolveTeam('  Heat  ', aliasMap), 'Miami Heat');
 });
 
-// NOTE: resolveTeam's partial match logic is intentionally broad — it checks if any
-// alias appears as a substring within the raw name, or vice versa. Short aliases
-// (e.g. "no" for New Orleans) can cause false positives on strings like "unknown".
-// Tests use strings with no overlapping NBA aliases.
+// NOTE: resolveTeam's partial-match fallback now uses whole-word matching to avoid
+// false positives from short aliases (e.g. "no" should not match inside "unknown").
 test('resolveTeam: returns null for fully non-NBA team name', () => {
   assert.equal(resolveTeam('QQQQQ ZZZZZ FC', aliasMap), null);
+});
+
+test('resolveTeam: does not match short alias inside unrelated word', () => {
+  assert.equal(resolveTeam('unknown', aliasMap), null);
 });
 
 test('resolveTeam: returns null for empty string', () => {

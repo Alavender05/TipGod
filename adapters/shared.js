@@ -60,11 +60,23 @@ function loadTeamAliases() {
 }
 
 /**
+ * Escape a string for safe use in a RegExp pattern.
+ * @param {string} str
+ * @returns {string}
+ */
+function escapeRegex(str) {
+  return str.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+}
+
+/**
  * Resolve a raw bookmaker team name to its canonical NBA name.
  *
  * Resolution order:
  *  1. Exact alias match (lowercased)
- *  2. Partial include — alias appears in rawName or rawName appears in alias
+ *  2. Word-boundary partial match — alias appears as a whole word in rawName,
+ *     or rawName appears as a whole word in alias. Uses \b anchors to prevent
+ *     short aliases (e.g. "no" for New Orleans) from matching inside unrelated
+ *     strings like "unknown".
  *
  * Returns null if no match found.
  *
@@ -79,7 +91,9 @@ function resolveTeam(rawName, aliasMap) {
   if (aliasMap.has(key)) return aliasMap.get(key);
 
   for (const [alias, canonical] of aliasMap.entries()) {
-    if (key.includes(alias) || alias.includes(key)) return canonical;
+    const aliasPattern = new RegExp(`\\b${escapeRegex(alias)}\\b`, 'i');
+    const keyPattern   = new RegExp(`\\b${escapeRegex(key)}\\b`, 'i');
+    if (aliasPattern.test(key) || keyPattern.test(alias)) return canonical;
   }
   return null;
 }
@@ -148,6 +162,189 @@ async function dismissOverlays(page) {
   }
 }
 
+/**
+ * Best-effort generic market extraction for bookmaker pages.
+ * Returns raw selection rows; normalization happens in adapters/index.js.
+ *
+ * @param {import('playwright').Page} page
+ * @param {object} config
+ * @param {{
+ *   containerSelectors: string[],
+ *   headingSelectors: string[],
+ *   teamSelectors: string[],
+ *   oddsSelectors: string[],
+ * }} selectors
+ * @returns {Promise<Array<object>>}
+ */
+async function extractBookmakerSelections(page, config, selectors) {
+  return page.evaluate((marketAliases, passedSelectors) => {
+    function norm(value) {
+      return String(value || '').replace(/\s+/g, ' ').trim();
+    }
+
+    function aliasKey(value) {
+      return norm(value).toLowerCase().replace(/[^a-z0-9]+/g, '_').replace(/^_+|_+$/g, '');
+    }
+
+    function canonicalMarket(headings) {
+      const headingKeys = headings.map(aliasKey);
+      for (const [canonical, labels] of Object.entries(marketAliases || {})) {
+        const labelKeys = (labels || []).map(aliasKey);
+        if (headingKeys.some((heading) => labelKeys.some((label) => heading.includes(label)))) {
+          return {
+            market_type_raw: canonical,
+            market_name: headings[0] || canonical,
+          };
+        }
+      }
+      return null;
+    }
+
+    function leafTexts(node) {
+      return Array.from(node.querySelectorAll('span, div, p, button'))
+        .filter((el) => el.children.length === 0)
+        .map((el) => norm(el.textContent))
+        .filter(Boolean);
+    }
+
+    function findLine(texts) {
+      for (const text of texts) {
+        const match = text.match(/-?\d+(?:\.\d+)?/);
+        if (match) return match[0];
+      }
+      return null;
+    }
+
+    function pickPlayerName(texts, headings, teams) {
+      const blocked = new Set([
+        ...headings.map(aliasKey),
+        ...teams.map(aliasKey),
+        'over',
+        'under',
+      ]);
+      return texts.find((text) => {
+        const key = aliasKey(text);
+        return key
+          && !blocked.has(key)
+          && !/^\d+(\.\d+)?$/.test(text)
+          && !/\b(over|under)\b/i.test(text)
+          && text.length > 2;
+      }) || null;
+    }
+
+    const containerSelector = passedSelectors.containerSelectors.join(', ');
+    const headingSelector = passedSelectors.headingSelectors.join(', ');
+    const teamSelector = passedSelectors.teamSelectors.join(', ');
+    const oddsSelector = passedSelectors.oddsSelectors.join(', ');
+
+    const containers = Array.from(document.querySelectorAll(containerSelector));
+    const fallback = containers.length > 0
+      ? containers
+      : Array.from(document.querySelectorAll('article, [role="listitem"], li, section'));
+
+    const results = [];
+
+    for (const container of fallback) {
+      const headings = Array.from(container.querySelectorAll(headingSelector))
+        .map((el) => norm(el.textContent))
+        .filter(Boolean);
+      const matched = canonicalMarket(headings);
+      if (!matched) continue;
+
+      const teams = Array.from(container.querySelectorAll(teamSelector))
+        .map((el) => norm(el.textContent))
+        .filter(Boolean);
+      const odds = Array.from(container.querySelectorAll(oddsSelector))
+        .map((el) => norm(el.textContent))
+        .filter(Boolean)
+        .filter((value) => /\d+\.\d+/.test(value));
+      const texts = leafTexts(container);
+
+      const marketType = matched.market_type_raw;
+      const line = findLine(texts);
+      const playerName = marketType.startsWith('player_') ? pickPlayerName(texts, headings, teams) : null;
+      const matchupTeamA = teams[0] || null;
+      const matchupTeamB = teams[1] || null;
+
+      if (marketType === 'moneyline' || marketType.endsWith('_spread')) {
+        if (teams.length >= 2 && odds.length >= 2) {
+          results.push({
+            home_team_raw: matchupTeamA,
+            away_team_raw: matchupTeamB,
+            player_name_raw: null,
+            market_type_raw: marketType,
+            market_name: matched.market_name,
+            selection_label_raw: matchupTeamA,
+            line_raw: line,
+            odds_raw: odds[0],
+            is_available: true,
+          });
+          results.push({
+            home_team_raw: matchupTeamA,
+            away_team_raw: matchupTeamB,
+            player_name_raw: null,
+            market_type_raw: marketType,
+            market_name: matched.market_name,
+            selection_label_raw: matchupTeamB,
+            line_raw: line,
+            odds_raw: odds[1],
+            is_available: true,
+          });
+        }
+        continue;
+      }
+
+      if (marketType.includes('total')) {
+        if (odds.length >= 2) {
+          results.push({
+            home_team_raw: matchupTeamA,
+            away_team_raw: matchupTeamB,
+            player_name_raw: null,
+            market_type_raw: marketType,
+            market_name: matched.market_name,
+            selection_label_raw: `Over ${line || ''}`.trim(),
+            line_raw: line,
+            odds_raw: odds[0],
+            is_available: true,
+          });
+          results.push({
+            home_team_raw: matchupTeamA,
+            away_team_raw: matchupTeamB,
+            player_name_raw: null,
+            market_type_raw: marketType,
+            market_name: matched.market_name,
+            selection_label_raw: `Under ${line || ''}`.trim(),
+            line_raw: line,
+            odds_raw: odds[1],
+            is_available: true,
+          });
+        }
+        continue;
+      }
+
+      if (marketType.startsWith('player_') && odds.length > 0) {
+        const labels = texts.filter((text) => /\b(over|under)\b/i.test(text) || /\d+(?:\.\d+)?\+/.test(text));
+        const selectionLabels = labels.length > 0 ? labels : ['Over'];
+        for (let i = 0; i < Math.min(selectionLabels.length, odds.length); i += 1) {
+          results.push({
+            home_team_raw: matchupTeamA,
+            away_team_raw: matchupTeamB,
+            player_name_raw: playerName,
+            market_type_raw: marketType,
+            market_name: matched.market_name,
+            selection_label_raw: selectionLabels[i],
+            line_raw: findLine([selectionLabels[i]]) || line,
+            odds_raw: odds[i],
+            is_available: true,
+          });
+        }
+      }
+    }
+
+    return results;
+  }, config.market_aliases, selectors);
+}
+
 module.exports = {
   normalizeText,
   parseDecimalOdds,
@@ -156,4 +353,5 @@ module.exports = {
   resolveMatchup,
   waitForSettle,
   dismissOverlays,
+  extractBookmakerSelections,
 };

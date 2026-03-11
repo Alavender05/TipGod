@@ -420,7 +420,7 @@ function itemTopline(item, surfaceLabel) {
   return chips.join("");
 }
 
-function renderMoneylineComparison(item) {
+function renderLegacyMoneylineComparison(item) {
   const enrichment = item.moneyline_enrichment;
 
   // No enrichment data at all — show nothing (not even no-data message)
@@ -448,6 +448,28 @@ function renderMoneylineComparison(item) {
   const awayLabel = enrichment.away_team
     ? enrichment.away_team.split(" ").pop()
     : "Away";
+  const bestCellMarkup = (odds, bookmaker) => {
+    if (odds == null || !bookmaker) {
+      return `<span class="best-available-empty">—</span>`;
+    }
+
+    const displayName = BOOKMAKER_DISPLAY_NAMES[bookmaker] || bookmaker;
+    return `
+      <span class="best-available-odds">${odds.toFixed(2)}</span>
+      <span class="best-available-book">${displayName}</span>
+    `;
+  };
+  const bestAvailableRow = `
+    <div class="moneyline-row best-available-row" data-available="true">
+      <span class="ml-book-name best-available-label">Best Available</span>
+      <span class="ml-odds best-available-cell">
+        ${bestCellMarkup(best.home_best_odds, best.home_best_bookmaker)}
+      </span>
+      <span class="ml-odds best-available-cell">
+        ${bestCellMarkup(best.away_best_odds, best.away_best_bookmaker)}
+      </span>
+    </div>
+  `;
 
   const rows = APPROVED_BOOKMAKERS.map((slug) => {
     const quote = enrichment.quotes[slug];
@@ -487,7 +509,106 @@ function renderMoneylineComparison(item) {
         <span class="ml-team ml-home">${homeLabel}</span>
         <span class="ml-team ml-away">${awayLabel}</span>
       </div>
-      <div class="moneyline-rows">${rows}</div>
+      <div class="moneyline-rows">${bestAvailableRow}${rows}</div>
+    </div>
+  `;
+}
+
+function bookmakerEnrichment(item) {
+  return item.bookmaker_enrichment || null;
+}
+
+function formatBookmakerOdds(value) {
+  return value != null ? value.toFixed(2) : "—";
+}
+
+function formatBestAvailable(best) {
+  if (!best || best.odds == null || !best.bookmaker) return "—";
+  const name = BOOKMAKER_DISPLAY_NAMES[best.bookmaker] || best.bookmaker;
+  return `${best.odds.toFixed(2)} · ${name}`;
+}
+
+function renderGameMarketsPanel(gameBundle) {
+  if (!gameBundle?.markets?.length) return "";
+
+  const rows = gameBundle.markets
+    .filter((market) => market.market_type === "moneyline" || market.best_available?.odds != null)
+    .map((market) => `
+      <div class="game-market-row">
+        <span class="game-market-name">${displayMarket(market.market_type)}</span>
+        <span class="game-market-best">${formatBestAvailable(market.best_available)}</span>
+      </div>
+    `)
+    .join("");
+
+  if (!rows) return "";
+
+  return `
+    <details class="game-markets-panel">
+      <summary>Game Markets</summary>
+      <div class="game-markets-list">${rows}</div>
+    </details>
+  `;
+}
+
+function renderBookmakerComparison(item) {
+  const enrichment = bookmakerEnrichment(item);
+  if (!enrichment) {
+    return item.moneyline_enrichment ? renderLegacyMoneylineComparison(item) : "";
+  }
+
+  const matchedMarket = enrichment.matched_market;
+  const gameBundle = enrichment.game_bundle;
+
+  if (!matchedMarket) {
+    if (gameBundle?.markets?.length) {
+      return `
+        <div class="bookmaker-comparison">
+          <div class="bookmaker-header">
+            <span class="bookmaker-label">Bookmaker Markets</span>
+            <span class="bookmaker-coverage">${gameBundle.markets.length} game selections</span>
+          </div>
+          <div class="bookmaker-context">${gameBundle.matchup}</div>
+          ${renderGameMarketsPanel(gameBundle)}
+        </div>
+      `;
+    }
+    return "";
+  }
+
+  const availableQuotes = APPROVED_BOOKMAKERS.filter(
+    (slug) => matchedMarket.quotes[slug]?.is_available && matchedMarket.quotes[slug]?.odds != null
+  );
+  const coverageCount = availableQuotes.length;
+
+  const rows = APPROVED_BOOKMAKERS.map((slug) => {
+    const quote = matchedMarket.quotes[slug];
+    const available = quote?.is_available && quote?.odds != null;
+    const displayName = BOOKMAKER_DISPLAY_NAMES[slug] || slug;
+    const isBest = matchedMarket.best_available?.bookmaker === slug ? " best-odds" : "";
+
+    return `
+      <div class="bookmaker-row" data-available="${available ? "true" : "false"}">
+        <span class="bk-name">${displayName}</span>
+        <span class="bk-odds${isBest}">${available ? formatBookmakerOdds(quote.odds) : "—"}</span>
+        <span class="bk-note">${quote?.market_name || "Unavailable"}</span>
+      </div>
+    `;
+  }).join("");
+
+  return `
+    <div class="bookmaker-comparison">
+      <div class="bookmaker-header">
+        <span class="bookmaker-label">${displayMarket(matchedMarket.market_type)}</span>
+        <span class="bookmaker-coverage">${coverageCount} of 4 books</span>
+      </div>
+      <div class="bookmaker-context">${matchedMarket.selection_label || "Selection"}${enrichment.lookup.matchup ? ` · ${enrichment.lookup.matchup}` : ""}</div>
+      <div class="best-selection-row">
+        <span class="best-selection-label">Best Available</span>
+        <span class="best-selection-value">${formatBestAvailable(matchedMarket.best_available)}</span>
+      </div>
+      <div class="bookmaker-rows">${rows}</div>
+      ${renderGameMarketsPanel(gameBundle)}
     </div>
   `;
 }
@@ -512,7 +633,7 @@ function pickCardMarkup(item, items, surfaceLabel, featured = false) {
       <div class="pick-text">${item.selection || item.subtitle || "Selection unavailable"}</div>
       ${meterMarkup(item, items)}
       <div class="pick-meta-grid">${metaPills.join("")}</div>
-      ${renderMoneylineComparison(item)}
+      ${renderBookmakerComparison(item)}
       <p class="subtext">${item.reason || "Approved-source NBA item."}</p>
       <div class="edge-strip" style="width: ${Math.round(metricRatio(item, items) * 100)}%; background: ${toneColor(metricRatio(item, items))};"></div>
     </article>

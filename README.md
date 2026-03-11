@@ -21,6 +21,7 @@ The current product state is no longer just a `nba-bestbets` audit. The repo now
   - [scan-capping-pro-nba-surfaces.js](/workspaces/TipGod/scan-capping-pro-nba-surfaces.js)
 - bookmaker adapters:
   - [adapters/shared.js](/workspaces/TipGod/adapters/shared.js) — shared utilities
+  - [adapters/market-utils.js](/workspaces/TipGod/adapters/market-utils.js) — market normalization + item lookup helpers
   - [adapters/bookmakers/ladbrokes.js](/workspaces/TipGod/adapters/bookmakers/ladbrokes.js)
   - [adapters/bookmakers/sportsbet.js](/workspaces/TipGod/adapters/bookmakers/sportsbet.js)
   - [adapters/bookmakers/pointsbet.js](/workspaces/TipGod/adapters/bookmakers/pointsbet.js)
@@ -47,6 +48,7 @@ The current product state is no longer just a `nba-bestbets` audit. The repo now
   - [tests/normalize.test.js](/workspaces/TipGod/tests/normalize.test.js) — `normalizeText`, `parseDecimalOdds`
   - [tests/resolve.test.js](/workspaces/TipGod/tests/resolve.test.js) — `loadTeamAliases`, `resolveTeam`, `resolveMatchup`
   - [tests/scanner-utils.test.js](/workspaces/TipGod/tests/scanner-utils.test.js) — `sha1`, `slugify`, `parseNumber`, `parsePercent`
+  - [tests/bookmaker-enrichment.test.js](/workspaces/TipGod/tests/bookmaker-enrichment.test.js) — market normalization, item lookup, generic bookmaker enrichment
 - CI:
   - [.github/workflows/scan.yml](/workspaces/TipGod/.github/workflows/scan.yml) — automated cron scan via GitHub Actions
 - demo enrichment generator:
@@ -60,18 +62,33 @@ The current product state is no longer just a `nba-bestbets` audit. The repo now
 
 ## Current Architecture
 
-### Moneyline enrichment layer
+### Generic bookmaker enrichment layer
 
-The repo now includes a TypeScript-typed enrichment layer that sits on top of the existing capping.pro NBA items.
+The repo now includes a TypeScript-typed bookmaker enrichment layer that sits on top of the existing capping.pro NBA items.
 
-Approved bookmakers (AU only, decimal odds, AUD):
+Approved bookmakers (AU only, decimal odds, AUD) now use canonical capping-facing market names with bookmaker-native aliases configured per book:
 
-| Slug | Name | Moneyline market name |
+| Slug | Name | Example native moneyline label |
 |---|---|---|
 | `ladbrokes` | Ladbrokes | Head To Head |
 | `sportsbet` | Sportsbet | Head To Head |
 | `pointsbet` | PointsBet | Match Winner |
 | `bet365` | Bet365 | Match Betting |
+
+Canonical output market types currently targeted:
+
+- `moneyline`
+- `spread`
+- `game_total`
+- `first_half_spread`
+- `first_half_total`
+- `second_half_spread`
+- `second_half_total`
+- `player_points`
+- `player_rebounds`
+- `player_assists`
+- `player_blocks`
+- `player_free_throws`
 
 Key types exported from `types/moneyline-enrichment.ts`:
 
@@ -79,58 +96,73 @@ Key types exported from `types/moneyline-enrichment.ts`:
 - `APPROVED_BOOKMAKERS` — readonly const array of the four slugs
 - `BookmakerConfig` — one entry in `moneyline_bookmakers.json`
 - `MoneylineBookmakerPolicy` — shape of the full enrichment config file
-- `BookmakerMoneylineQuote` — one book's home/away decimal prices + `is_available` flag
-- `BestAvailableMoneyline` — best odds + source bookmaker across all four books
-- `MoneylineEnrichment` — full enrichment block: `quotes` keyed record + best available
-- `MoneylineCoverageStats` — per-surface enrichment coverage metrics
+- `CanonicalMarketType` — canonical capping-facing market names
+- `PeriodScope` — `full_game`, `first_half`, `second_half`
+- `BookmakerMarketQuote` — one bookmaker's normalized quote for a market selection
+- `BestAvailableSelection` — best quote + source bookmaker for one selection
+- `ItemMarketLookup` — normalized mapping from a scanner item into a market request
+- `ItemMarketMatch` — matched market selection with per-book quotes
+- `GameMarketBundle` — all normalized game-level selections for one matchup
+- `PlayerMarketBundle` — all normalized selections for one player within a matchup
+- `BookmakerEnrichment` — item-level enrichment block attached to scanner items
+- `BookmakerCoverageStats` — per-surface enrichment coverage metrics
 - `NBAItemMetric` — typed version of the existing `metrics[]` contract
 - `NBANormalizedItem` — typed version of `makeItem()` output from the scanner
-- `EnrichedNBAItem` — `NBANormalizedItem` + `moneyline_enrichment: MoneylineEnrichment | null`
+- `EnrichedNBAItem` — `NBANormalizedItem` + `bookmaker_enrichment: BookmakerEnrichment | null`
 - `EnrichedNBASurface` — surface with enriched items + coverage stats
 - `EnrichedNBADataset` — top-level enriched dataset shape
 
 Type verification: `npm run typecheck` (`tsc --noEmit`, exits 0).
 
-### Bookmaker adapters
+### Bookmaker adapters and market normalization
 
-Four Playwright-based adapters scrape NBA head-to-head odds from the approved AU bookmakers and return standardised `BookmakerMoneylineQuote` objects.
+Four Playwright-based adapters now attempt a broader NBA market set from the approved AU bookmakers. Their output is normalized into canonical capping-facing market names while preserving bookmaker-native market labels on each quote.
 
 Each adapter (`adapters/bookmakers/<slug>.js`) exports:
 
 ```js
-{ slug, name, fetchOdds(page, config) → Promise<RawGameOdds[]> }
+{ slug, name, fetchOdds(page, config) → Promise<RawSelectionRow[]> }
 ```
 
-`RawGameOdds` shape: `{ home_team_raw, away_team_raw, home_odds, away_odds, market_name, is_available }`
+`RawSelectionRow` shape: `{ home_team_raw, away_team_raw, player_name_raw, market_type_raw, market_name, selection_label_raw, line_raw, odds_raw, is_available }`
 
 Adapter behaviour:
 - Navigates to `config.base_url + config.nba_path`
 - Settles with `waitForSettle()` (3 s for Ladbrokes/Sportsbet/PointsBet, 6 s for Bet365)
-- Uses text-content matching to locate the correct market section (`moneyline_market_name`) — avoids brittle obfuscated class selectors
+- Uses shared best-effort market-section extraction keyed by per-book `market_aliases`
 - Wraps entirely in try/catch — returns `[]` on geo-block or any error
-- Bet365 uses a dual-strategy extraction (text-content first, class-pattern fallback) because its class names are obfuscated and change frequently
+- Attempts all configured canonical market types in the first pass, even if some books/pages return sparse rows
 
 Orchestrator (`adapters/index.js`):
-- `runAllAdapters(browser, bookmakerConfigs)` — one fresh page per book, per-book errors caught; returns `{ oddsMap, adapterHealth }` where `adapterHealth` carries `{ raw_games, error, started_at, finished_at }` per slug
-- `buildEnrichment(matchupStr, bookOddsMap, aliasMap, bookmakerConfigs)` — resolves canonical team names, detects home/away ordering swap (some AU books list away team first), computes `best_available` across all 4 books
-- Shared utilities (`adapters/shared.js`) mirror the patterns in the main scanner: `normalizeText`, `parseDecimalOdds`, `loadTeamAliases`, `resolveTeam`, `resolveMatchup`, `waitForSettle`, `dismissOverlays`
+- `runAllAdapters(browser, bookmakerConfigs)` — one fresh page per book, per-book errors caught; returns `{ oddsMap, marketMap, adapterHealth }`
+- `normalizeRawSelectionsToMarketOffers(...)` — converts raw selection rows into canonical market offers
+- `buildMarketIndex(marketMap, bookmakerConfigs)` — builds selection, game, player, and team-to-game indexes
+- `buildItemEnrichment(item, marketIndex, aliasMap)` — maps one scanner item into `bookmaker_enrichment`
+- `toLegacyMoneylineEnrichment(enrichment)` — temporary compatibility bridge for older moneyline-only UI/data consumers
+- Shared utilities:
+  - `adapters/shared.js` — `normalizeText`, `parseDecimalOdds`, `loadTeamAliases`, `resolveTeam`, `resolveMatchup`, `waitForSettle`, `dismissOverlays`
+  - `adapters/market-utils.js` — player-name cleanup, stat-type normalization, matchup canonicalization, item lookup derivation
 
-Geo-restriction behaviour: AU bookmaker sites require an AU IP. Geo-blocked books produce `is_available: false` for all their quotes — the run continues and coverage stats reflect the actual availability.
+Geo-restriction behaviour: AU bookmaker sites require an AU IP. Geo-blocked books produce empty offer sets and unavailable quotes in matched selections; the run continues and coverage stats reflect the actual availability.
 
 ### Enrichment runner
 
 `enrich-moneyline.js` (`npm run enrich:moneyline`):
 
 1. Loads `capping-pro-nba-surfaces.json` + `config/moneyline_bookmakers.json`
-2. Collects unique matchup strings from all surface items
-3. Launches headless Chromium (1440×1800, matching the scanner)
-4. Runs all 4 adapters via `runAllAdapters()` — returns `{ oddsMap, adapterHealth }`
-5. Logs per-book health: `OK (N games)` or `ERROR: <message>` per slug
-6. Builds `MoneylineEnrichment` blocks for each matchup via `buildEnrichment()`
-7. Attaches `moneyline_enrichment` to every surface item
-8. Computes `MoneylineCoverageStats` per surface
+2. Launches headless Chromium (1440×1800, matching the scanner)
+3. Runs all 4 adapters via `runAllAdapters()` — returns `{ oddsMap, marketMap, adapterHealth }`
+4. Logs per-book health: `OK (N games, N offers)` or `ERROR: <message>` per slug
+5. Builds a generic market index from normalized offers
+6. Attaches `bookmaker_enrichment` to every surface item via item-level lookup
+7. Also writes `moneyline_enrichment` as a temporary compatibility field when a game bundle includes moneyline
+8. Computes `BookmakerCoverageStats` per surface
 9. Writes `capping-pro-nba-surfaces-enriched.json` (full `EnrichedNBADataset`)
-10. Writes `moneyline-enrichment.run-summary.json` — includes `failed_adapters[]`, per-book `{ raw_games_found, adapter_success, error, started_at, finished_at }`, coverage %
+10. Writes `moneyline-enrichment.run-summary.json` — includes `failed_adapters[]`, per-book `{ raw_games_found, normalized_offers_found, market_type_counts, adapter_success, error, started_at, finished_at }`, coverage %
+
+Current live limitation:
+- the adapters now attempt the expanded market list via generic extraction, but real bookmaker DOM coverage is still best-effort
+- live spread/total/player-prop/half-market coverage depends on current bookmaker page structure and AU access, and was not fully validated from this environment
 
 ### Data source policy
 
@@ -187,7 +219,7 @@ It renders:
   - distribution chart
   - heatmap
   - compact table
-- **Moneyline Comparison section** on each card (when enriched data is present)
+- **Bookmaker Comparison section** on each card (when enriched data is present)
 
 Filter state (active surface, primary/secondary filters, show-table toggle) is persisted to `localStorage` and restored on page load. Falls back gracefully if `localStorage` is unavailable (e.g. strict private browsing).
 
@@ -197,17 +229,18 @@ There are no fallback datasets. If a surface has zero valid approved-source NBA 
 
 `app.js` tries `capping-pro-nba-surfaces-enriched.json` first; falls back to the base `capping-pro-nba-surfaces.json` silently if the enriched file is absent. This means the UI works in both enriched and non-enriched modes with no code changes.
 
-#### Moneyline Comparison card section
+#### Bookmaker Comparison card section
 
-Rendered by `renderMoneylineComparison(item)` inside `pickCardMarkup()` and `renderFeatured()`.
+Rendered by `renderBookmakerComparison(item)` inside `pickCardMarkup()` and `renderFeatured()`.
 
 Behaviour:
-- `moneyline_enrichment === null` → renders nothing (base dataset mode, no UI regression)
-- All 4 books unavailable → renders "No moneyline data available" message
-- Otherwise → renders a 3-column grid (book name | home odds | away odds) for all 4 books in fixed order: Ladbrokes → Sportsbet → PointsBet → Bet365
-  - Best home and away odds highlighted green (`.best-odds`)
-  - Unavailable book rows faded to 40% opacity with `—` placeholder
-  - Coverage count shown in header: e.g. "3 of 4 books"
+- `bookmaker_enrichment === null` → renders nothing (base dataset mode, no UI regression)
+- If `matched_market` exists → renders an item-centric comparison block:
+  - header shows the canonical matched market type and coverage count
+  - best available row shows the top quote for that exact item selection
+  - detail rows show bookmaker, odds, and bookmaker-native market label in fixed order: Ladbrokes → Sportsbet → PointsBet → Bet365
+- If only `game_bundle` exists → renders a compact bookmaker markets panel for that matchup
+- A temporary legacy moneyline renderer remains as fallback for older enriched JSON carrying only `moneyline_enrichment`
 
 ## Current Data Contracts
 
@@ -278,33 +311,52 @@ Important note:
       "label": "Best Bets",
       "source_url": "...",
       "scan_summary": {},
-      "moneyline_coverage": {
+      "bookmaker_coverage": {
         "surface_id": "best-bets",
         "total_items": 94,
-        "enrichable_items": 60,
-        "enriched_items": 48,
+        "enrichable_items": 94,
+        "enriched_items": 94,
         "books_with_coverage": ["ladbrokes", "sportsbet", "bet365"],
-        "coverage_pct": 80
+        "market_type_counts": { "player_assists": 12, "player_points": 48 },
+        "coverage_pct": 100
       },
       "items": [
         {
           "...existing item fields...",
-          "moneyline_enrichment": {
-            "matchup": "LAL vs BOS",
-            "home_team": "Los Angeles Lakers",
-            "away_team": "Boston Celtics",
-            "quotes": {
-              "ladbrokes":  { "is_available": true,  "home_odds": 1.85, "away_odds": 1.95, "market_name": "Head To Head", "retrieved_at": "..." },
-              "sportsbet":  { "is_available": true,  "home_odds": 1.82, "away_odds": 2.00, "market_name": "Head To Head", "retrieved_at": "..." },
-              "pointsbet":  { "is_available": false, "home_odds": null,  "away_odds": null,  "market_name": "Match Winner",  "retrieved_at": null },
-              "bet365":     { "is_available": true,  "home_odds": 1.87, "away_odds": 1.93, "market_name": "Match Betting", "retrieved_at": "..." }
+          "bookmaker_enrichment": {
+            "lookup": {
+              "matchup": "Houston Rockets vs Denver Nuggets",
+              "home_team": "Houston Rockets",
+              "away_team": "Denver Nuggets",
+              "market_type": "player_assists",
+              "market_family": "player_prop",
+              "period": "full_game",
+              "market_key": "player_assists:5",
+              "selection_key": "alt_over",
+              "selection_label": "5+ assists",
+              "player_name": "Amen Thompson",
+              "line": 5,
+              "team_context": "Houston Rockets"
             },
-            "best_available": {
-              "home_best_odds": 1.87, "home_best_bookmaker": "bet365",
-              "away_best_odds": 2.00, "away_best_bookmaker": "sportsbet"
+            "matched_market": {
+              "market_type": "player_assists",
+              "market_family": "player_prop",
+              "period": "full_game",
+              "market_key": "player_assists:5",
+              "selection_key": "alt_over",
+              "selection_label": "5+ assists",
+              "best_available": {
+                "odds": 2.79,
+                "bookmaker": "sportsbet",
+                "bookmaker_name": "Sportsbet",
+                "selection_key": "alt_over",
+                "selection_label": "5+ assists"
+              }
             },
+            "game_bundle": { "...": "game-level selections for the matchup" },
             "enriched_at": "..."
-          }
+          },
+          "moneyline_enrichment": { "...": "temporary legacy compatibility block" }
         }
       ]
     }
@@ -312,7 +364,7 @@ Important note:
 }
 ```
 
-Items without a resolvable matchup have `moneyline_enrichment: null`.
+Items that cannot be mapped to a canonical market request keep `bookmaker_enrichment: null`.
 
 ## npm Scripts
 
@@ -320,20 +372,20 @@ Items without a resolvable matchup have `moneyline_enrichment: null`.
 |---|---|---|
 | `scan:nba-surfaces` | `node scan-capping-pro-nba-surfaces.js` | Run Playwright scanner against capping.pro |
 | `enrich:moneyline` | `node enrich-moneyline.js` | Run bookmaker adapters, write enriched dataset (requires AU IP) |
-| `demo:enrichment` | `node scripts/generate-demo-enrichment.js` | Generate synthetic odds for UI display (no AU IP required) |
+| `demo:enrichment` | `node scripts/generate-demo-enrichment.js` | Generate synthetic generic bookmaker enrichment for UI display (no AU IP required) |
 | `summarize:nba-surfaces` | `node scripts/summarize.js capping-pro-nba-surfaces.json` | Summarize grouped scan output |
-| `test` | `node --test tests/*.test.js` | Run unit tests (53 tests, zero dependencies) |
+| `test` | `node --test tests/*.test.js` | Run unit tests (4 test files, zero dependencies) |
 | `typecheck` | `tsc --noEmit` | Verify TypeScript interfaces compile cleanly |
 
 Typical run order (live AU IP):
 1. `npm run scan:nba-surfaces` → generates base dataset
 2. `npm run enrich:moneyline` → scrapes live bookmaker odds, writes enriched dataset
-3. Serve `index.html` — UI auto-detects enriched file and shows Moneyline Comparison section
+3. Serve `index.html` — UI auto-detects enriched file and shows bookmaker comparison sections
 
 Typical run order (no AU IP / local dev):
 1. `npm run scan:nba-surfaces` → generates base dataset
 2. `npm run demo:enrichment` → generates synthetic odds in same format as live enrichment
-3. Serve `index.html` — Moneyline Comparison section renders with demo odds
+3. Serve `index.html` — bookmaker comparison sections render with demo data
 
 ## Current Runtime Status
 
@@ -356,12 +408,12 @@ Verification completed for:
 - `node --check enrich-moneyline.js`
 - `node --check adapters/index.js adapters/shared.js adapters/bookmakers/*.js`
 - `node -e "require('./adapters/index')"` (module loads cleanly)
-- `npm test` — 53/53 unit tests pass (no extra dependencies, uses `node:test`)
+- `npm test` — all current test files pass (no extra dependencies, uses `node:test`)
 - `node scripts/summarize.js capping-pro-nba-surfaces.json` — produces correct 440-item summary
 - live Playwright run of `scan-capping-pro-nba-surfaces.js`
 - local browser smoke test against `python3 -m http.server`
 - `npm run typecheck` (TypeScript interfaces, 0 errors)
-- enrichment logic smoke test (null enrichment, 3-of-4 coverage, all-unavailable scenarios)
+- enrichment logic smoke test (generic lookup, matched-market, game-bundle, legacy moneyline compatibility)
 
 ## Prompt History Context
 
@@ -378,6 +430,66 @@ Two root causes identified and fixed:
 The demo generator reuses `loadTeamAliases()` and `resolveMatchup()` from `adapters/shared.js`. It handles both matchup string formats in the scan data (`"HOU vs DEN"` and `"TOR@NOP"`). Odds are seeded by matchup string for reproducibility. The output carries a `demo_enrichment: true` flag so it's distinguishable from live enrichment and can be safely overwritten by `npm run enrich:moneyline`.
 
 No changes to `app.js`, `index.html`, or the adapter layer — the rendering pipeline was already correct.
+
+### Prompt phase 8
+
+Fix the `resolveTeam()` word-boundary bug and expose best available bookmaker odds more prominently in the UI.
+
+Outcome:
+- `adapters/shared.js` now uses whole-word regex matching for fallback alias resolution, preventing short aliases such as `"no"` from matching inside unrelated strings like `"unknown"`
+- `tests/resolve.test.js` now includes a regression case for `"unknown"`
+- the legacy moneyline comparison UI gained a highlighted best-available summary row
+
+### Prompt phase 9
+
+Generalize bookmaker output from a moneyline-only block into a market-centric enrichment layer that can represent item-level player props, single-leg items, and game-level bundles that mirror `capping.pro` outputs.
+
+Outcome:
+- added `adapters/market-utils.js` for:
+  - player-name normalization
+  - stat-type normalization
+  - matchup canonicalization
+  - item lookup derivation from scanner fields (`matchup`, `selection`, `market_type`, `team`, `player_name`)
+- reworked `adapters/index.js` into a generic market orchestrator:
+  - `runAllAdapters()` now returns `{ oddsMap, marketMap, adapterHealth }`
+  - live moneyline games are normalized into generic market offers
+  - added market indexing and item-level enrichment assembly
+  - added temporary `toLegacyMoneylineEnrichment()` compatibility bridge
+- reworked `enrich-moneyline.js` to attach:
+  - `bookmaker_enrichment`
+  - temporary `moneyline_enrichment` compatibility field
+  - `bookmaker_coverage` per surface
+- expanded `types/moneyline-enrichment.ts` into a generic bookmaker contract
+- updated `app.js` to render item-centric bookmaker comparisons and collapsible game-market bundles
+- updated `scripts/generate-demo-enrichment.js` to generate generic item-level enrichment for props, single-leg items, and matchup-driven cards
+- added `tests/bookmaker-enrichment.test.js`
+- important current limitation: live adapters now attempt multiple markets, but real bookmaker DOM coverage is still best-effort and not fully validated across all listed markets
+
+### Prompt phase 10
+
+Expand bookmaker markets and normalize output names to match capping.pro-facing market concepts.
+
+Outcome:
+- replaced single-market bookmaker config with per-book `market_aliases` keyed by canonical market types
+- expanded canonical market coverage to:
+  - `moneyline`
+  - `spread`
+  - `game_total`
+  - `first_half_spread`
+  - `first_half_total`
+  - `second_half_spread`
+  - `second_half_total`
+  - `player_points`
+  - `player_rebounds`
+  - `player_assists`
+  - `player_blocks`
+  - `player_free_throws`
+- normalized bookmaker-native aliases such as `head_to_head`, `match_betting`, and `handicap` into canonical output names while preserving native labels in quote metadata
+- reworked adapters to emit raw selection rows and use shared best-effort section extraction for the broader market set
+- reworked market normalization and matching so scanner items map directly to canonical output market types
+- updated run summaries to include `market_type_counts`
+- updated demo enrichment so generated quotes use canonical market types and realistic native market labels per bookmaker
+- updated UI labels so cards show canonical capping-facing market types as the primary label
 
 ### Prompt phase 6
 
@@ -476,6 +588,27 @@ Outcome:
 - All syntax checks pass; all module loads verified; enrichment logic smoke-tested
 
 ## Change Log
+
+### 2026-03-11 — Generic bookmaker enrichment layer
+
+- Added [adapters/market-utils.js](/workspaces/TipGod/adapters/market-utils.js) for market normalization and item lookup derivation
+- Reworked [adapters/index.js](/workspaces/TipGod/adapters/index.js) from moneyline-only assembly into a generic market orchestrator
+- Reworked [enrich-moneyline.js](/workspaces/TipGod/enrich-moneyline.js) to write `bookmaker_enrichment` and `bookmaker_coverage`
+- Expanded [types/moneyline-enrichment.ts](/workspaces/TipGod/types/moneyline-enrichment.ts) into a generic bookmaker contract while retaining temporary legacy moneyline compatibility
+- Updated [app.js](/workspaces/TipGod/app.js) and [styles.css](/workspaces/TipGod/styles.css) so cards render item-centric bookmaker comparisons plus collapsible game-market bundles
+- Updated [scripts/generate-demo-enrichment.js](/workspaces/TipGod/scripts/generate-demo-enrichment.js) to generate generic item-level enrichment for props and single-leg items
+- Added [tests/bookmaker-enrichment.test.js](/workspaces/TipGod/tests/bookmaker-enrichment.test.js)
+- Current limitation: live adapters now attempt multiple markets, but real bookmaker DOM coverage is still best-effort and not fully validated across all listed markets
+
+### 2026-03-11 — Canonical multi-market expansion
+
+- Reworked [config/moneyline_bookmakers.json](/workspaces/TipGod/config/moneyline_bookmakers.json) to use per-book `market_aliases` instead of a single moneyline field
+- Expanded canonical market support to spreads, totals, half markets, and selected player props
+- Reworked all four bookmaker adapters to emit raw selection rows for the broader configured market list
+- Reworked [adapters/index.js](/workspaces/TipGod/adapters/index.js) to normalize bookmaker-native aliases into canonical market names
+- Updated [types/moneyline-enrichment.ts](/workspaces/TipGod/types/moneyline-enrichment.ts) with `CanonicalMarketType` and `PeriodScope`
+- Updated [scripts/generate-demo-enrichment.js](/workspaces/TipGod/scripts/generate-demo-enrichment.js) so demo output carries canonical market types plus native bookmaker labels
+- Updated [app.js](/workspaces/TipGod/app.js) so canonical market names are the primary UI label while bookmaker-native labels remain row metadata
 
 ### 2026-03-11 — Moneyline UI activation (demo enrichment + CSS fix)
 

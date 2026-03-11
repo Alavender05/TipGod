@@ -1,6 +1,6 @@
 {
-  "started_at": "2026-03-11T06:00:15.918Z",
-  "enriched_at": "2026-03-11T06:00:15.931Z",
+  "started_at": "2026-03-11T07:11:20.656Z",
+  "enriched_at": "2026-03-11T07:11:20.656Z",
   "demo": true,
   "approved_bookmakers": [
     "ladbrokes",
@@ -9,37 +9,61 @@
     "bet365"
   ],
   "failed_adapters": [],
-  "total_enrichable_items": 119,
-  "total_enriched_items": 112,
-  "overall_coverage_pct": 94,
+  "total_enrichable_items": 436,
+  "total_enriched_items": 329,
+  "overall_coverage_pct": 75,
   "per_book": {
     "ladbrokes": {
-      "raw_games_found": 32,
+      "raw_games_found": 440,
+      "normalized_offers_found": 317,
+      "market_type_counts": {
+        "player_assists": 85,
+        "player_points": 179,
+        "player_rebounds": 53
+      },
       "adapter_success": true,
       "error": null,
-      "started_at": "2026-03-11T06:00:15.918Z",
-      "finished_at": "2026-03-11T06:00:15.931Z"
+      "started_at": "2026-03-11T07:11:20.656Z",
+      "finished_at": "2026-03-11T07:11:20.656Z"
     },
     "sportsbet": {
-      "raw_games_found": 32,
+      "raw_games_found": 440,
+      "normalized_offers_found": 317,
+      "market_type_counts": {
+        "player_assists": 85,
+        "player_points": 179,
+        "player_rebounds": 53
+      },
       "adapter_success": true,
       "error": null,
-      "started_at": "2026-03-11T06:00:15.918Z",
-      "finished_at": "2026-03-11T06:00:15.931Z"
+      "started_at": "2026-03-11T07:11:20.656Z",
+      "finished_at": "2026-03-11T07:11:20.656Z"
     },
     "pointsbet": {
-      "raw_games_found": 32,
+      "raw_games_found": 440,
+      "normalized_offers_found": 317,
+      "market_type_counts": {
+        "player_assists": 85,
+        "player_points": 179,
+        "player_rebounds": 53
+      },
       "adapter_success": true,
       "error": null,
-      "started_at": "2026-03-11T06:00:15.918Z",
-      "finished_at": "2026-03-11T06:00:15.931Z"
+      "started_at": "2026-03-11T07:11:20.656Z",
+      "finished_at": "2026-03-11T07:11:20.656Z"
     },
     "bet365": {
-      "raw_games_found": 32,
+      "raw_games_found": 440,
+      "normalized_offers_found": 317,
+      "market_type_counts": {
+        "player_assists": 85,
+        "player_points": 179,
+        "player_rebounds": 53
+      },
       "adapter_success": true,
       "error": null,
-      "started_at": "2026-03-11T06:00:15.918Z",
-      "finished_at": "2026-03-11T06:00:15.931Z"
+      "started_at": "2026-03-11T07:11:20.656Z",
+      "finished_at": "2026-03-11T07:11:20.656Z"
     }
   },
   "surfaces": [
@@ -48,64 +72,95 @@
       "label": "Best Bets",
       "total_items": 94,
       "enrichable_items": 94,
-      "enriched_items": 87,
+      "enriched_items": 94,
+      "books_with_coverage": [
+        "ladbrokes",
+        "sportsbet",
+        "pointsbet",
+        "bet365"
+      ],
+      "market_type_counts": {
+        "player_assists": 23,
+        "player_points": 47,
+        "player_rebounds": 24
+      },
+      "coverage_pct": 100
+    },
+    {
+      "surface_id": "edges",
+      "label": "Edges",
+      "total_items": 27,
+      "enrichable_items": 27,
+      "enriched_items": 26,
       "books_with_coverage": [
         "ladbrokes",
         "sportsbet",
         "bet365",
         "pointsbet"
       ],
-      "coverage_pct": 93
-    },
-    {
-      "surface_id": "edges",
-      "label": "Edges",
-      "total_items": 27,
-      "enrichable_items": 0,
-      "enriched_items": 0,
-      "books_with_coverage": [],
-      "coverage_pct": 0
+      "market_type_counts": {
+        "player_points": 19,
+        "player_rebounds": 5,
+        "player_assists": 2
+      },
+      "coverage_pct": 96
     },
     {
       "surface_id": "props",
       "label": "Props",
       "total_items": 120,
-      "enrichable_items": 0,
-      "enriched_items": 0,
-      "books_with_coverage": [],
-      "coverage_pct": 0
+      "enrichable_items": 120,
+      "enriched_items": 77,
+      "books_with_coverage": [
+        "ladbrokes",
+        "sportsbet",
+        "pointsbet",
+        "bet365"
+      ],
+      "market_type_counts": {
+        "player_points": 26,
+        "player_assists": 27,
+        "player_rebounds": 24
+      },
+      "coverage_pct": 64
     },
     {
       "surface_id": "parlay",
       "label": "Parlay",
       "total_items": 54,
-      "enrichable_items": 0,
+      "enrichable_items": 50,
       "enriched_items": 0,
       "books_with_coverage": [],
+      "market_type_counts": {},
       "coverage_pct": 0
     },
     {
       "surface_id": "degen",
       "label": "Degen",
       "total_items": 120,
-      "enrichable_items": 0,
-      "enriched_items": 0,
-      "books_with_coverage": [],
-      "coverage_pct": 0
+      "enrichable_items": 120,
+      "enriched_items": 120,
+      "books_with_coverage": [
+        "ladbrokes",
+        "sportsbet",
+        "pointsbet",
+        "bet365"
+      ],
+      "market_type_counts": {
+        "player_points": 87,
+        "player_assists": 33
+      },
+      "coverage_pct": 100
     },
     {
       "surface_id": "exploits",
       "label": "Exploits",
       "total_items": 25,
       "enrichable_items": 25,
-      "enriched_items": 25,
-      "books_with_coverage": [
-        "ladbrokes",
-        "sportsbet",
-        "bet365",
-        "pointsbet"
-      ],
-      "coverage_pct": 100
+      "enriched_items": 12,
+      "books_with_coverage": [],
+      "market_type_counts": {},
+      "coverage_pct": 48
     }
   ]
 }

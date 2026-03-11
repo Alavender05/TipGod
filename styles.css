@@ -639,6 +639,10 @@ th {
   align-items: center;
 }
 
+.best-available-row {
+  margin-bottom: 4px;
+}
+
 .moneyline-row[data-available="false"] {
   opacity: 0.4;
 }
@@ -666,6 +670,45 @@ th {
   color: #22c55e;
 }
 
+.best-available-row .ml-book-name,
+.best-available-row .ml-odds {
+  background: rgba(217, 119, 6, 0.12);
+  color: #9a3412;
+  font-weight: 700;
+}
+
+.best-available-label {
+  display: inline-flex;
+  align-items: center;
+  min-height: 100%;
+  padding: 6px 8px;
+  border-radius: 6px;
+}
+
+.best-available-cell {
+  display: grid;
+  gap: 1px;
+  justify-items: center;
+  min-height: 100%;
+  padding: 6px 4px;
+}
+
+.best-available-odds {
+  font-size: 0.82rem;
+  line-height: 1.1;
+}
+
+.best-available-book {
+  font-size: 0.62rem;
+  line-height: 1.1;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.best-available-empty {
+  font-size: 0.8rem;
+}
+
 .ml-unavailable {
   font-size: 0.75rem;
   text-align: center;
@@ -681,4 +724,140 @@ th {
   text-align: center;
   font-size: 0.7rem;
   color: var(--text-muted);
+}
+
+/* ─── Generic Bookmaker Comparison ────────────────────────────────────────── */
+
+.bookmaker-comparison {
+  margin-top: 12px;
+  padding-top: 12px;
+  border-top: 1px solid rgba(15, 23, 42, 0.08);
+  display: grid;
+  gap: 6px;
+}
+
+.bookmaker-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 10px;
+}
+
+.bookmaker-label,
+.bookmaker-coverage,
+.bookmaker-context {
+  font-size: 0.72rem;
+  color: var(--text-muted);
+}
+
+.bookmaker-label {
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.bookmaker-context {
+  font-size: 0.78rem;
+}
+
+.best-selection-row {
+  display: grid;
+  grid-template-columns: 80px 1fr;
+  gap: 6px;
+  align-items: center;
+  margin: 2px 0 4px;
+}
+
+.best-selection-label,
+.best-selection-value {
+  border-radius: 6px;
+  padding: 6px 8px;
+  background: rgba(217, 119, 6, 0.12);
+  color: #9a3412;
+  font-weight: 700;
+  font-size: 0.74rem;
+}
+
+.bookmaker-rows {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.bookmaker-row {
+  display: grid;
+  grid-template-columns: 80px 64px 1fr;
+  gap: 6px;
+  align-items: center;
+}
+
+.bookmaker-row[data-available="false"] {
+  opacity: 0.45;
+}
+
+.bk-name,
+.bk-note {
+  font-size: 0.7rem;
+  color: var(--text-muted);
+}
+
+.bk-name {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.bk-odds {
+  display: inline-flex;
+  justify-content: center;
+  padding: 4px 6px;
+  border-radius: 4px;
+  background: rgba(15, 23, 42, 0.05);
+  font-size: 0.78rem;
+  font-weight: 700;
+  color: var(--text);
+}
+
+.bk-odds.best-odds {
+  background: rgba(34, 197, 94, 0.15);
+  color: #15803d;
+}
+
+.game-markets-panel {
+  margin-top: 6px;
+  border: 1px solid rgba(15, 23, 42, 0.08);
+  border-radius: 12px;
+  background: rgba(248, 250, 252, 0.8);
+}
+
+.game-markets-panel summary {
+  cursor: pointer;
+  list-style: none;
+  padding: 10px 12px;
+  font-size: 0.76rem;
+  font-weight: 700;
+  color: var(--text);
+}
+
+.game-markets-panel summary::-webkit-details-marker {
+  display: none;
+}
+
+.game-markets-list {
+  display: grid;
+  gap: 6px;
+  padding: 0 12px 12px;
+}
+
+.game-market-row {
+  display: flex;
+  justify-content: space-between;
+  gap: 10px;
+  font-size: 0.72rem;
+}
+
+.game-market-best {
+  color: #0f766e;
+  font-weight: 700;
+  text-align: right;
 }

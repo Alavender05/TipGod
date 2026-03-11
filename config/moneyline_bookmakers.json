@@ -1,7 +1,7 @@
 {
-  "description": "AU bookmakers approved for NBA moneyline (head-to-head) enrichment only. Managed separately from au_sportsbooks.json which covers all supported markets.",
+  "description": "AU bookmakers approved for NBA bookmaker enrichment. Canonical market types map bookmaker-native labels onto capping.pro-facing output names.",
   "league_id": "NBA",
-  "market_canonical": "head-to-head",
+  "market_canonical": "multi-market",
   "odds_format": "decimal",
   "currency": "AUD",
   "timezone": "Australia/Sydney",
@@ -14,9 +14,22 @@
       "odds_format": "decimal",
       "currency": "AUD",
       "timezone": "Australia/Sydney",
-      "moneyline_market_name": "Head To Head",
       "base_url": "https://www.ladbrokes.com.au",
-      "nba_path": "/sports/basketball/nba"
+      "nba_path": "/sports/basketball/nba",
+      "market_aliases": {
+        "moneyline": ["Head To Head", "Moneyline", "Match Betting", "Match Winner"],
+        "spread": ["Line", "Handicap", "Spread"],
+        "game_total": ["Total Points", "Game Total", "Total", "Over/Under"],
+        "first_half_spread": ["1st Half Line", "First Half Handicap", "1st Half Spread"],
+        "first_half_total": ["1st Half Total Points", "First Half Total", "1st Half Total"],
+        "second_half_spread": ["2nd Half Line", "Second Half Handicap", "2nd Half Spread"],
+        "second_half_total": ["2nd Half Total Points", "Second Half Total", "2nd Half Total"],
+        "player_points": ["Player Points", "Points"],
+        "player_rebounds": ["Player Rebounds", "Rebounds"],
+        "player_assists": ["Player Assists", "Assists"],
+        "player_blocks": ["Player Blocks", "Blocks"],
+        "player_free_throws": ["Player Free Throws", "Free Throws Made", "Free Throws"]
+      }
     },
     {
       "id": "sportsbet_au",
@@ -26,9 +39,22 @@
       "odds_format": "decimal",
       "currency": "AUD",
       "timezone": "Australia/Sydney",
-      "moneyline_market_name": "Head To Head",
       "base_url": "https://www.sportsbet.com.au",
-      "nba_path": "/basketball/nba"
+      "nba_path": "/basketball/nba",
+      "market_aliases": {
+        "moneyline": ["Head To Head", "Moneyline", "Match Betting", "Match Winner"],
+        "spread": ["Line", "Handicap", "Spread"],
+        "game_total": ["Total Points", "Game Total", "Total", "Over/Under"],
+        "first_half_spread": ["1st Half Line", "First Half Handicap", "1st Half Spread"],
+        "first_half_total": ["1st Half Total Points", "First Half Total", "1st Half Total"],
+        "second_half_spread": ["2nd Half Line", "Second Half Handicap", "2nd Half Spread"],
+        "second_half_total": ["2nd Half Total Points", "Second Half Total", "2nd Half Total"],
+        "player_points": ["Player Points", "Points"],
+        "player_rebounds": ["Player Rebounds", "Rebounds"],
+        "player_assists": ["Player Assists", "Assists"],
+        "player_blocks": ["Player Blocks", "Blocks"],
+        "player_free_throws": ["Player Free Throws", "Free Throws Made", "Free Throws"]
+      }
     },
     {
       "id": "pointsbet_au",
@@ -38,9 +64,22 @@
       "odds_format": "decimal",
       "currency": "AUD",
       "timezone": "Australia/Sydney",
-      "moneyline_market_name": "Match Winner",
       "base_url": "https://pointsbet.com.au",
-      "nba_path": "/sports/basketball/nba"
+      "nba_path": "/sports/basketball/nba",
+      "market_aliases": {
+        "moneyline": ["Match Winner", "Moneyline", "Head To Head", "Match Betting"],
+        "spread": ["Handicap", "Spread", "Line"],
+        "game_total": ["Game Total", "Over/Under", "Total Points", "Total"],
+        "first_half_spread": ["1st Half Handicap", "First Half Handicap", "1st Half Spread"],
+        "first_half_total": ["1st Half Total", "First Half Total", "1st Half Total Points"],
+        "second_half_spread": ["2nd Half Handicap", "Second Half Handicap", "2nd Half Spread"],
+        "second_half_total": ["2nd Half Total", "Second Half Total", "2nd Half Total Points"],
+        "player_points": ["Player Points", "Points"],
+        "player_rebounds": ["Player Rebounds", "Rebounds"],
+        "player_assists": ["Player Assists", "Assists"],
+        "player_blocks": ["Player Blocks", "Blocks"],
+        "player_free_throws": ["Player Free Throws", "Free Throws Made", "Free Throws"]
+      }
     },
     {
       "id": "bet365_au",
@@ -50,9 +89,22 @@
       "odds_format": "decimal",
       "currency": "AUD",
       "timezone": "Australia/Sydney",
-      "moneyline_market_name": "Match Betting",
       "base_url": "https://www.bet365.com.au",
-      "nba_path": "/#/AS/B1/C20601769/D6/E1453/F10/"
+      "nba_path": "/#/AS/B1/C20601769/D6/E1453/F10/",
+      "market_aliases": {
+        "moneyline": ["Match Betting", "Moneyline", "Head To Head", "Match Winner"],
+        "spread": ["Handicap", "Line", "Spread"],
+        "game_total": ["Game Lines", "Total Points", "Game Total", "Over/Under", "Total"],
+        "first_half_spread": ["1st Half Handicap", "1st Half Line", "First Half Spread"],
+        "first_half_total": ["1st Half Total", "First Half Total", "1st Half Total Points"],
+        "second_half_spread": ["2nd Half Handicap", "2nd Half Line", "Second Half Spread"],
+        "second_half_total": ["2nd Half Total", "Second Half Total", "2nd Half Total Points"],
+        "player_points": ["Player Points", "Points"],
+        "player_rebounds": ["Player Rebounds", "Rebounds"],
+        "player_assists": ["Player Assists", "Assists"],
+        "player_blocks": ["Player Blocks", "Blocks"],
+        "player_free_throws": ["Player Free Throws", "Free Throws Made", "Free Throws"]
+      }
     }
   ]
 }
