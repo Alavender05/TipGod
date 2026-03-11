@@ -1,4 +1,8 @@
 {
+  "scripts": {
+    "scan:nba-surfaces": "node scan-capping-pro-nba-surfaces.js",
+    "summarize:nba-surfaces": "python3 scripts/summarize_capping_pro_nba_surfaces.py capping-pro-nba-surfaces.json"
+  },
   "dependencies": {
     "playwright": "^1.58.2"
   }

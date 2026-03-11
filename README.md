@@ -1,3 +1,246 @@
+# TipGod Workspace Context
+
+This repository is now centered on an NBA-only, approved-source reader for multiple `capping.pro` NBA surfaces.
+
+The current product state is no longer just a `nba-bestbets` audit. The repo now contains:
+
+- a root-navigation Playwright scanner that starts at `https://capping.pro/`
+- approved NBA surface validation and filtering
+- a grouped JSON dataset consumed by the local static frontend
+- a surface-aware results UI that reuses the existing outputs for:
+  - `Best Bets`
+  - `Edges`
+  - `Props`
+  - `Parlay`
+  - `Degen`
+  - `Exploits`
+
+## Current Files That Matter
+
+- scanner:
+  - [scan-capping-pro-nba-surfaces.js](/workspaces/TipGod/scan-capping-pro-nba-surfaces.js)
+- frontend:
+  - [app.js](/workspaces/TipGod/app.js)
+  - [index.html](/workspaces/TipGod/index.html)
+  - [styles.css](/workspaces/TipGod/styles.css)
+- source policy:
+  - [config/source_policy.json](/workspaces/TipGod/config/source_policy.json)
+- summary helper:
+  - [scripts/summarize_capping_pro_nba_surfaces.py](/workspaces/TipGod/scripts/summarize_capping_pro_nba_surfaces.py)
+- generated artifacts:
+  - [capping-pro-nba-surfaces.json](/workspaces/TipGod/capping-pro-nba-surfaces.json)
+  - [capping-pro-nba-surfaces.run-summary.json](/workspaces/TipGod/capping-pro-nba-surfaces.run-summary.json)
+  - [capping-pro-nba-surfaces.summary.json](/workspaces/TipGod/capping-pro-nba-surfaces.summary.json)
+
+## Current Architecture
+
+### Data source policy
+
+The repo now treats `capping.pro` as a domain-level approved source with an NBA-only surface allowlist.
+
+Approved surfaces:
+
+- `best-bets`
+  - route: `/nba-bestbets`
+- `edges`
+  - route: `/nba-edges`
+- `props`
+  - route: `/nba-propfinder`
+- `parlay`
+  - route: `/parlay-of-the-night`
+- `degen`
+  - route: `/degen-theory`
+- `exploits`
+  - route: `/nba-matchup-exploits`
+
+Validation rules now enforce:
+
+- `league_id: NBA`
+- `sport: Basketball`
+- active surface must match the approved surface registry
+- wrong-league content rendered inside the app shell must be rejected
+
+### Scanner behavior
+
+The scanner no longer relies on deep-link-only scraping as the primary navigation model.
+
+It now:
+
+- opens `https://capping.pro/`
+- switches the app into `NBA` mode
+- enters each surface from the NBA dashboard quick-action tiles
+- validates that the surface content is NBA and matches the expected route/context
+- extracts grouped records per surface
+- writes grouped output and run-summary artifacts
+
+### Frontend behavior
+
+The UI now reads grouped surface data rather than a flat best-bets list.
+
+It renders:
+
+- top-level surface tabs
+- dynamic per-surface filters
+- the existing outputs reused as generic surface-aware components:
+  - summary strip
+  - featured card
+  - ranked stack
+  - value chart
+  - distribution chart
+  - heatmap
+  - compact table
+
+There are no fallback datasets. If a surface has zero valid approved-source NBA records, the UI shows the approved-source empty state for that surface.
+
+## Current Data Contract
+
+Primary dataset shape:
+
+```json
+{
+  "generated_at": "ISO timestamp",
+  "source_domain": "capping.pro",
+  "league_id": "NBA",
+  "sport": "Basketball",
+  "surfaces": [
+    {
+      "id": "best-bets",
+      "label": "Best Bets",
+      "source_url": "https://capping.pro/nba-bestbets",
+      "scan_summary": {},
+      "items": []
+    }
+  ]
+}
+```
+
+Normalized item contract:
+
+- `surface`
+- `source_url`
+- `league_id`
+- `sport`
+- `item_id`
+- `title`
+- `subtitle`
+- `matchup`
+- `selection`
+- `market_type`
+- `team`
+- `player_name`
+- `sportsbook_name`
+- `odds_decimal`
+- `updated_at`
+- `reason`
+- `detail_notes[]`
+- `metrics[]`
+- `tags[]`
+- `raw_context`
+
+Important note:
+
+- `metrics[]` is the main cross-surface abstraction used by the UI
+- different surfaces populate different metric keys
+- the UI should not assume sportsbook, odds, or matchup are always present
+
+## Current Runtime Status
+
+Last verified live grouped scan on `2026-03-11` produced:
+
+- total items:
+  - `440`
+- per surface:
+  - `Best Bets: 94`
+  - `Edges: 27`
+  - `Props: 120`
+  - `Parlay: 54`
+  - `Degen: 120`
+  - `Exploits: 25`
+
+Verification completed for:
+
+- `node --check app.js`
+- `node --check scan-capping-pro-nba-surfaces.js`
+- `python3 -m py_compile scripts/summarize_capping_pro_nba_surfaces.py`
+- live Playwright run of `scan-capping-pro-nba-surfaces.js`
+- local browser smoke test against `python3 -m http.server`
+
+## Prompt History Context
+
+This section is intended to preserve the prompt-driven evolution of the repo so future prompts can build on the latest intent instead of older assumptions.
+
+### Prompt phase 1
+
+Original repo context focused on:
+
+- auditing `https://capping.pro/nba-bestbets`
+- documenting its controls
+- building a scanner for the single `nba-bestbets` route
+- validating whether that route actually served NBA content
+
+### Prompt phase 2
+
+Later prompts expanded the goal to:
+
+- derive data from `https://capping.pro/`
+- illustrate:
+  - `Best Bets`
+  - `Edges`
+  - `Props`
+  - `Parlay`
+  - `Degen`
+  - `Exploits`
+- display those categories on the existing outputs rather than inventing a separate app
+
+### Prompt phase 3
+
+The implementation prompt finalized the current direction:
+
+- NBA only
+- approved source only
+- top-level category tabs
+- `Props` mapped to NBA `PropFinder` / prop-tracking style surface
+- root-app navigation treated as canonical because direct deep links could hydrate into the wrong league shell
+
+## Change Log
+
+### 2026-03-11
+
+- Preserved the earlier `nba-bestbets` control audit as historical context rather than the active system description.
+- Replaced the single-route approved-source model with a domain-level NBA surface registry in:
+  - [config/source_policy.json](/workspaces/TipGod/config/source_policy.json)
+- Added a new grouped multi-surface scanner in:
+  - [scan-capping-pro-nba-surfaces.js](/workspaces/TipGod/scan-capping-pro-nba-surfaces.js)
+- Added grouped data artifacts:
+  - [capping-pro-nba-surfaces.json](/workspaces/TipGod/capping-pro-nba-surfaces.json)
+  - [capping-pro-nba-surfaces.run-summary.json](/workspaces/TipGod/capping-pro-nba-surfaces.run-summary.json)
+  - [capping-pro-nba-surfaces.summary.json](/workspaces/TipGod/capping-pro-nba-surfaces.summary.json)
+- Refactored the frontend to consume grouped surface data and render surface-aware filters and views in:
+  - [app.js](/workspaces/TipGod/app.js)
+  - [index.html](/workspaces/TipGod/index.html)
+  - [styles.css](/workspaces/TipGod/styles.css)
+- Added a new summary helper for grouped scans:
+  - [scripts/summarize_capping_pro_nba_surfaces.py](/workspaces/TipGod/scripts/summarize_capping_pro_nba_surfaces.py)
+- Added package scripts for grouped scanning and summarization in:
+  - [package.json](/workspaces/TipGod/package.json)
+- Verified live NBA surface extraction counts:
+  - `Best Bets: 94`
+  - `Edges: 27`
+  - `Props: 120`
+  - `Parlay: 54`
+  - `Degen: 120`
+  - `Exploits: 25`
+- Verified the local UI renders:
+  - all six surface tabs
+  - dynamic filter chips
+  - existing output modules bound to grouped surface data
+
+## Historical Context: Original Single-Route Audit
+
+The material below is preserved so future prompts still have the detailed original `nba-bestbets` control audit available if work returns to route-specific scanning or parity work.
+
+---
+
 # capping.pro `nba-bestbets` Control Audit
 
 ## Page
@@ -227,590 +470,4 @@ The page is a client-rendered React view. The initial HTML contains only the app
   - threshold sliders
   - card click-through into the detail modal
 
-## Scannable Control Groups
-
-Only control groups that can reveal different betting content, picks, games, or analysis should be scanned.
-
-### High priority
-
-- `Date picker`
-  - matters because it fetches a different slate of NBA best bets by date
-  - expected states: bounded date window
-  - iterate: current date and adjacent game dates
-  - interaction: set date input directly and wait for refresh
-  - stop: date window exhausted or repeated no-change states
-
-- `Category tabs`
-  - matters because it reveals different subsets of recommendations
-  - expected states: `4`
-  - iterate: `Elite`, `Strong`, `Opportunistic`, `All`
-  - interaction: click each tab
-  - stop: all tabs visited
-
-- `Prop threshold sliders`
-  - matters because threshold changes alter recommended plays
-  - expected states: sampled, not exhaustive
-  - iterate: sampled values for `Points`, `Assists`, `Rebounds`
-  - interaction: move one slider at a time, wait for debounced refresh
-  - stop: additional sampled values no longer produce meaningful changes
-
-- `Bet cards`
-  - matters because each card opens detailed player-level analysis
-  - expected states: one per visible card
-  - iterate: each visible card once
-  - interaction: click card, extract visible modal/sheet content, close
-  - stop: all visible cards in the current parent state opened
-
-### Medium priority
-
-- `Lookback period`
-  - expected states: `3`
-  - iterate: `Last 7 Days`, `Last 14 Days`, `Last 30 Days`
-
-- `Position filter`
-  - expected states: `6`
-  - iterate: `All Positions`, `PG`, `SG`, `SF`, `PF`, `C`
-
-- `Team filter`
-  - expected states: `1 + available teams`
-  - iterate: `All Teams` plus each team option
-
-- `Include Opponent toggle`
-  - expected states: `2`
-  - iterate: unchecked, checked
-  - note: only available when a specific team is selected
-
-- `Minimum confidence`
-  - expected states: `6`
-  - iterate: `60%+`, `65%+`, `70%+`, `75%+`, `80%+`, `85%+`
-
-### Low priority
-
-- `Injury filter`
-  - matters because it can reveal or hide picks by injury status
-  - expected states: bounded meaningful states only
-  - iterate: default, `Show All`, and relevant single-status exclusions such as `Out` and `DTD`
-  - interaction: open compact dropdown and toggle visible checkbox states
-  - stop: default + meaningful alternates covered
-
-### Excluded from sequential scanning
-
-- `Sort by`
-  - reorders the same records instead of reliably revealing new betting content
-
-- `Refresh analysis`
-  - refreshes the current state but is not a meaningful state dimension by itself
-
-## Extraction Target
-
-The smallest repeatable meaningful betting unit on the page is the individual recommendation card.
-
-- `unit_name`: `NBA best bet card`
-- `container selector`: `.nba-best-bets-grid .nba-best-bet-card`
-- repeated as: `grid`
-- duplicate suppression needed: `yes`
-
-### Child fields to extract
-
-- `player_name`
-- `team`
-- `opponent`
-- `matchup`
-- `position`
-- `is_home`
-- `market_type` / `prop_type`
-- `recommended_play`
-- `line`
-- `pick_side`
-- `hit_rate`
-- `confidence`
-- `average_stat`
-- `opponent_allowed_stat`
-- `edge_reason`
-- `tier`
-- `games_analyzed`
-- `injury_status`
-- `detail_notes` / modal analysis when opened
-
-### Field selectors
-
-- `player_name`: `.nba-best-bet-card .player-name`
-- `position`: `.nba-best-bet-card .position-badge`
-- `matchup`: `.nba-best-bet-card .team-matchup`
-- `minutes`: `.nba-best-bet-card .minutes-badge`
-- `confidence`: `.nba-best-bet-card .confidence-value`
-- `recommended_play label`: `.nba-best-bet-card .threshold-label`
-- `recommended_play value`: `.nba-best-bet-card .threshold-value`
-- `edge_reason`: `.nba-best-bet-card .edge-reason`
-- `tier`: `.nba-best-bet-card .tier-badge`
-- `games_analyzed`: `.nba-best-bet-card .games-analyzed`
-- `detail modal root`: `.nba-modal-overlay .nba-modal-content` or `.ios-bottom-sheet`
-- `detail insights`: `.nba-insights-section`, `.nba-insight-item`
-
-### Duplicate suppression rule
-
-Use a stable item fingerprint such as:
-
-- `player_name + matchup + recommended_play + tier`
-
-This is needed because the same underlying pick may reappear across:
-
-- category tabs
-- date states
-- confidence thresholds
-- team/position filters
-- summary and detail views
-
-## Interaction Plan
-
-The scanner should iterate one control group at a time, wait for DOM stability after every interaction, and descend into nested controls only within the current parent state.
-
-### 1. Initialize and capture baseline
-
-- action: load page and capture baseline visible betting content
-- selectors:
-  - page root: `.nba-best-bets-container`
-  - card root: `.nba-best-bets-grid .nba-best-bet-card`
-- wait:
-  - wait for root
-  - wait for loading indicators to disappear
-  - wait for short DOM quiet period
-- success:
-  - cards, no-results, or error state is visible
-- fallback:
-  - hard wait and continue with current visible state
-- dedupe:
-  - store page fingerprint from visible card fingerprints
-
-### 2. Enumerate bounded state lists
-
-- action: collect visible options before interacting
-- selectors:
-  - `.date-picker`
-  - `.category-tabs .category-tab`
-  - labeled selects for `Lookback Period`, `Position`, `Team`, `Min Confidence`
-  - `.matchup-toggle input[type="checkbox"]`
-  - `.injury-filter-compact`
-  - `#points-threshold`, `#assists-threshold`, `#rebounds-threshold`
-- wait:
-  - confirm controls exist
-- success:
-  - finite candidate state lists exist
-- fallback:
-  - infer from labels or option values
-- dedupe:
-  - canonical state key: `group::value`
-
-### 3. Scan date states
-
-- action: iterate the date picker first
-- wait:
-  - after change, wait for refresh completion and grid stability
-- success:
-  - visible card set or empty state changes
-- fallback:
-  - set value directly and dispatch `input` / `change`
-- dedupe:
-  - stop when repeated fingerprints occur across attempted dates
-
-### 4. Scan lookback states
-
-- action: iterate `Last 7 Days`, `Last 14 Days`, `Last 30 Days`
-- wait:
-  - refresh completion plus DOM quiet
-- success:
-  - visible content changes meaningfully
-- fallback:
-  - assign select value directly
-- dedupe:
-  - skip if fingerprint already seen under the same date
-
-### 5. Scan category tabs
-
-- action: click `Elite`, `Strong`, `Opportunistic`, `All`
-- wait:
-  - active tab changes and grid stabilizes
-- success:
-  - card set or category description changes
-- fallback:
-  - retry with direct click on tab button
-- dedupe:
-  - skip categories with identical fingerprints in the current parent branch
-
-### 6. Scan position filter
-
-- action: iterate `All Positions`, `PG`, `SG`, `SF`, `PF`, `C`
-- wait:
-  - stable grid after selection
-- success:
-  - visible cards or no-results state changes
-- fallback:
-  - direct select assignment
-- dedupe:
-  - skip duplicate fingerprints under the same parent branch
-
-### 7. Scan team filter
-
-- action: iterate `All Teams` plus each available team
-- wait:
-  - refresh completion and DOM quiet
-- success:
-  - different visible recommendation set
-- fallback:
-  - direct select assignment
-- dedupe:
-  - state key includes `team`
-
-### 8. Scan nested opponent toggle
-
-- action: if present under a chosen team, scan unchecked and checked
-- wait:
-  - refresh completion and stable grid
-- success:
-  - visible cards differ between toggle states
-- fallback:
-  - toggle checkbox property and dispatch `change`
-- dedupe:
-  - if both states are identical, keep one and stop descending
-
-### 9. Scan minimum confidence
-
-- action: iterate all visible threshold values
-- wait:
-  - include extra buffer for debounced refresh
-- success:
-  - visible cards or count changes
-- fallback:
-  - direct select assignment, then blur
-- dedupe:
-  - stop early if adjacent thresholds repeatedly produce the same fingerprint
-
-### 10. Scan injury filter
-
-- action: open compact injury dropdown and scan bounded meaningful states
-- wait:
-  - dropdown appears, then grid stabilizes after each change
-- success:
-  - card visibility changes by injury status
-- fallback:
-  - if dropdown fails, keep default state only
-- dedupe:
-  - scan only default, `Show All`, and single-status exclusions
-
-### 11. Scan threshold sliders
-
-- action: sample slider values one slider at a time
-- wait:
-  - debounced refresh completion and DOM quiet
-- success:
-  - card set or recommended threshold text changes
-- fallback:
-  - set range value directly and dispatch `input` + `change`
-- dedupe:
-  - stop after consecutive sampled states yield the same fingerprint
-
-### 12. Extract only visible betting content
-
-- action: after every accepted state, extract visible `.nba-best-bet-card` items only
-- wait:
-  - extract only after stability passes
-- success:
-  - each item contains at least a player identifier and recommended play
-- fallback:
-  - capture partial visible fields if some selectors fail
-- dedupe:
-  - per-state item fingerprint: `player_name + matchup + recommended_play + tier`
-
-### 13. Scan nested card details
-
-- action: open each visible bet card once
-- selectors:
-  - card: `.nba-best-bet-card`
-  - detail: `.nba-modal-overlay .nba-modal-content` or `.ios-bottom-sheet`
-- wait:
-  - detail container appears and loading state clears
-- success:
-  - detail analysis or insight content becomes visible
-- fallback:
-  - retry once, then keep summary-only extraction
-- dedupe:
-  - open each card once per parent state
-
-### 14. Close detail and restore parent state
-
-- action: close modal/sheet before continuing
-- selectors:
-  - `.nba-modal-close-btn`
-  - `.nba-modal-close-x`
-  - sheet close button or backdrop if supported
-- wait:
-  - modal disappears and the original grid is stable again
-- success:
-  - parent grid fingerprint matches pre-open state
-- fallback:
-  - use Escape or rebuild parent state from control path
-- dedupe:
-  - do not reopen the same card in the same branch
-
-### 15. Global loop guards
-
-- action: enforce branch-level stopping rules
-- strategy:
-  - maintain hierarchical path:
-    - `date -> lookback -> category -> position -> team -> include_opponent -> min_confidence -> injury_filter -> slider_sample -> card_detail`
-- wait:
-  - before each interaction, confirm page is stable
-- success:
-  - scanner only progresses to unseen state keys
-- fallback:
-  - if unstable or cyclic, back out to last stable parent branch
-- dedupe:
-  - keep:
-    - `visited_control_states`
-    - `visible_content_fingerprints`
-  - stop descending when either repeats at the same hierarchy level
-
-## Implementation
-
-A production-style Playwright scanner has been added to the workspace:
-
-- script: [scan-nba-bestbets.js](C:/Users/AlecLavender/OneDrive%20-%20StoreLocal/codex%20test/scan-nba-bestbets.js)
-- output: `nba-bestbets-scan.json`
-
-### What the script does
-
-- loads `https://capping.pro/nba-bestbets`
-- dismisses common cookie / modal overlays when present
-- detects meaningful control groups
-- traverses nested states in depth-first order
-- waits for visible content stabilization after each interaction
-- extracts only visible betting cards
-- opens active card detail panels and extracts visible supporting analysis
-- tracks `scan_path`
-- deduplicates repeated items and repeated state fingerprints
-- writes clean JSON output
-
-### Traversal implemented
-
-The script follows this practical nested order:
-
-- `Date`
-- `Lookback Period`
-- `Category`
-- `Position`
-- `Team`
-- `Include Opponent` when available
-- `Min Confidence`
-- `Injury Filter` using bounded meaningful states
-- sampled threshold sliders:
-  - `Points`
-  - `Assists`
-  - `Rebounds`
-- visible bet cards and their active detail panels
-
-### Production behaviors included
-
-- retry logic for click failures
-- semantic/structural selector preference where possible
-- direct DOM fallback for difficult selects and range inputs
-- content-change detection using visible-content hashing
-- bounded traversal to avoid infinite loops
-- duplicate suppression for both states and items
-- extraction of visible content only unless a hidden panel becomes active
-
-### Current caveat
-
-The script was added and reviewed in the workspace, but runtime verification could not be performed here because `node` was not available in the current environment.
-
-## Change Log
-
-This section is intended to act as the running history log for the project so future updates can build on prior work.
-
-### 2026-03-11
-
-- Audited `https://capping.pro/nba-bestbets` and documented the page as a:
-  - `repeating card feed`
-  - `dynamic dashboard`
-  - `mixed layout`
-
-- Identified the page’s meaningful content-changing controls:
-  - `Date`
-  - `Lookback Period`
-  - `Category`
-  - `Position`
-  - `Team`
-  - `Include Opponent`
-  - `Min Confidence`
-  - `Injury Filter`
-  - threshold sliders for:
-    - `Points`
-    - `Assists`
-    - `Rebounds`
-  - visible bet cards with nested detail panels
-
-- Documented which control groups should be scanned sequentially and which should be excluded:
-  - excluded from state traversal:
-    - `Sort By`
-    - `Refresh Analysis`
-
-- Defined the extraction target as the smallest meaningful repeatable unit:
-  - `NBA best bet card`
-  - container:
-    - `.nba-best-bets-grid .nba-best-bet-card`
-
-- Added a structured interaction plan for scanning:
-  - depth-first traversal through nested parent/child state
-  - DOM stability waiting after each interaction
-  - visible-content-only extraction
-  - duplicate suppression at both state and item level
-
-- Added a JavaScript Playwright scanner:
-  - file:
-    - [scan-nba-bestbets.js](C:/Users/AlecLavender/OneDrive%20-%20StoreLocal/codex%20test/scan-nba-bestbets.js)
-  - intended output:
-    - `nba-bestbets-scan.json`
-  - features:
-    - control detection
-    - nested traversal
-    - visible item extraction
-    - detail modal enrichment
-    - content hashing
-    - retry logic
-    - deduplication
-
-- Added a Python Playwright scanner:
-  - file:
-    - [scan_nba_bestbets.py](C:/Users/AlecLavender/OneDrive%20-%20StoreLocal/codex%20test/scan_nba_bestbets.py)
-  - intended output:
-    - `nba-bestbets-scan-python.json`
-  - helper functions included:
-    - `get_control_groups()`
-    - `activate_control()`
-    - `wait_for_content_change()`
-    - `extract_visible_items()`
-    - `normalize_item()`
-    - `deduplicate_items()`
-
-- Documented the nested traversal tree for the page:
-  - `Date -> Lookback -> Category -> Position -> Team -> Include Opponent -> Min Confidence -> Injury Filter -> Threshold Sliders -> Bet Cards`
-
-- Documented key failure modes for the reader design, including:
-  - non-semantic controls
-  - React re-render invalidation
-  - hidden-but-present DOM content
-  - duplicate cards across states
-  - modal/bottom-sheet differences across layouts
-  - sticky overlays intercepting clicks
-  - stale selectors caused by class churn
-
-- Current verification status:
-  - JavaScript scanner was not runtime-verified because `node` was unavailable in the environment.
-  - Python scanner was not runtime-verified because Python bootstrap/runtime installation failed in the environment.
-  - No extracted JSON output file was present in the workspace at the time of review, so downstream data-summary analysis could not be completed against real scan results.
-
-- Recommended next update:
-  - run one of the scanners in an environment with working Playwright runtime support
-  - save the resulting JSON to the workspace
-  - add a new history entry summarizing:
-    - total extracted items
-    - strongest scan paths
-    - duplicate rates
-    - repeated matchups
-    - any selector or traversal fixes needed after the first real run
-
-- First verified runtime pass completed in the workspace on `2026-03-11` using:
-  - JavaScript scanner:
-    - `node v24.11.1`
-    - output:
-      - `nba-bestbets-scan.json`
-      - `nba-bestbets-scan.run-summary.json`
-      - `nba-bestbets-scan.summary.json`
-  - Python parity scanner:
-    - `python3`
-    - output:
-      - `nba-bestbets-scan-python.json`
-      - `nba-bestbets-scan-python.run-summary.json`
-
-- First real run summary:
-  - total extracted items:
-    - `0`
-  - strongest scan paths:
-    - none; the live route exposed no NBA best-bet states or cards
-  - duplicate rate:
-    - `0.0000`
-  - repeated matchups:
-    - none
-
-- Live-site findings from the first real run:
-  - `https://capping.pro/nba-bestbets` stayed on the `nba-bestbets` route but hydrated into an NFL dashboard shell instead of the expected NBA best-bets view.
-  - observed network activity hit `capping.pro/api/nfl/*` endpoints rather than `capping.pro/api/nba/*`.
-  - both scanners detected:
-    - `0` control groups
-    - `1` visited state
-    - `0` visible extractable cards
-
-- Selector and traversal fixes made after the first real run:
-  - changed the page-root wait target from `.nba-best-bets-container` to `#root` so the scanners no longer fail before emitting artifacts when the upstream page shape is wrong
-  - added run-summary sidecar files capturing:
-    - raw extracted card count
-    - unique item count
-    - duplicate item count
-    - visited state count
-    - repeated content hash count
-    - detail modal failures
-    - selector activation failures
-    - detected control groups
-    - empty states after interaction
-  - added a reproducible summary helper:
-    - `python3 scripts/summarize_nba_bestbets_scan.py nba-bestbets-scan.json`
-
-- Current parity status:
-  - JavaScript and Python scanners now agree on the live result:
-    - empty output caused by upstream route/content mismatch rather than scanner divergence
-  - no additional selector fixes are justified until the site serves the NBA page again or a new NBA route is identified
-
-- Added strict approved-source enforcement for NBA-only operation:
-  - approved source URL:
-    - `https://capping.pro/nba-bestbets`
-  - approved path:
-    - `/nba-bestbets`
-  - required record metadata:
-    - `source_url`
-    - `league_id`
-    - `sport`
-  - all accepted records must now be tagged as:
-    - `source_url: https://capping.pro/nba-bestbets`
-    - `league_id: NBA`
-    - `sport: Basketball`
-
-- Added NBA-only filtering and rejection rules:
-  - accept only official NBA teams and NBA matchups
-  - reject:
-    - missing league metadata
-    - ambiguous matchup labels
-    - non-NBA teams
-    - mixed-sport or wrong-league content rendered on the approved route
-  - current live edge case remains:
-    - the approved route can hydrate into NFL content
-    - that state is now treated as:
-      - source-path valid
-      - content invalid
-      - zero accepted NBA records
-
-- Added approved-source safeguards across scrapers, validation, and UI:
-  - no runtime fallback datasets are used for display
-  - no alternate domains or mirrored feeds are accepted
-  - summary validation now checks:
-    - approved source URL
-    - NBA-only league metadata
-    - NBA matchup validity
-    - rejection counters for:
-      - wrong source
-      - non-NBA records
-      - ambiguous records
-
-- Updated UI/reporting behavior for no-data conditions:
-  - source attribution is shown for the approved source
-  - if no valid NBA records are available, the UI now shows:
-    - `No NBA markets currently available from the approved source.`
-  - the runtime UI no longer substitutes fallback cards, charts, or table rows when the approved page has no valid NBA data
+Additional older audit detail was intentionally trimmed from the top-level current context. If future prompts need the original long-form single-route traversal notes, regenerate them from git history rather than treating them as the active system description.

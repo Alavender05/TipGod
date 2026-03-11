@@ -1,29 +1,24 @@
-const LIVE_DATA_FILE = {
+const DATA_FILE = {
   label: "Approved source",
-  path: "./nba-bestbets-scan.json",
-  summaryPath: "./nba-bestbets-scan.run-summary.json",
+  path: "./capping-pro-nba-surfaces.json",
+  summaryPath: "./capping-pro-nba-surfaces.run-summary.json",
 };
 
 const AU_CONFIG_PATH = "./config/au_sportsbooks.json";
 const SOURCE_POLICY_PATH = "./config/source_policy.json";
-const BET_TYPE_ORDER = ["player props", "line", "total points", "head-to-head", "team total"];
-const BET_TYPE_COLORS = {
-  "player props": "#0f766e",
-  line: "#d97706",
-  "total points": "#0284c7",
-  "head-to-head": "#7c3aed",
-  "team total": "#be123c",
-  other: "#64748b",
-};
+const SURFACE_ORDER = ["best-bets", "edges", "props", "parlay", "degen", "exploits"];
 
 const state = {
-  picks: [],
   sourceLabel: "",
   runSummary: null,
   auConfig: null,
   sourcePolicy: null,
-  betType: "All",
-  sportsbook: "All",
+  surfaces: [],
+  activeSurfaceId: "best-bets",
+  filters: {
+    primary: "All",
+    secondary: "All",
+  },
   showTable: false,
 };
 
@@ -33,10 +28,14 @@ const nodes = {
   runStatusChip: document.getElementById("run-status-chip"),
   summaryStrip: document.getElementById("summary-strip"),
   approvedNoData: document.getElementById("approved-no-data"),
+  emptySourceAttribution: document.getElementById("empty-source-attribution"),
+  surfaceFilters: document.getElementById("surface-filters"),
   controlRow: document.querySelector(".control-row"),
+  primaryFilters: document.getElementById("primary-filters"),
+  secondaryFilters: document.getElementById("secondary-filters"),
+  primaryFilterLabel: document.getElementById("primary-filter-label"),
+  secondaryFilterLabel: document.getElementById("secondary-filter-label"),
   mainGrid: document.querySelector(".main-grid"),
-  betTypeFilters: document.getElementById("bet-type-filters"),
-  sportsbookFilters: document.getElementById("sportsbook-filters"),
   featuredPick: document.getElementById("featured-pick"),
   pickStack: document.getElementById("pick-stack"),
   valueChart: document.getElementById("value-chart"),
@@ -45,7 +44,94 @@ const nodes = {
   tablePanel: document.getElementById("table-panel"),
   tableBody: document.getElementById("pick-table-body"),
   listToggle: document.getElementById("list-toggle"),
-  emptyStateTemplate: document.getElementById("empty-state-template"),
+};
+
+const FILTER_SPECS = {
+  "best-bets": [
+    {
+      label: "Market",
+      getValue(item) {
+        return displayMarket(item.market_type);
+      },
+    },
+    {
+      label: "Tier",
+      getValue(item) {
+        return firstMatchingTag(item.tags, ["Elite", "Strong", "Opportunistic", "All"]) || "Unlabeled";
+      },
+    },
+  ],
+  edges: [
+    {
+      label: "Prop Type",
+      getValue(item) {
+        return displayMarket(item.market_type);
+      },
+    },
+    {
+      label: "Tier",
+      getValue(item) {
+        return firstMatchingTag(item.tags, ["STRONG BET", "VALUE", "MARGINAL", "SPECULATIVE", "LONGSHOT VALUE", "HIGH RISK"]) || "Unlabeled";
+      },
+    },
+  ],
+  props: [
+    {
+      label: "Stat Type",
+      getValue(item) {
+        return displayMarket(item.market_type);
+      },
+    },
+    {
+      label: "Trend",
+      getValue(item) {
+        return firstMatchingTag(item.tags, ["High Trend", "Medium Trend", "Low Trend"]) || "Mixed";
+      },
+    },
+  ],
+  parlay: [
+    {
+      label: "Format",
+      getValue(item) {
+        return item.market_type === "prebuilt-parlay" ? "Prebuilt" : "Single Leg";
+      },
+    },
+    {
+      label: "Legs",
+      getValue(item) {
+        const legs = metricByKey(item, "legs");
+        return legs?.value ? legs.value : "Single";
+      },
+    },
+  ],
+  degen: [
+    {
+      label: "Stat Type",
+      getValue(item) {
+        return displayMarket(item.market_type);
+      },
+    },
+    {
+      label: "Pattern Strength",
+      getValue(item) {
+        return firstMatchingTag(item.tags, ["S", "A", "B", "C"]) || "Pattern";
+      },
+    },
+  ],
+  exploits: [
+    {
+      label: "Exploit Type",
+      getValue(item) {
+        return displayMarket(item.market_type);
+      },
+    },
+    {
+      label: "Team",
+      getValue(item) {
+        return item.team || "Unknown";
+      },
+    },
+  ],
 };
 
 async function loadJson(filePath) {
@@ -57,17 +143,17 @@ async function loadJson(filePath) {
 }
 
 async function loadDataset() {
-  const [auConfig, sourcePolicy, liveItems, liveSummary] = await Promise.all([
+  const [auConfig, sourcePolicy, payload, runSummary] = await Promise.all([
     loadJson(AU_CONFIG_PATH),
     loadJson(SOURCE_POLICY_PATH),
-    loadJson(LIVE_DATA_FILE.path).catch(() => []),
-    loadJson(LIVE_DATA_FILE.summaryPath).catch(() => null),
+    loadJson(DATA_FILE.path).catch(() => ({ surfaces: [] })),
+    loadJson(DATA_FILE.summaryPath).catch(() => null),
   ]);
 
   return {
-    sourceLabel: LIVE_DATA_FILE.label,
-    items: Array.isArray(liveItems) ? liveItems : [],
-    runSummary: liveSummary,
+    sourceLabel: DATA_FILE.label,
+    payload,
+    runSummary,
     auConfig,
     sourcePolicy,
   };
@@ -77,235 +163,274 @@ function normalizeText(value) {
   return String(value || "").replace(/\s+/g, " ").trim();
 }
 
-function parsePercent(value) {
-  if (value == null) return null;
-  const match = String(value).match(/-?\d+(\.\d+)?/);
+function parseNumber(value) {
+  const match = normalizeText(value).replace(/,/g, "").match(/-?\d+(\.\d+)?/);
   return match ? Number(match[0]) : null;
 }
 
-function parseDecimalOdds(value) {
-  if (value == null) return null;
-  const text = normalizeText(value);
-  if (!text || text.startsWith("+") || text.startsWith("-")) return null;
-  const match = text.match(/\d+(\.\d+)?/);
-  if (!match) return null;
-  const numeric = Number(match[0]);
-  return numeric >= 1 ? numeric : null;
-}
-
-function impliedProbabilityFromDecimal(decimalOdds) {
-  if (decimalOdds == null || Number.isNaN(decimalOdds) || decimalOdds <= 0) return null;
-  return (1 / decimalOdds) * 100;
-}
-
-function labelForMarketType(value) {
-  const labels = {
-    "player props": "Player Props",
-    line: "Line",
-    "total points": "Total Points",
-    "head-to-head": "Head-to-Head",
-    "team total": "Team Total",
-    other: "Other",
-  };
-  return labels[value] || "Other";
-}
-
-function buildTeamAliasMap() {
-  return new Map(
-    state.sourcePolicy.official_nba_teams.flatMap((team) =>
-      [team.name, ...(team.aliases || [])].map((alias) => [alias.toLowerCase(), team.name])
-    )
-  );
-}
-
-function canonicalTeamName(value) {
-  return buildTeamAliasMap().get(normalizeText(value).toLowerCase()) || null;
-}
-
-function extractMatchupTeams(matchup) {
-  const text = normalizeText(matchup);
-  if (!text) return [];
-  for (const separator of [/\s+vs\s+/i, /\s+@\s+/i, /\s+v\s+/i, /\s+versus\s+/i]) {
-    const parts = text.split(separator);
-    if (parts.length === 2) return parts.map((part) => normalizeText(part));
-  }
-  return [];
-}
-
-function matchupIsNba(matchup) {
-  const teams = extractMatchupTeams(matchup);
-  return teams.length === 2 && teams.every((team) => canonicalTeamName(team));
-}
-
-function normalizeMarketType(item) {
-  const aliases = state.auConfig?.market_type_aliases || {};
-  const candidates = [item.market_type, item.bet_type, item.market_type_raw, item.market, item.selection];
-  for (const candidate of candidates) {
-    const raw = String(candidate || "").toLowerCase();
-    if (!raw) continue;
-    for (const [alias, target] of Object.entries(aliases)) {
-      if (raw.includes(alias.toLowerCase())) return target;
-    }
-  }
-  return "other";
-}
-
-function resolveSportsbook(item) {
-  const books = state.auConfig?.sportsbooks || [];
-  const byId = new Map(books.map((book) => [book.id, book]));
-  const byName = new Map(books.map((book) => [book.name.toLowerCase(), book]));
-  if (item.sportsbook_id && byId.has(item.sportsbook_id)) return byId.get(item.sportsbook_id);
-  const rawName = String(item.sportsbook_name || item.sportsbook || "").toLowerCase();
-  if (rawName && byName.has(rawName)) return byName.get(rawName);
-  return null;
-}
-
 function compactTime(value) {
-  if (!value) return "Fresh";
+  if (!value) return "Unknown";
   const date = new Date(value);
   if (Number.isNaN(date.getTime())) return value;
-  return date.toLocaleString("en-AU", {
+  return date.toLocaleString("en-US", {
     month: "short",
     day: "numeric",
     hour: "numeric",
     minute: "2-digit",
-    timeZone: state.sourcePolicy?.timezone_display || "Australia/Sydney",
+    timeZone: state.sourcePolicy?.timezone_display || "America/New_York",
   });
 }
 
-function confidenceBand(confidence) {
-  if (confidence == null) return "low";
-  if (confidence >= 80) return "elite";
-  if (confidence >= 70) return "high";
-  if (confidence >= 60) return "medium";
-  return "low";
+function titleize(value) {
+  return normalizeText(value)
+    .replace(/[-_]/g, " ")
+    .replace(/\b\w/g, (match) => match.toUpperCase());
 }
 
-function confidenceColor(confidence) {
-  const band = confidenceBand(confidence);
-  if (band === "elite") return "var(--confidence-elite)";
-  if (band === "high") return "var(--confidence-high)";
-  if (band === "medium") return "var(--confidence-medium)";
-  return "var(--confidence-low)";
+function displayMarket(value) {
+  return value ? titleize(value) : "Unspecified";
 }
 
-function edgeColor(edge) {
-  if (edge == null) return "var(--edge-neutral)";
-  if (edge >= 10) return "var(--edge-strong)";
-  if (edge > 0) return "var(--edge-positive)";
-  return "var(--edge-neutral)";
+function firstMatchingTag(tags, options) {
+  return options.find((option) => (tags || []).includes(option)) || null;
 }
 
-function buildReason(item) {
-  if (item.summary_reason) return item.summary_reason;
-  const edgeReason = item.model_edge_or_confidence?.edge_reason;
-  if (edgeReason) return edgeReason;
-  if (Array.isArray(item.supporting_text) && item.supporting_text.length) return item.supporting_text[0];
-  return "Approved-source NBA market.";
+function getApprovedSurfaceMeta(surfaceId) {
+  return (state.sourcePolicy?.approved_surfaces || []).find((surface) => surface.id === surfaceId) || null;
 }
 
-function validateApprovedRecord(item) {
-  return item.source_url === state.sourcePolicy.approved_source_url
-    && item.league_id === state.sourcePolicy.league_id
-    && item.sport === state.sourcePolicy.sport
-    && matchupIsNba(item.matchup || "");
+function validateItem(item, surfaceMeta) {
+  if (!item || item.league_id !== state.sourcePolicy.league_id || item.sport !== state.sourcePolicy.sport) {
+    return false;
+  }
+  if (!surfaceMeta || item.surface !== surfaceMeta.id) {
+    return false;
+  }
+  return surfaceMeta.allowed_paths.some((allowedPath) => String(item.source_url || "").endsWith(allowedPath));
 }
 
-function enrichItem(item, index) {
-  const confidence = parsePercent(item.model_edge_or_confidence?.confidence_percent ?? item.confidence_percent);
-  const decimalOdds = item.odds_decimal ?? parseDecimalOdds(item.odds);
-  const impliedProbability = item.implied_probability_percent ?? impliedProbabilityFromDecimal(decimalOdds);
-  const edge = item.model_edge_percent ?? (
-    confidence != null && impliedProbability != null ? Number((confidence - impliedProbability).toFixed(1)) : null
-  );
-  const sportsbook = resolveSportsbook(item);
-  const marketType = normalizeMarketType(item);
+function hydrateSurfaces(payload) {
+  const incoming = new Map((payload.surfaces || []).map((surface) => [surface.id, surface]));
 
-  return {
-    ...item,
-    rank: index + 1,
-    betType: marketType,
-    marketTypeLabel: labelForMarketType(marketType),
-    confidence,
-    impliedProbability,
-    edge,
-    sportsbook_id: sportsbook?.id || item.sportsbook_id || null,
-    sportsbook_name: sportsbook?.name || item.sportsbook_name || null,
-    region: item.region || "AU",
-    odds_format: item.odds_format || state.auConfig?.odds_format_default || "decimal",
-    currency: item.currency || state.auConfig?.currency_default || "AUD",
-    scheduled_timezone: item.scheduled_timezone || "Australia/Sydney",
-    reason: buildReason(item),
-    displayOdds: decimalOdds ? decimalOdds.toFixed(2) : "N/A",
-    displayTimestamp: compactTime(item.scheduled_at || item.timestamp),
-  };
-}
-
-function getFilteredPicks() {
-  return state.picks.filter((pick) => {
-    const typeOk = state.betType === "All" || pick.betType === state.betType;
-    const bookOk = state.sportsbook === "All" || pick.sportsbook_id === state.sportsbook;
-    return typeOk && bookOk;
+  return SURFACE_ORDER.map((surfaceId) => {
+    const meta = getApprovedSurfaceMeta(surfaceId);
+    const existing = incoming.get(surfaceId) || {};
+    const items = Array.isArray(existing.items) ? existing.items.filter((item) => validateItem(item, meta)) : [];
+    return {
+      id: surfaceId,
+      label: meta?.label || titleize(surfaceId),
+      source_url: existing.source_url || new URL(meta?.allowed_paths?.[0] || "/", state.sourcePolicy.approved_root_url).href,
+      scan_summary: existing.scan_summary || null,
+      items: items.map((item, index) => ({
+        ...item,
+        rank_seed: index + 1,
+      })),
+    };
   });
 }
 
-function sortPicks(picks) {
-  return [...picks].sort((a, b) => {
-    const edgeA = a.edge ?? -999;
-    const edgeB = b.edge ?? -999;
-    if (edgeB !== edgeA) return edgeB - edgeA;
-    const confA = a.confidence ?? -999;
-    const confB = b.confidence ?? -999;
-    return confB - confA;
-  });
+function getActiveSurface() {
+  return state.surfaces.find((surface) => surface.id === state.activeSurfaceId) || state.surfaces[0] || null;
 }
 
-function renderChips(container, values, activeValue, onClick, labelFn = (value) => labelForMarketType(value)) {
+function metricByKey(item, key) {
+  return (item.metrics || []).find((metric) => metric.key === key) || null;
+}
+
+function primaryMetric(item) {
+  return (item.metrics || []).find((metric) => metric.value_numeric != null) || item.metrics?.[0] || null;
+}
+
+function secondaryMetric(item) {
+  const numeric = (item.metrics || []).filter((metric) => metric.value_numeric != null);
+  return numeric[1] || item.metrics?.[1] || null;
+}
+
+function metricDisplay(metric) {
+  if (!metric) return "N/A";
+  return metric.value || (metric.value_numeric != null ? String(metric.value_numeric) : "N/A");
+}
+
+function surfaceFilters(surfaceId) {
+  return FILTER_SPECS[surfaceId] || [];
+}
+
+function itemMatchesFilters(item) {
+  const [primarySpec, secondarySpec] = surfaceFilters(state.activeSurfaceId);
+  const primaryValue = primarySpec ? primarySpec.getValue(item) : "All";
+  const secondaryValue = secondarySpec ? secondarySpec.getValue(item) : "All";
+  const primaryOk = state.filters.primary === "All" || primaryValue === state.filters.primary;
+  const secondaryOk = state.filters.secondary === "All" || secondaryValue === state.filters.secondary;
+  return primaryOk && secondaryOk;
+}
+
+function sortItems(items) {
+  return [...items]
+    .sort((a, b) => {
+      const aPrimary = primaryMetric(a)?.value_numeric ?? -Infinity;
+      const bPrimary = primaryMetric(b)?.value_numeric ?? -Infinity;
+      if (bPrimary !== aPrimary) return bPrimary - aPrimary;
+      const aSecondary = secondaryMetric(a)?.value_numeric ?? -Infinity;
+      const bSecondary = secondaryMetric(b)?.value_numeric ?? -Infinity;
+      if (bSecondary !== aSecondary) return bSecondary - aSecondary;
+      return normalizeText(a.title).localeCompare(normalizeText(b.title));
+    })
+    .map((item, index) => ({ ...item, rank: index + 1 }));
+}
+
+function filteredItems() {
+  const surface = getActiveSurface();
+  if (!surface) return [];
+  return sortItems(surface.items.filter(itemMatchesFilters));
+}
+
+function renderChips(container, values, activeValue, onClick, labelFn = (value) => value) {
   container.innerHTML = "";
   values.forEach((value) => {
     const button = document.createElement("button");
     button.type = "button";
     button.className = `chip${value === activeValue ? " active" : ""}`;
-    button.textContent = value === "All" ? "All" : labelFn(value);
+    button.textContent = labelFn(value);
     button.addEventListener("click", () => onClick(value));
     container.appendChild(button);
   });
 }
 
-function renderNoDataState() {
-  nodes.summaryStrip.hidden = true;
-  nodes.controlRow.hidden = true;
-  nodes.mainGrid.hidden = true;
-  nodes.tablePanel.hidden = true;
-  nodes.approvedNoData.hidden = false;
-  nodes.sourceChip.textContent = "Approved source only";
-  nodes.runStatusChip.textContent = "No NBA data available";
-  nodes.sourceAttribution.textContent = `Source: ${state.sourcePolicy.approved_source_url}`;
+function renderSurfaceTabs() {
+  renderChips(
+    nodes.surfaceFilters,
+    state.surfaces.map((surface) => surface.id),
+    state.activeSurfaceId,
+    (value) => {
+      state.activeSurfaceId = value;
+      state.filters.primary = "All";
+      state.filters.secondary = "All";
+      render();
+    },
+    (value) => state.surfaces.find((surface) => surface.id === value)?.label || value
+  );
 }
 
-function renderSummary(picks) {
-  const strongest = picks[0];
-  const bestEdge = picks.reduce((best, pick) => (pick.edge ?? -999) > (best?.edge ?? -999) ? pick : best, null);
+function renderDynamicFilters() {
+  const specs = surfaceFilters(state.activeSurfaceId);
+  const surface = getActiveSurface();
+  const items = surface?.items || [];
+
+  const [primarySpec, secondarySpec] = specs;
+  const primaryValues = primarySpec ? ["All", ...new Set(items.map(primarySpec.getValue).filter(Boolean))] : ["All"];
+  const secondaryValues = secondarySpec ? ["All", ...new Set(items.map(secondarySpec.getValue).filter(Boolean))] : ["All"];
+
+  nodes.primaryFilterLabel.hidden = !primarySpec;
+  nodes.secondaryFilterLabel.hidden = !secondarySpec;
+  nodes.primaryFilterLabel.textContent = primarySpec?.label || "";
+  nodes.secondaryFilterLabel.textContent = secondarySpec?.label || "";
+
+  renderChips(nodes.primaryFilters, primaryValues, state.filters.primary, (value) => {
+    state.filters.primary = value;
+    render();
+  });
+
+  renderChips(nodes.secondaryFilters, secondaryValues, state.filters.secondary, (value) => {
+    state.filters.secondary = value;
+    render();
+  });
+}
+
+function metricRatio(item, items) {
+  const metric = primaryMetric(item);
+  if (!metric?.value_numeric) return 0.35;
+  const max = Math.max(...items.map((entry) => Math.abs(primaryMetric(entry)?.value_numeric || 0)), 1);
+  return Math.max(0.12, Math.min(Math.abs(metric.value_numeric) / max, 1));
+}
+
+function toneColor(ratio) {
+  if (ratio >= 0.85) return "var(--confidence-elite)";
+  if (ratio >= 0.65) return "var(--confidence-high)";
+  if (ratio >= 0.4) return "var(--confidence-medium)";
+  return "var(--confidence-low)";
+}
+
+function meterMarkup(item, items) {
+  const metric = primaryMetric(item);
+  const ratio = metricRatio(item, items);
+  const width = `${Math.round(ratio * 100)}%`;
+  return `
+    <div class="confidence-wrap">
+      <div class="confidence-row">
+        <span>${metric?.label || "Primary metric"}</span>
+        <strong>${metricDisplay(metric)}</strong>
+      </div>
+      <div class="meter">
+        <div class="meter-fill" style="width: ${width}; background: ${toneColor(ratio)};"></div>
+      </div>
+    </div>
+  `;
+}
+
+function itemTopline(item, surfaceLabel) {
+  const chips = [
+    `<span class="type-chip">${surfaceLabel}</span>`,
+    `<span class="book-chip">${displayMarket(item.market_type)}</span>`,
+  ];
+  if (item.team) {
+    chips.push(`<span class="odds-chip">${item.team}</span>`);
+  } else if (item.matchup) {
+    chips.push(`<span class="odds-chip">${item.matchup}</span>`);
+  }
+  return chips.join("");
+}
+
+function pickCardMarkup(item, items, surfaceLabel, featured = false) {
+  const secondary = secondaryMetric(item);
+  const metaPills = [
+    `<span class="metric-pill">${primaryMetric(item)?.label || "Metric"}: ${metricDisplay(primaryMetric(item))}</span>`,
+  ];
+  if (secondary) {
+    metaPills.push(`<span class="metric-pill positive">${secondary.label}: ${metricDisplay(secondary)}</span>`);
+  }
+  if (item.matchup || item.subtitle) {
+    metaPills.push(`<span class="metric-pill">${item.matchup || item.subtitle}</span>`);
+  }
+
+  return `
+    <article class="${featured ? "featured-card" : "pick-card"}">
+      ${featured ? "" : `<div class="pick-rank">${item.rank}</div>`}
+      <div class="pick-topline">${itemTopline(item, surfaceLabel)}</div>
+      <div class="matchup">${item.title || "Untitled item"}</div>
+      <div class="pick-text">${item.selection || item.subtitle || "Selection unavailable"}</div>
+      ${meterMarkup(item, items)}
+      <div class="pick-meta-grid">${metaPills.join("")}</div>
+      <p class="subtext">${item.reason || "Approved-source NBA item."}</p>
+      <div class="edge-strip" style="width: ${Math.round(metricRatio(item, items) * 100)}%; background: ${toneColor(metricRatio(item, items))};"></div>
+    </article>
+  `;
+}
+
+function renderSummary(items) {
+  const strongest = items[0];
+  const topMetric = primaryMetric(strongest);
+  const secondMetric = secondaryMetric(strongest);
+  const surface = getActiveSurface();
   const cards = [
     {
-      label: "Live picks",
-      value: String(picks.length),
-      note: strongest ? `${strongest.marketTypeLabel} available` : "No approved picks",
+      label: "Live items",
+      value: String(items.length),
+      note: surface?.label || "No active surface",
     },
     {
-      label: "Best edge",
-      value: bestEdge?.edge != null ? `${bestEdge.edge > 0 ? "+" : ""}${bestEdge.edge.toFixed(1)}%` : "N/A",
-      note: bestEdge ? bestEdge.selection : "No edge data",
+      label: topMetric?.label || "Top score",
+      value: metricDisplay(topMetric),
+      note: strongest?.title || "No data",
     },
     {
-      label: "Top confidence",
-      value: strongest?.confidence != null ? `${strongest.confidence.toFixed(0)}%` : "N/A",
-      note: strongest ? strongest.matchup : "No confidence data",
+      label: secondMetric?.label || "Updated",
+      value: secondMetric ? metricDisplay(secondMetric) : compactTime(surface?.scan_summary?.finished_at),
+      note: strongest?.selection || "No secondary metric",
     },
     {
       label: "Source",
-      value: "NBA",
-      note: "Approved source only",
+      value: "Capping.Pro",
+      note: surface?.label || "NBA only",
     },
   ];
 
@@ -318,186 +443,146 @@ function renderSummary(picks) {
   `).join("");
 }
 
-function meterMarkup(confidence) {
-  const safeConfidence = confidence ?? 0;
-  return `
-    <div class="confidence-wrap">
-      <div class="confidence-row">
-        <span>Confidence</span>
-        <strong>${safeConfidence ? `${safeConfidence.toFixed(0)}%` : "No score"}</strong>
-      </div>
-      <div class="meter">
-        <div class="meter-fill" style="width: ${Math.max(8, Math.min(safeConfidence, 100))}%; background: ${confidenceColor(safeConfidence)};"></div>
-      </div>
-    </div>
-  `;
+function renderFeatured(items) {
+  const surfaceLabel = getActiveSurface()?.label || "Surface";
+  nodes.featuredPick.innerHTML = items.length ? pickCardMarkup(items[0], items, surfaceLabel, true) : "";
 }
 
-function pickCardMarkup(pick, featured = false) {
-  const edgeText = pick.edge != null ? `${pick.edge > 0 ? "+" : ""}${pick.edge.toFixed(1)}% edge` : "Edge pending";
-  const impliedText = pick.impliedProbability != null ? `${pick.impliedProbability.toFixed(1)}% implied` : "Implied N/A";
-  const klass = featured ? "featured-card" : "pick-card";
-
-  return `
-    <article class="${klass}">
-      ${featured ? "" : `<div class="pick-rank">${pick.rank}</div>`}
-      <div class="pick-topline">
-        <span class="type-chip">${pick.marketTypeLabel}</span>
-        <span class="book-chip">${pick.sportsbook_name || "Book not shown"}</span>
-        <span class="odds-chip">${pick.displayOdds}</span>
-      </div>
-      <div class="matchup">${pick.matchup || "Matchup TBD"}</div>
-      <div class="pick-text">${pick.selection || "Selection unavailable"}</div>
-      ${meterMarkup(pick.confidence)}
-      <div class="pick-meta-grid">
-        <span class="metric-pill ${pick.edge != null && pick.edge > 0 ? "positive" : ""}">${edgeText}</span>
-        <span class="metric-pill">${impliedText}</span>
-        <span class="metric-pill">Sydney ${pick.displayTimestamp}</span>
-      </div>
-      <p class="subtext">${pick.reason}</p>
-      <div class="edge-strip" style="width: ${Math.max(20, Math.min((pick.edge ?? 0) * 6, 100))}%; background: ${edgeColor(pick.edge)};"></div>
-    </article>
-  `;
+function renderPickStack(items) {
+  const surfaceLabel = getActiveSurface()?.label || "Surface";
+  nodes.pickStack.innerHTML = items.slice(0, 6).map((item) => pickCardMarkup(item, items, surfaceLabel)).join("");
 }
 
-function renderFeatured(picks) {
-  nodes.featuredPick.innerHTML = picks.length ? pickCardMarkup(picks[0], true) : "";
-}
-
-function renderPickStack(picks) {
-  nodes.pickStack.innerHTML = picks.slice(0, 6).map((pick) => pickCardMarkup(pick)).join("");
-}
-
-function renderValueChart(picks) {
-  const top = picks.slice(0, 6);
-  const maxEdge = Math.max(...top.map((pick) => Math.max(pick.edge ?? 0, 1)));
-  nodes.valueChart.innerHTML = top.map((pick) => `
+function renderValueChart(items) {
+  const top = items.slice(0, 6);
+  const max = Math.max(...top.map((item) => Math.abs(primaryMetric(item)?.value_numeric || 0)), 1);
+  nodes.valueChart.innerHTML = top.map((item) => `
     <div class="value-row">
       <div class="value-label">
-        <div class="value-title">${pick.selection || "Selection unavailable"}</div>
-        <div class="value-subtitle">${pick.matchup || "Matchup TBD"} · ${pick.sportsbook_name || "Book not shown"}</div>
+        <div class="value-title">${item.title || "Untitled item"}</div>
+        <div class="value-subtitle">${item.selection || item.subtitle || item.matchup || "No context"}</div>
       </div>
       <div class="value-bar">
-        <div class="value-fill" style="width: ${Math.max(8, ((pick.edge ?? 0) / maxEdge) * 100)}%; background: ${edgeColor(pick.edge)};"></div>
+        <div class="value-fill" style="width: ${Math.max(8, (Math.abs(primaryMetric(item)?.value_numeric || 0) / max) * 100)}%; background: ${toneColor(metricRatio(item, top))};"></div>
       </div>
-      <div class="value-number">${pick.edge != null ? `${pick.edge > 0 ? "+" : ""}${pick.edge.toFixed(1)}%` : "N/A"}</div>
+      <div class="value-number">${metricDisplay(primaryMetric(item))}</div>
     </div>
   `).join("");
 }
 
-function renderDistribution(picks) {
-  const counts = BET_TYPE_ORDER.map((type) => ({
-    type,
-    count: picks.filter((pick) => pick.betType === type).length,
-  })).filter((entry) => entry.count > 0);
-  const max = Math.max(...counts.map((entry) => entry.count));
+function renderDistribution(items) {
+  const counts = [...new Set(items.map((item) => displayMarket(item.market_type)))].map((label) => ({
+    label,
+    count: items.filter((item) => displayMarket(item.market_type) === label).length,
+  }));
+  const max = Math.max(...counts.map((entry) => entry.count), 1);
   nodes.distributionChart.innerHTML = counts.map((entry) => `
     <div class="dist-row">
       <div class="dist-label-line">
-        <span>${labelForMarketType(entry.type)}</span>
+        <span>${entry.label}</span>
         <strong>${entry.count}</strong>
       </div>
       <div class="dist-bar">
-        <div class="dist-fill" style="width: ${(entry.count / max) * 100}%; background: linear-gradient(90deg, ${BET_TYPE_COLORS[entry.type] || BET_TYPE_COLORS.other}, #cbd5e1);"></div>
+        <div class="dist-fill" style="width: ${(entry.count / max) * 100}%;"></div>
       </div>
     </div>
   `).join("");
 }
 
-function renderHeatmap(picks) {
-  const matchups = [...new Set(picks.map((pick) => pick.matchup).filter(Boolean))].slice(0, 6);
-  const columns = BET_TYPE_ORDER;
-  const maxCount = Math.max(1, ...matchups.flatMap((matchup) =>
-    columns.map((type) => picks.filter((pick) => pick.matchup === matchup && pick.betType === type).length)
-  ));
-
-  const cells = ['<div class="heatmap-grid">', '<div class="heatmap-cell label">Matchup</div>'];
-  for (const column of columns) {
-    cells.push(`<div class="heatmap-cell label">${labelForMarketType(column)}</div>`);
+function renderHeatmap(items) {
+  const rowKeys = [...new Set(items.map((item) => item.matchup || item.team || item.title).filter(Boolean))].slice(0, 6);
+  const columns = [...new Set(items.map((item) => displayMarket(item.market_type)).filter(Boolean))].slice(0, 4);
+  if (!rowKeys.length || !columns.length) {
+    nodes.heatmap.innerHTML = "<div class=\"muted\">Not enough grouped matchup context for this surface.</div>";
+    return;
   }
-  for (const matchup of matchups) {
-    cells.push(`<div class="heatmap-cell label">${matchup}</div>`);
-    for (const type of columns) {
-      const count = picks.filter((pick) => pick.matchup === matchup && pick.betType === type).length;
+
+  const maxCount = Math.max(
+    1,
+    ...rowKeys.flatMap((rowKey) =>
+      columns.map((column) =>
+        items.filter((item) => (item.matchup || item.team || item.title) === rowKey && displayMarket(item.market_type) === column).length
+      )
+    )
+  );
+
+  const cells = ["<div class=\"heatmap-grid\">", "<div class=\"heatmap-cell label\">Context</div>"];
+  columns.forEach((column) => cells.push(`<div class="heatmap-cell label">${column}</div>`));
+  rowKeys.forEach((rowKey) => {
+    cells.push(`<div class="heatmap-cell label">${rowKey}</div>`);
+    columns.forEach((column) => {
+      const count = items.filter((item) => (item.matchup || item.team || item.title) === rowKey && displayMarket(item.market_type) === column).length;
       const intensity = count / maxCount;
       const background = count ? `rgba(20, 184, 166, ${0.18 + intensity * 0.55})` : "rgba(226, 232, 240, 0.45)";
-      cells.push(`<div class="heatmap-cell" style="background: ${background};">${count ? count : "—"}</div>`);
-    }
-  }
+      cells.push(`<div class="heatmap-cell" style="background: ${background};">${count || "—"}</div>`);
+    });
+  });
   cells.push("</div>");
   nodes.heatmap.innerHTML = cells.join("");
 }
 
-function renderTable(picks) {
-  nodes.tableBody.innerHTML = picks.map((pick) => `
+function renderTable(items) {
+  const surfaceLabel = getActiveSurface()?.label || "Surface";
+  nodes.tableBody.innerHTML = items.map((item) => `
     <tr>
-      <td>${pick.matchup || "TBD"}</td>
-      <td>${pick.selection || "Unavailable"}</td>
-      <td><span class="table-pill">${pick.marketTypeLabel}</span></td>
-      <td>${pick.displayOdds}</td>
-      <td>${pick.sportsbook_name || "Book not shown"}</td>
-      <td><span class="table-pill" style="background: ${confidenceColor(pick.confidence)}22; color: ${confidenceColor(pick.confidence)};">${pick.confidence != null ? `${pick.confidence.toFixed(0)}%` : "N/A"}</span></td>
-      <td><span class="table-pill" style="background: ${edgeColor(pick.edge)}22; color: ${edgeColor(pick.edge)};">${pick.edge != null ? `${pick.edge > 0 ? "+" : ""}${pick.edge.toFixed(1)}%` : "N/A"}</span></td>
-      <td>${pick.displayTimestamp}</td>
+      <td>${item.matchup || item.subtitle || item.team || "Context TBD"}</td>
+      <td>${item.selection || "Unavailable"}</td>
+      <td><span class="table-pill">${surfaceLabel}</span></td>
+      <td><span class="table-pill">${primaryMetric(item)?.label || "Metric"}: ${metricDisplay(primaryMetric(item))}</span></td>
+      <td><span class="table-pill">${secondaryMetric(item)?.label || "Metric"}: ${metricDisplay(secondaryMetric(item))}</span></td>
+      <td>${compactTime(item.updated_at || getActiveSurface()?.scan_summary?.finished_at)}</td>
     </tr>
   `).join("");
 }
 
-function renderControls() {
-  const betTypes = ["All", ...BET_TYPE_ORDER.filter((type) => state.picks.some((pick) => pick.betType === type))];
-  const books = [
-    "All",
-    ...(state.auConfig?.sportsbooks || [])
-      .filter((book) => state.picks.some((pick) => pick.sportsbook_id === book.id))
-      .map((book) => book.id),
-  ];
-
-  renderChips(nodes.betTypeFilters, betTypes, state.betType, (value) => {
-    state.betType = value;
-    render();
-  });
-  renderChips(nodes.sportsbookFilters, books, state.sportsbook, (value) => {
-    state.sportsbook = value;
-    render();
-  }, (value) => {
-    const book = (state.auConfig?.sportsbooks || []).find((entry) => entry.id === value);
-    return book ? book.name : value;
-  });
+function renderNoData() {
+  const surface = getActiveSurface();
+  nodes.summaryStrip.hidden = true;
+  nodes.controlRow.hidden = false;
+  nodes.mainGrid.hidden = true;
+  nodes.tablePanel.hidden = true;
+  nodes.approvedNoData.hidden = false;
+  nodes.sourceChip.textContent = "Approved source only";
+  nodes.runStatusChip.textContent = `${surface?.label || "Surface"}: no valid NBA data`;
+  nodes.sourceAttribution.textContent = `Source: ${surface?.source_url || state.sourcePolicy.approved_root_url}`;
+  nodes.emptySourceAttribution.textContent = `Source: ${surface?.source_url || state.sourcePolicy.approved_root_url}`;
 }
 
-function renderApprovedData() {
+function renderData(items) {
+  const surface = getActiveSurface();
   nodes.approvedNoData.hidden = true;
   nodes.summaryStrip.hidden = false;
   nodes.controlRow.hidden = false;
   nodes.mainGrid.hidden = false;
   nodes.tablePanel.hidden = !state.showTable;
   nodes.sourceChip.textContent = "Approved source only";
-  nodes.runStatusChip.textContent = `${state.picks.length} NBA picks from approved source`;
-  nodes.sourceAttribution.textContent = `Source: ${state.sourcePolicy.approved_source_url}`;
+  nodes.runStatusChip.textContent = `${surface?.label || "Surface"}: ${items.length} NBA items`;
+  nodes.sourceAttribution.textContent = `Source: ${surface?.source_url || state.sourcePolicy.approved_root_url}`;
 
-  renderControls();
-  const filtered = sortPicks(getFilteredPicks());
-  renderSummary(filtered);
-  renderFeatured(filtered);
-  renderPickStack(filtered);
-  renderValueChart(filtered);
-  renderDistribution(filtered);
-  renderHeatmap(filtered);
-  renderTable(filtered);
+  renderSummary(items);
+  renderFeatured(items);
+  renderPickStack(items);
+  renderValueChart(items);
+  renderDistribution(items);
+  renderHeatmap(items);
+  renderTable(items);
   nodes.listToggle.textContent = state.showTable ? "Hide table" : "Show table";
 }
 
 function render() {
-  if (!state.picks.length) {
-    renderNoDataState();
+  renderSurfaceTabs();
+  renderDynamicFilters();
+  const items = filteredItems();
+  if (!items.length) {
+    renderNoData();
     return;
   }
-  renderApprovedData();
+  renderData(items);
 }
 
 nodes.listToggle.addEventListener("click", () => {
   state.showTable = !state.showTable;
-  if (state.picks.length) renderApprovedData();
+  render();
 });
 
 async function init() {
@@ -506,8 +591,8 @@ async function init() {
   state.runSummary = dataset.runSummary;
   state.auConfig = dataset.auConfig;
   state.sourcePolicy = dataset.sourcePolicy;
-  const approvedItems = dataset.items.filter(validateApprovedRecord).map(enrichItem);
-  state.picks = sortPicks(approvedItems);
+  state.surfaces = hydrateSurfaces(dataset.payload);
+  state.activeSurfaceId = state.surfaces.find((surface) => surface.items.length)?.id || state.surfaces[0]?.id || "best-bets";
   render();
 }
 
@@ -516,7 +601,6 @@ init().catch((error) => {
   nodes.runStatusChip.textContent = error.message;
   nodes.approvedNoData.hidden = false;
   nodes.summaryStrip.hidden = true;
-  nodes.controlRow.hidden = true;
   nodes.mainGrid.hidden = true;
   nodes.tablePanel.hidden = true;
 });

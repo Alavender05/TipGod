@@ -1,0 +1,94 @@
+{
+  "generated_at": "2026-03-11T04:38:07.177Z",
+  "source_domain": "capping.pro",
+  "league_id": "NBA",
+  "sport": "Basketball",
+  "scanner": "playwright",
+  "runtime": "node v24.11.1",
+  "surfaces": [
+    {
+      "id": "best-bets",
+      "label": "Best Bets",
+      "source_url": "https://capping.pro/nba-bestbets",
+      "started_at": "2026-03-11T04:38:07.178Z",
+      "finished_at": "2026-03-11T04:38:39.163Z",
+      "page_url": "https://capping.pro/nba-bestbets",
+      "accepted_items": 94,
+      "rejected_wrong_source": 0,
+      "rejected_wrong_league": 0,
+      "rejected_wrong_surface": 0,
+      "notes": []
+    },
+    {
+      "id": "edges",
+      "label": "Edges",
+      "source_url": "https://capping.pro/nba-edges",
+      "started_at": "2026-03-11T04:38:39.163Z",
+      "finished_at": "2026-03-11T04:38:50.257Z",
+      "page_url": "https://capping.pro/nba-edges",
+      "accepted_items": 27,
+      "rejected_wrong_source": 0,
+      "rejected_wrong_league": 0,
+      "rejected_wrong_surface": 0,
+      "notes": []
+    },
+    {
+      "id": "props",
+      "label": "Props",
+      "source_url": "https://capping.pro/nba-propfinder",
+      "started_at": "2026-03-11T04:38:50.257Z",
+      "finished_at": "2026-03-11T04:39:16.541Z",
+      "page_url": "https://capping.pro/nba-propfinder",
+      "accepted_items": 120,
+      "rejected_wrong_source": 0,
+      "rejected_wrong_league": 0,
+      "rejected_wrong_surface": 0,
+      "notes": []
+    },
+    {
+      "id": "parlay",
+      "label": "Parlay",
+      "source_url": "https://capping.pro/parlay-of-the-night",
+      "started_at": "2026-03-11T04:39:16.541Z",
+      "finished_at": "2026-03-11T04:39:27.471Z",
+      "page_url": "https://capping.pro/parlay-of-the-night",
+      "accepted_items": 54,
+      "rejected_wrong_source": 0,
+      "rejected_wrong_league": 0,
+      "rejected_wrong_surface": 0,
+      "notes": []
+    },
+    {
+      "id": "degen",
+      "label": "Degen",
+      "source_url": "https://capping.pro/degen-theory",
+      "started_at": "2026-03-11T04:39:27.471Z",
+      "finished_at": "2026-03-11T04:39:45.805Z",
+      "page_url": "https://capping.pro/degen-theory",
+      "accepted_items": 120,
+      "rejected_wrong_source": 0,
+      "rejected_wrong_league": 0,
+      "rejected_wrong_surface": 0,
+      "notes": []
+    },
+    {
+      "id": "exploits",
+      "label": "Exploits",
+      "source_url": "https://capping.pro/nba-matchup-exploits",
+      "started_at": "2026-03-11T04:39:45.805Z",
+      "finished_at": "2026-03-11T04:40:03.973Z",
+      "page_url": "https://capping.pro/nba-matchup-exploits",
+      "accepted_items": 25,
+      "rejected_wrong_source": 0,
+      "rejected_wrong_league": 0,
+      "rejected_wrong_surface": 0,
+      "notes": []
+    }
+  ],
+  "totals": {
+    "unique_items": 440,
+    "rejected_wrong_source": 0,
+    "rejected_wrong_league": 0,
+    "rejected_wrong_surface": 0
+  }
+}

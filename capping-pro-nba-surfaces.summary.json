@@ -1,0 +1,280 @@
+{
+  "dataset_file": "capping-pro-nba-surfaces.json",
+  "run_summary_file": "capping-pro-nba-surfaces.run-summary.json",
+  "generated_at": "2026-03-11T04:40:04.028Z",
+  "source_domain": "capping.pro",
+  "league_id": "NBA",
+  "sport": "Basketball",
+  "total_items": 440,
+  "surface_count": 6,
+  "surfaces": [
+    {
+      "id": "best-bets",
+      "label": "Best Bets",
+      "source_url": "https://capping.pro/nba-bestbets",
+      "item_count": 94,
+      "top_titles": [
+        {
+          "title": "Dejounte Murray\ud83c\udfe0",
+          "count": 3
+        },
+        {
+          "title": "Luka Doncic\ud83c\udfe0",
+          "count": 3
+        },
+        {
+          "title": "Cooper Flagg\ud83c\udfe0",
+          "count": 3
+        },
+        {
+          "title": "LaMelo Ball",
+          "count": 3
+        },
+        {
+          "title": "Amen Thompson",
+          "count": 2
+        }
+      ],
+      "notes": []
+    },
+    {
+      "id": "edges",
+      "label": "Edges",
+      "source_url": "https://capping.pro/nba-edges",
+      "item_count": 27,
+      "top_titles": [
+        {
+          "title": "Pascal SiakamPF",
+          "count": 1
+        },
+        {
+          "title": "LeBron JamesPF",
+          "count": 1
+        },
+        {
+          "title": "Payton PritchardPG",
+          "count": 1
+        },
+        {
+          "title": "Julian StrawtherC",
+          "count": 1
+        },
+        {
+          "title": "Naz ReidC",
+          "count": 1
+        }
+      ],
+      "notes": []
+    },
+    {
+      "id": "props",
+      "label": "Props",
+      "source_url": "https://capping.pro/nba-propfinder",
+      "item_count": 120,
+      "top_titles": [
+        {
+          "title": "Luka Doncic",
+          "count": 4
+        },
+        {
+          "title": "Nikola Jokic",
+          "count": 4
+        },
+        {
+          "title": "Donovan Mitchell",
+          "count": 4
+        },
+        {
+          "title": "Jalen Brunson",
+          "count": 4
+        },
+        {
+          "title": "Jamal Murray",
+          "count": 4
+        }
+      ],
+      "notes": []
+    },
+    {
+      "id": "parlay",
+      "label": "Parlay",
+      "source_url": "https://capping.pro/parlay-of-the-night",
+      "item_count": 54,
+      "top_titles": [
+        {
+          "title": "All Unders5 Legs",
+          "count": 1
+        },
+        {
+          "title": "All Overs5 Legs",
+          "count": 1
+        },
+        {
+          "title": "Elite Mixed2 Legs",
+          "count": 1
+        },
+        {
+          "title": "Safe Mixed6 Legs",
+          "count": 1
+        },
+        {
+          "title": "Mohamed DiawaraNYK \u2022 C",
+          "count": 1
+        }
+      ],
+      "notes": []
+    },
+    {
+      "id": "degen",
+      "label": "Degen",
+      "source_url": "https://capping.pro/degen-theory",
+      "item_count": 120,
+      "top_titles": [
+        {
+          "title": "Ty Jerome",
+          "count": 2
+        },
+        {
+          "title": "Blake Wesley",
+          "count": 2
+        },
+        {
+          "title": "Brooks Barnhizer",
+          "count": 2
+        },
+        {
+          "title": "Tobias Harris",
+          "count": 2
+        },
+        {
+          "title": "Payton Pritchard\ud83d\udfe0",
+          "count": 2
+        }
+      ],
+      "notes": []
+    },
+    {
+      "id": "exploits",
+      "label": "Exploits",
+      "source_url": "https://capping.pro/nba-matchup-exploits",
+      "item_count": 25,
+      "top_titles": [
+        {
+          "title": "Jakob Poeltl",
+          "count": 3
+        },
+        {
+          "title": "Immanuel Quickley",
+          "count": 2
+        },
+        {
+          "title": "Amen Thompson",
+          "count": 2
+        },
+        {
+          "title": "James Harden",
+          "count": 2
+        },
+        {
+          "title": "OG Anunoby",
+          "count": 2
+        }
+      ],
+      "notes": []
+    }
+  ],
+  "run_summary": {
+    "generated_at": "2026-03-11T04:38:07.177Z",
+    "source_domain": "capping.pro",
+    "league_id": "NBA",
+    "sport": "Basketball",
+    "scanner": "playwright",
+    "runtime": "node v24.11.1",
+    "surfaces": [
+      {
+        "id": "best-bets",
+        "label": "Best Bets",
+        "source_url": "https://capping.pro/nba-bestbets",
+        "started_at": "2026-03-11T04:38:07.178Z",
+        "finished_at": "2026-03-11T04:38:39.163Z",
+        "page_url": "https://capping.pro/nba-bestbets",
+        "accepted_items": 94,
+        "rejected_wrong_source": 0,
+        "rejected_wrong_league": 0,
+        "rejected_wrong_surface": 0,
+        "notes": []
+      },
+      {
+        "id": "edges",
+        "label": "Edges",
+        "source_url": "https://capping.pro/nba-edges",
+        "started_at": "2026-03-11T04:38:39.163Z",
+        "finished_at": "2026-03-11T04:38:50.257Z",
+        "page_url": "https://capping.pro/nba-edges",
+        "accepted_items": 27,
+        "rejected_wrong_source": 0,
+        "rejected_wrong_league": 0,
+        "rejected_wrong_surface": 0,
+        "notes": []
+      },
+      {
+        "id": "props",
+        "label": "Props",
+        "source_url": "https://capping.pro/nba-propfinder",
+        "started_at": "2026-03-11T04:38:50.257Z",
+        "finished_at": "2026-03-11T04:39:16.541Z",
+        "page_url": "https://capping.pro/nba-propfinder",
+        "accepted_items": 120,
+        "rejected_wrong_source": 0,
+        "rejected_wrong_league": 0,
+        "rejected_wrong_surface": 0,
+        "notes": []
+      },
+      {
+        "id": "parlay",
+        "label": "Parlay",
+        "source_url": "https://capping.pro/parlay-of-the-night",
+        "started_at": "2026-03-11T04:39:16.541Z",
+        "finished_at": "2026-03-11T04:39:27.471Z",
+        "page_url": "https://capping.pro/parlay-of-the-night",
+        "accepted_items": 54,
+        "rejected_wrong_source": 0,
+        "rejected_wrong_league": 0,
+        "rejected_wrong_surface": 0,
+        "notes": []
+      },
+      {
+        "id": "degen",
+        "label": "Degen",
+        "source_url": "https://capping.pro/degen-theory",
+        "started_at": "2026-03-11T04:39:27.471Z",
+        "finished_at": "2026-03-11T04:39:45.805Z",
+        "page_url": "https://capping.pro/degen-theory",
+        "accepted_items": 120,
+        "rejected_wrong_source": 0,
+        "rejected_wrong_league": 0,
+        "rejected_wrong_surface": 0,
+        "notes": []
+      },
+      {
+        "id": "exploits",
+        "label": "Exploits",
+        "source_url": "https://capping.pro/nba-matchup-exploits",
+        "started_at": "2026-03-11T04:39:45.805Z",
+        "finished_at": "2026-03-11T04:40:03.973Z",
+        "page_url": "https://capping.pro/nba-matchup-exploits",
+        "accepted_items": 25,
+        "rejected_wrong_source": 0,
+        "rejected_wrong_league": 0,
+        "rejected_wrong_surface": 0,
+        "notes": []
+      }
+    ],
+    "totals": {
+      "unique_items": 440,
+      "rejected_wrong_source": 0,
+      "rejected_wrong_league": 0,
+      "rejected_wrong_surface": 0
+    }
+  }
+}

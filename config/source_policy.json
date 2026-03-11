@@ -1,25 +1,91 @@
 {
-  "approved_source_url": "https://capping.pro/nba-bestbets",
   "approved_domain": "capping.pro",
-  "approved_path": "/nba-bestbets",
+  "approved_root_url": "https://capping.pro/",
   "league_id": "NBA",
   "sport": "Basketball",
+  "timezone_display": "America/New_York",
   "allowed_competition_keywords": [
     "nba",
-    "regular season",
-    "playoffs",
-    "play-in",
-    "play in"
+    "today's games",
+    "best bets",
+    "edges",
+    "props",
+    "degentheory",
+    "parlay of the night",
+    "matchup exploits"
   ],
   "rejected_competition_keywords": [
-    "nfl",
-    "mlb",
+    "nfl analytics platform",
+    "mlb analytics platform",
+    "mma analytics platform",
     "nhl",
     "wnba",
     "ncaa",
     "euroleague",
     "g league",
     "afl"
+  ],
+  "approved_surfaces": [
+    {
+      "id": "best-bets",
+      "label": "Best Bets",
+      "route_key": "nba-bestbets",
+      "expected_nav_label": "Best Bets",
+      "allowed_paths": ["/nba-bestbets"],
+      "allowed_api_patterns": ["/api/nba/best-bets", "/api/nba/teams", "/api/nba/player-performance/"],
+      "required_keywords": ["best bets", "recommended play", "confidence"],
+      "rejected_keywords": ["nfl analytics platform", "mlb analytics platform", "mma analytics platform"]
+    },
+    {
+      "id": "edges",
+      "label": "Edges",
+      "route_key": "nba-edges",
+      "expected_nav_label": "Edges",
+      "allowed_paths": ["/nba-edges"],
+      "allowed_api_patterns": ["/api/nba/edges"],
+      "required_keywords": ["edge calculator", "avg edge", "win prob"],
+      "rejected_keywords": ["nfl analytics platform", "mlb analytics platform", "mma analytics platform"]
+    },
+    {
+      "id": "props",
+      "label": "Props",
+      "route_key": "nba-propfinder",
+      "expected_nav_label": "Props",
+      "allowed_paths": ["/nba-propfinder", "/prop-tracking"],
+      "allowed_api_patterns": ["/api/nba/prop-tracking", "/api/nba/prop-analysis", "/api/nba/prop-predictions"],
+      "required_keywords": ["propfinder", "props", "historical hit rates"],
+      "rejected_keywords": ["nfl analytics platform", "mlb analytics platform", "mma analytics platform"]
+    },
+    {
+      "id": "parlay",
+      "label": "Parlay",
+      "route_key": "parlay-of-the-night",
+      "expected_nav_label": "Parlay",
+      "allowed_paths": ["/parlay-of-the-night"],
+      "allowed_api_patterns": ["/api/nba/parlay-of-the-night"],
+      "required_keywords": ["parlay of the night", "pre-built parlays", "hit probability"],
+      "rejected_keywords": ["nfl analytics platform", "mlb analytics platform", "mma analytics platform"]
+    },
+    {
+      "id": "degen",
+      "label": "Degen",
+      "route_key": "degen-theory",
+      "expected_nav_label": "Degen",
+      "allowed_paths": ["/degen-theory"],
+      "allowed_api_patterns": ["/api/nba/degen-theory"],
+      "required_keywords": ["degentheory", "alternating", "accuracy"],
+      "rejected_keywords": ["nfl analytics platform", "mlb analytics platform", "mma analytics platform"]
+    },
+    {
+      "id": "exploits",
+      "label": "Exploits",
+      "route_key": "nba-matchup-exploits",
+      "expected_nav_label": "Exploits",
+      "allowed_paths": ["/nba-matchup-exploits"],
+      "allowed_api_patterns": ["/api/nba/matchup-exploits"],
+      "required_keywords": ["matchup exploits", "opponent weaknesses", "exploit"],
+      "rejected_keywords": ["nfl analytics platform", "mlb analytics platform", "mma analytics platform"]
+    }
   ],
   "official_nba_teams": [
     { "name": "Atlanta Hawks", "aliases": ["ATL", "Hawks"] },
@@ -34,7 +100,7 @@
     { "name": "Golden State Warriors", "aliases": ["GSW", "GS", "Warriors"] },
     { "name": "Houston Rockets", "aliases": ["HOU", "Rockets"] },
     { "name": "Indiana Pacers", "aliases": ["IND", "Pacers"] },
-    { "name": "Los Angeles Clippers", "aliases": ["LAC", "Clippers"] },
+    { "name": "Los Angeles Clippers", "aliases": ["LAC", "Clippers", "LA Clippers", "Los Angeles LA Clippers"] },
     { "name": "Los Angeles Lakers", "aliases": ["LAL", "Lakers"] },
     { "name": "Memphis Grizzlies", "aliases": ["MEM", "Grizzlies"] },
     { "name": "Miami Heat", "aliases": ["MIA", "Heat"] },

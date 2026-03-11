@@ -16,9 +16,9 @@
         <p class="eyebrow">NBA Betting Results</p>
         <h1>Card-first results for fast betting decisions.</h1>
         <p class="hero-text">
-          Approved source only: capping.pro NBA Best Bets. No alternate feeds, no fallback providers, no mixed-league content.
+          Approved source only: capping.pro NBA surfaces for Best Bets, Edges, Props, Parlay, Degen, and Exploits. No alternate feeds, no fallback providers, no mixed-league content.
         </p>
-        <p class="hero-text" id="source-attribution">Source: https://capping.pro/nba-bestbets</p>
+        <p class="hero-text" id="source-attribution">Source: https://capping.pro/</p>
       </div>
       <div class="hero-meta">
         <div class="meta-chip" id="data-source-chip">Loading data…</div>
@@ -30,12 +30,22 @@
       <section class="summary-strip" id="summary-strip"></section>
       <section class="panel empty-state" id="approved-no-data" hidden>
         <h3>No NBA markets currently available from the approved source.</h3>
-        <p>Source: https://capping.pro/nba-bestbets</p>
+        <p id="empty-source-attribution">Source: https://capping.pro/</p>
+      </section>
+
+      <section class="surface-row">
+        <div class="chip-row" id="surface-filters" aria-label="Surface filters"></div>
       </section>
 
       <section class="control-row">
-        <div class="chip-row" id="bet-type-filters" aria-label="Bet type filters"></div>
-        <div class="chip-row" id="sportsbook-filters" aria-label="Sportsbook filters"></div>
+        <div class="filter-block">
+          <p class="filter-label" id="primary-filter-label" hidden></p>
+          <div class="chip-row" id="primary-filters" aria-label="Primary filters"></div>
+        </div>
+        <div class="filter-block">
+          <p class="filter-label" id="secondary-filter-label" hidden></p>
+          <div class="chip-row" id="secondary-filters" aria-label="Secondary filters"></div>
+        </div>
       </section>
 
       <section class="main-grid">
@@ -106,13 +116,11 @@
           <table>
             <thead>
               <tr>
-                <th>Matchup</th>
-                <th>Pick</th>
-                <th>Type</th>
-                <th>Odds</th>
-                <th>Book</th>
-                <th>Confidence</th>
-                <th>Edge</th>
+                <th>Context</th>
+                <th>Selection</th>
+                <th>Surface</th>
+                <th>Primary Metric</th>
+                <th>Secondary Metric</th>
                 <th>Updated</th>
               </tr>
             </thead>
