@@ -1,0 +1,159 @@
+{
+  "timezone_default": "Australia/Sydney",
+  "currency_default": "AUD",
+  "odds_format_default": "decimal",
+  "legacy_sportsbook_names": [
+    "FanDuel",
+    "DraftKings",
+    "BetMGM",
+    "Caesars",
+    "Fanatics",
+    "ESPN BET"
+  ],
+  "market_type_aliases": {
+    "spread": "line",
+    "line": "line",
+    "game line": "line",
+    "moneyline": "head-to-head",
+    "head-to-head": "head-to-head",
+    "to win": "head-to-head",
+    "total": "total points",
+    "game total": "total points",
+    "over/under": "total points",
+    "total points": "total points",
+    "points prop": "player props",
+    "assists prop": "player props",
+    "rebounds prop": "player props",
+    "3pt prop": "player props",
+    "3pt props": "player props",
+    "player props": "player props",
+    "team total": "team total"
+  },
+  "legacy_market_terms": [
+    "spread",
+    "moneyline",
+    "game total"
+  ],
+  "sportsbooks": [
+    {
+      "id": "ladbrokes_au",
+      "name": "Ladbrokes",
+      "slug": "ladbrokes",
+      "region": "AU",
+      "odds_format": "decimal",
+      "currency": "AUD",
+      "timezone": "Australia/Sydney",
+      "supported_markets": [
+        "line",
+        "total points",
+        "head-to-head",
+        "player props",
+        "team total"
+      ],
+      "scraping_method": "html",
+      "url_patterns": [
+        "https://www.ladbrokes.com.au/*"
+      ]
+    },
+    {
+      "id": "sportsbet_au",
+      "name": "Sportsbet",
+      "slug": "sportsbet",
+      "region": "AU",
+      "odds_format": "decimal",
+      "currency": "AUD",
+      "timezone": "Australia/Sydney",
+      "supported_markets": [
+        "line",
+        "total points",
+        "head-to-head",
+        "player props",
+        "team total"
+      ],
+      "scraping_method": "html",
+      "url_patterns": [
+        "https://www.sportsbet.com.au/*"
+      ]
+    },
+    {
+      "id": "bet365_au",
+      "name": "Bet365",
+      "slug": "bet365",
+      "region": "AU",
+      "odds_format": "decimal",
+      "currency": "AUD",
+      "timezone": "Australia/Sydney",
+      "supported_markets": [
+        "line",
+        "total points",
+        "head-to-head",
+        "player props",
+        "team total"
+      ],
+      "scraping_method": "html",
+      "url_patterns": [
+        "https://www.bet365.com.au/*"
+      ]
+    },
+    {
+      "id": "neds_au",
+      "name": "Neds",
+      "slug": "neds",
+      "region": "AU",
+      "odds_format": "decimal",
+      "currency": "AUD",
+      "timezone": "Australia/Sydney",
+      "supported_markets": [
+        "line",
+        "total points",
+        "head-to-head",
+        "player props",
+        "team total"
+      ],
+      "scraping_method": "html",
+      "url_patterns": [
+        "https://www.neds.com.au/*"
+      ]
+    },
+    {
+      "id": "dabble_au",
+      "name": "Dabble",
+      "slug": "dabble",
+      "region": "AU",
+      "odds_format": "decimal",
+      "currency": "AUD",
+      "timezone": "Australia/Sydney",
+      "supported_markets": [
+        "line",
+        "total points",
+        "head-to-head",
+        "player props",
+        "team total"
+      ],
+      "scraping_method": "html",
+      "url_patterns": [
+        "https://www.dabble.com.au/*"
+      ]
+    },
+    {
+      "id": "unibet_au",
+      "name": "Unibet",
+      "slug": "unibet",
+      "region": "AU",
+      "odds_format": "decimal",
+      "currency": "AUD",
+      "timezone": "Australia/Sydney",
+      "supported_markets": [
+        "line",
+        "total points",
+        "head-to-head",
+        "player props",
+        "team total"
+      ],
+      "scraping_method": "html",
+      "url_patterns": [
+        "https://www.unibet.com.au/*"
+      ]
+    }
+  ]
+}

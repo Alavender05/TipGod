@@ -3,24 +3,36 @@
   "run_summary_file": "nba-bestbets-scan.run-summary.json",
   "scanner": "javascript",
   "runtime": "node v24.11.1",
-  "started_at": "2026-03-11T00:57:58.159Z",
-  "finished_at": "2026-03-11T00:58:05.029Z",
+  "started_at": "2026-03-11T01:51:20.635Z",
+  "finished_at": "2026-03-11T01:51:26.316Z",
   "total_extracted_items": 0,
   "raw_extracted_cards": 0,
   "duplicate_items": 0,
   "duplicate_rate": 0.0,
-  "visited_states": 1,
+  "visited_states": 0,
   "repeated_content_hashes": 0,
   "detail_modal_failures": 0,
   "detected_control_groups": [],
   "strongest_scan_paths": [],
   "repeated_matchups": [],
   "selector_activation_failures": {},
-  "likely_selector_or_traversal_issues": [
-    {
-      "type": "empty_state_after_interaction",
-      "scan_path": "",
-      "content_hash": "7ed128685931f886f249a63dc250467fac7a1cbe"
-    }
-  ]
+  "likely_selector_or_traversal_issues": [],
+  "approved_source_page_valid": false,
+  "rejected_wrong_source_records": 0,
+  "rejected_non_nba_records": 0,
+  "rejected_ambiguous_records": 0,
+  "validation": {
+    "approved_source_only": true,
+    "nba_only_records": true,
+    "valid_nba_matchups_only": true,
+    "only_au_sportsbooks": true,
+    "decimal_odds_only": true,
+    "no_legacy_references": true,
+    "wrong_source_records": [],
+    "non_nba_records": [],
+    "invalid_team_matchups": [],
+    "non_au_sportsbooks": [],
+    "non_decimal_odds": [],
+    "legacy_references": []
+  }
 }

@@ -768,3 +768,49 @@ This section is intended to act as the running history log for the project so fu
   - JavaScript and Python scanners now agree on the live result:
     - empty output caused by upstream route/content mismatch rather than scanner divergence
   - no additional selector fixes are justified until the site serves the NBA page again or a new NBA route is identified
+
+- Added strict approved-source enforcement for NBA-only operation:
+  - approved source URL:
+    - `https://capping.pro/nba-bestbets`
+  - approved path:
+    - `/nba-bestbets`
+  - required record metadata:
+    - `source_url`
+    - `league_id`
+    - `sport`
+  - all accepted records must now be tagged as:
+    - `source_url: https://capping.pro/nba-bestbets`
+    - `league_id: NBA`
+    - `sport: Basketball`
+
+- Added NBA-only filtering and rejection rules:
+  - accept only official NBA teams and NBA matchups
+  - reject:
+    - missing league metadata
+    - ambiguous matchup labels
+    - non-NBA teams
+    - mixed-sport or wrong-league content rendered on the approved route
+  - current live edge case remains:
+    - the approved route can hydrate into NFL content
+    - that state is now treated as:
+      - source-path valid
+      - content invalid
+      - zero accepted NBA records
+
+- Added approved-source safeguards across scrapers, validation, and UI:
+  - no runtime fallback datasets are used for display
+  - no alternate domains or mirrored feeds are accepted
+  - summary validation now checks:
+    - approved source URL
+    - NBA-only league metadata
+    - NBA matchup validity
+    - rejection counters for:
+      - wrong source
+      - non-NBA records
+      - ambiguous records
+
+- Updated UI/reporting behavior for no-data conditions:
+  - source attribution is shown for the approved source
+  - if no valid NBA records are available, the UI now shows:
+    - `No NBA markets currently available from the approved source.`
+  - the runtime UI no longer substitutes fallback cards, charts, or table rows when the approved page has no valid NBA data

@@ -1,10 +1,19 @@
 const { chromium } = require('playwright');
 const crypto = require('crypto');
 const fs = require('fs');
+const path = require('path');
 
 const PAGE_URL = 'https://capping.pro/nba-bestbets';
 const OUTPUT_PATH = 'nba-bestbets-scan.json';
 const RUN_SUMMARY_PATH = 'nba-bestbets-scan.run-summary.json';
+const AU_CONFIG = JSON.parse(fs.readFileSync(path.join(__dirname, 'config/au_sportsbooks.json'), 'utf8'));
+const SOURCE_POLICY = JSON.parse(fs.readFileSync(path.join(__dirname, 'config/source_policy.json'), 'utf8'));
+const MARKET_TYPE_ALIASES = Object.fromEntries(
+  Object.entries(AU_CONFIG.market_type_aliases).map(([key, value]) => [key.toLowerCase(), value])
+);
+const NBA_TEAM_ALIASES = new Map(
+  SOURCE_POLICY.official_nba_teams.flatMap((team) => [team.name, ...(team.aliases || [])].map((alias) => [alias.toLowerCase(), team.name]))
+);
 
 const SELECTORS = {
   pageRoot: '#root',
@@ -50,6 +59,41 @@ function buildScanPath(parts) {
   return parts.filter(Boolean).join(' > ');
 }
 
+function normalizeMarketType(value) {
+  const raw = normalizeText(value).toLowerCase();
+  if (!raw) return null;
+  for (const [alias, marketType] of Object.entries(MARKET_TYPE_ALIASES)) {
+    if (raw.includes(alias)) return marketType;
+  }
+  if (/(points|assists|rebounds|threes|steals|blocks)/.test(raw)) return 'player props';
+  return null;
+}
+
+function approvedPageUrl(value) {
+  const parsed = new URL(value);
+  const approved = new URL(SOURCE_POLICY.approved_source_url);
+  return parsed.protocol === approved.protocol && parsed.host === approved.host && parsed.pathname === approved.pathname;
+}
+
+function canonicalTeamName(value) {
+  return NBA_TEAM_ALIASES.get(normalizeText(value).toLowerCase()) || null;
+}
+
+function extractMatchupTeams(matchup) {
+  const text = normalizeText(matchup);
+  if (!text) return [];
+  for (const separator of [/\s+vs\s+/i, /\s+@\s+/i, /\s+v\s+/i, /\s+versus\s+/i]) {
+    const parts = text.split(separator);
+    if (parts.length === 2) return parts.map((part) => normalizeText(part));
+  }
+  return [];
+}
+
+function matchupIsNba(matchup) {
+  const teams = extractMatchupTeams(matchup);
+  return teams.length === 2 && teams.every((team) => canonicalTeamName(team));
+}
+
 function createRunStats() {
   return {
     page_url: PAGE_URL,
@@ -63,6 +107,10 @@ function createRunStats() {
     repeated_content_hashes: 0,
     detail_modal_failures: 0,
     selector_activation_failures: {},
+    approved_source_page_valid: null,
+    rejected_non_nba_records: 0,
+    rejected_wrong_source_records: 0,
+    rejected_ambiguous_records: 0,
     empty_states_after_interaction: [],
     repeated_content_paths: [],
     detected_control_groups: [],
@@ -84,6 +132,36 @@ function noteActivationFailure(stats, group, error) {
 
 function writeJsonFile(outputPath, payload) {
   fs.writeFileSync(outputPath, `${JSON.stringify(payload, null, 2)}\n`);
+}
+
+async function inspectPageContext(page) {
+  const bodyText = normalizeText(await page.locator('body').innerText());
+  const lower = bodyText.toLowerCase();
+  const pathValid = approvedPageUrl(page.url());
+  const hasNbaKeyword = SOURCE_POLICY.allowed_competition_keywords.some((keyword) => lower.includes(keyword));
+  const hasRejectedKeyword = SOURCE_POLICY.rejected_competition_keywords.some((keyword) => lower.includes(keyword));
+  let hasNbaControls = false;
+  for (const selector of [SELECTORS.dateInput, SELECTORS.cards, SELECTORS.categoryTabs]) {
+    if (await isVisible(page.locator(selector))) {
+      hasNbaControls = true;
+      break;
+    }
+  }
+  return {
+    approved_source_page_valid: pathValid && (hasNbaKeyword || hasNbaControls) && !hasRejectedKeyword,
+    page_url_valid: pathValid,
+    has_nba_keyword: hasNbaKeyword,
+    has_rejected_keyword: hasRejectedKeyword,
+    has_nba_controls: hasNbaControls,
+    body_excerpt: bodyText.slice(0, 300),
+  };
+}
+
+function validateRecord(item) {
+  if (item.source_url !== SOURCE_POLICY.approved_source_url) return [false, 'wrong_source'];
+  if (item.league_id !== SOURCE_POLICY.league_id || item.sport !== SOURCE_POLICY.sport) return [false, 'non_nba'];
+  if (!item.matchup || !matchupIsNba(item.matchup)) return [false, 'ambiguous'];
+  return [true, null];
 }
 
 function uniqueBy(items, keyFn) {
@@ -314,17 +392,29 @@ async function extractVisibleItems(page, scanPathParts, groupLabels) {
       if (!match) return [null, null];
       return [match[1], match[2]];
     })();
+    const marketType = normalizeMarketType(marketGuess || recommendedPlay);
 
     const record = {
       page_url: PAGE_URL,
+      source_url: SOURCE_POLICY.approved_source_url,
+      league_id: SOURCE_POLICY.league_id,
+      sport: SOURCE_POLICY.sport,
       scan_path: buildScanPath(scanPathParts),
       group_labels_used_to_reach_item: { ...groupLabels },
       matchup: matchup || null,
-      market: marketGuess || null,
+      market_type: marketType,
+      market_type_raw: marketGuess || null,
       selection: recommendedPlay || null,
       line,
-      odds: null,
-      sportsbook: null,
+      odds_decimal: null,
+      sportsbook_id: null,
+      sportsbook_name: null,
+      region: 'AU',
+      odds_format: AU_CONFIG.odds_format_default,
+      currency: AU_CONFIG.currency_default,
+      scheduled_timezone: AU_CONFIG.timezone_default,
+      scheduled_at: groupLabels.date || null,
+      timestamp_source_utc: null,
       model_edge_or_confidence: {
         confidence_percent: normalizeText(cardData.confidence) || null,
         hit_rate_percent: extractLabeledValue(cardData.stat_items, 'Hit Rate'),
@@ -344,7 +434,7 @@ async function extractVisibleItems(page, scanPathParts, groupLabels) {
         confidence: cardData.confidence,
       }),
       ambiguities: buildAmbiguities({
-        market: marketGuess,
+        market: marketType,
         odds: null,
         sportsbook: null,
       }),
@@ -373,9 +463,9 @@ function scoreExtractionConfidence(parts) {
 
 function buildAmbiguities(parts) {
   const ambiguities = [];
-  if (!parts.market) ambiguities.push('market derived from recommendation text or unavailable');
-  if (!parts.odds) ambiguities.push('odds not visible');
-  if (!parts.sportsbook) ambiguities.push('sportsbook not visible');
+  if (!parts.market) ambiguities.push('market type derived from recommendation text or unavailable');
+  if (!parts.odds) ambiguities.push('decimal odds not visible');
+  if (!parts.sportsbook) ambiguities.push('sportsbook metadata not visible');
   return ambiguities;
 }
 
@@ -644,6 +734,17 @@ async function scanState(page, context, output, visitedStateFingerprints, global
   if (!meaningfulChange) return;
 
   for (const item of visibleItems) {
+    const [accepted, reason] = validateRecord(item);
+    if (!accepted) {
+      if (reason === 'wrong_source') {
+        stats.rejected_wrong_source_records += 1;
+      } else if (reason === 'non_nba') {
+        stats.rejected_non_nba_records += 1;
+      } else {
+        stats.rejected_ambiguous_records += 1;
+      }
+      continue;
+    }
     if (globalItemKeys.has(item._dedupe_key)) {
       stats.duplicate_items += 1;
       continue;
@@ -671,6 +772,12 @@ async function run() {
     await dismissOverlays(page);
     await page.locator(SELECTORS.pageRoot).waitFor({ state: 'visible', timeout: 30_000 });
     await waitForDomStability(page);
+    const pageContext = await inspectPageContext(page);
+    stats.approved_source_page_valid = pageContext.approved_source_page_valid;
+    stats.page_context = pageContext;
+    if (!pageContext.approved_source_page_valid) {
+      return;
+    }
 
     const detectedGroups = await detectControlGroups(page);
     stats.detected_control_groups = detectedGroups;

@@ -5,18 +5,29 @@ import logging
 import re
 from datetime import UTC, datetime, timedelta
 from pathlib import Path
+from urllib.parse import urlparse
 
 from playwright.async_api import async_playwright
 
 PAGE_URL = "https://capping.pro/nba-bestbets"
 OUTPUT_PATH = Path("nba-bestbets-scan-python.json")
 RUN_SUMMARY_PATH = Path("nba-bestbets-scan-python.run-summary.json")
+AU_CONFIG_PATH = Path(__file__).resolve().parent / "config" / "au_sportsbooks.json"
+SOURCE_POLICY_PATH = Path(__file__).resolve().parent / "config" / "source_policy.json"
 MAX_DATES = 3
 MAX_TEAMS = 32
 MAX_RETRIES = 2
 
 logging.basicConfig(level=logging.INFO, format="%(asctime)s %(levelname)s %(message)s")
 LOGGER = logging.getLogger("nba_bestbets_reader")
+AU_CONFIG = json.loads(AU_CONFIG_PATH.read_text(encoding="utf-8"))
+SOURCE_POLICY = json.loads(SOURCE_POLICY_PATH.read_text(encoding="utf-8"))
+MARKET_TYPE_ALIASES = {key.lower(): value for key, value in AU_CONFIG["market_type_aliases"].items()}
+NBA_TEAM_ALIASES = {
+    alias.lower(): team["name"]
+    for team in SOURCE_POLICY["official_nba_teams"]
+    for alias in [team["name"], *team["aliases"]]
+}
 
 S = {
     "root": "#root",
@@ -71,6 +82,10 @@ def create_run_stats():
         "repeated_content_hashes": 0,
         "detail_modal_failures": 0,
         "selector_activation_failures": {},
+        "approved_source_page_valid": None,
+        "rejected_non_nba_records": 0,
+        "rejected_wrong_source_records": 0,
+        "rejected_ambiguous_records": 0,
         "empty_states_after_interaction": [],
         "repeated_content_paths": [],
         "detected_control_groups": [],
@@ -84,6 +99,75 @@ def note_activation_failure(stats, group, error):
     sample = norm(str(error))
     if sample and sample not in bucket["samples"] and len(bucket["samples"]) < 5:
         bucket["samples"].append(sample)
+
+
+def normalize_market_type(value):
+    raw = norm(value).lower()
+    if not raw:
+        return None
+    for alias, market_type in MARKET_TYPE_ALIASES.items():
+        if alias in raw:
+            return market_type
+    return "player props" if any(token in raw for token in ["points", "assists", "rebounds", "threes", "steals", "blocks"]) else None
+
+
+def approved_page_url(value):
+    parsed = urlparse(value)
+    approved = urlparse(SOURCE_POLICY["approved_source_url"])
+    return parsed.scheme == approved.scheme and parsed.netloc == approved.netloc and parsed.path == approved.path
+
+
+def canonical_team_name(value):
+    return NBA_TEAM_ALIASES.get(norm(value).lower())
+
+
+def extract_matchup_teams(matchup):
+    text = norm(matchup)
+    if not text:
+        return []
+    for sep in [" vs ", " @ ", " v ", " versus "]:
+        if sep in text.lower():
+            parts = re.split(sep, text, flags=re.I)
+            return [norm(part) for part in parts if norm(part)]
+    return []
+
+
+def matchup_is_nba(matchup):
+    teams = extract_matchup_teams(matchup)
+    return len(teams) == 2 and all(canonical_team_name(team) for team in teams)
+
+
+async def inspect_page_context(page):
+    current_url = page.url
+    body_text = norm(await page.locator("body").inner_text())
+    lower = body_text.lower()
+    path_valid = approved_page_url(current_url)
+    has_nba_keyword = any(keyword in lower for keyword in SOURCE_POLICY["allowed_competition_keywords"])
+    has_rejected_keyword = any(keyword in lower for keyword in SOURCE_POLICY["rejected_competition_keywords"])
+    has_nba_controls = False
+    for selector in [S["date"], S["cards"], S["tabs"]]:
+        if await visible(page.locator(selector)):
+            has_nba_controls = True
+            break
+    valid = path_valid and (has_nba_keyword or has_nba_controls) and not has_rejected_keyword
+    return {
+        "approved_source_page_valid": valid,
+        "page_url_valid": path_valid,
+        "has_nba_keyword": has_nba_keyword,
+        "has_rejected_keyword": has_rejected_keyword,
+        "has_nba_controls": has_nba_controls,
+        "body_excerpt": body_text[:300],
+    }
+
+
+def validate_record(item):
+    if item.get("source_url") != SOURCE_POLICY["approved_source_url"]:
+        return False, "wrong_source"
+    if item.get("league_id") != SOURCE_POLICY["league_id"] or item.get("sport") != SOURCE_POLICY["sport"]:
+        return False, "non_nba"
+    if not item.get("matchup") or not matchup_is_nba(item["matchup"]):
+        return False, "ambiguous"
+    return True, None
 
 
 async def visible(locator):
@@ -373,18 +457,30 @@ def normalize_item(raw, scan_parts, labels):
     tier = norm(raw.get("tier"))
     parts = recommended.split(" ", 1) if recommended else []
     line = parts[0] if len(parts) == 2 and any(ch.isdigit() for ch in parts[0]) else None
-    market = parts[1] if line else None
+    market_raw = parts[1] if line else raw.get("market")
+    market_type = normalize_market_type(market_raw or recommended)
     stat_items = [norm(item) for item in raw.get("stat_items", []) if norm(item)]
     return {
         "page_url": PAGE_URL,
+        "source_url": SOURCE_POLICY["approved_source_url"],
+        "league_id": SOURCE_POLICY["league_id"],
+        "sport": SOURCE_POLICY["sport"],
         "scan_path": path(scan_parts),
         "group_labels_used_to_reach_item": {k: v for k, v in labels.items() if v},
         "matchup": matchup or None,
-        "market": market,
+        "market_type": market_type,
+        "market_type_raw": norm(market_raw) or None,
         "selection": recommended or None,
         "line": line,
-        "odds": None,
-        "sportsbook": None,
+        "odds_decimal": None,
+        "sportsbook_id": None,
+        "sportsbook_name": None,
+        "region": "AU",
+        "odds_format": AU_CONFIG["odds_format_default"],
+        "currency": AU_CONFIG["currency_default"],
+        "scheduled_timezone": AU_CONFIG["timezone_default"],
+        "scheduled_at": labels.get("date"),
+        "timestamp_source_utc": None,
         "model_edge_or_confidence": {
             "confidence_percent": norm(raw.get("confidence")) or None,
             "hit_rate_percent": next((item for item in stat_items if "hit rate" in item.lower()), None),
@@ -396,9 +492,9 @@ def normalize_item(raw, scan_parts, labels):
         "raw_html_snippet": raw.get("raw_html_snippet"),
         "extraction_confidence": 0.9 if player and matchup and recommended else 0.7,
         "ambiguities": [item for item in [
-            None if market else "market derived from recommendation text or unavailable",
-            "odds not visible",
-            "sportsbook not visible",
+            None if market_type else "market type derived from recommendation text or unavailable",
+            "decimal odds not visible",
+            "sportsbook metadata not visible",
         ] if item],
         "_dedupe_key": f"{player}|{matchup}|{recommended}|{tier}",
     }
@@ -543,6 +639,15 @@ async def scan_state(page, scan_parts, labels, output, visited_states, global_ke
             })
         return
     for item in items:
+        accepted, reason = validate_record(item)
+        if not accepted:
+            if reason == "wrong_source":
+                stats["rejected_wrong_source_records"] += 1
+            elif reason == "non_nba":
+                stats["rejected_non_nba_records"] += 1
+            else:
+                stats["rejected_ambiguous_records"] += 1
+            continue
         if item["_dedupe_key"] in global_keys:
             stats["duplicate_items"] += 1
             continue
@@ -568,6 +673,11 @@ async def build_reader():
             await dismiss_overlays(page)
             await page.locator(S["root"]).wait_for(state="visible", timeout=30000)
             await wait_for_content_change(page)
+            page_context = await inspect_page_context(page)
+            stats["approved_source_page_valid"] = page_context["approved_source_page_valid"]
+            stats["page_context"] = page_context
+            if not page_context["approved_source_page_valid"]:
+                return [], stats
             groups = {group["name"]: group for group in await get_control_groups(page)}
             stats["detected_control_groups"] = list(groups.keys())
             LOGGER.info("Detected groups: %s", ", ".join(groups.keys()))

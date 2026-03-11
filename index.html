@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>TipGod Results View</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;700&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="./styles.css">
+</head>
+<body>
+  <div class="app-shell">
+    <header class="hero">
+      <div class="hero-copy">
+        <p class="eyebrow">NBA Betting Results</p>
+        <h1>Card-first results for fast betting decisions.</h1>
+        <p class="hero-text">
+          Approved source only: capping.pro NBA Best Bets. No alternate feeds, no fallback providers, no mixed-league content.
+        </p>
+        <p class="hero-text" id="source-attribution">Source: https://capping.pro/nba-bestbets</p>
+      </div>
+      <div class="hero-meta">
+        <div class="meta-chip" id="data-source-chip">Loading data…</div>
+        <div class="meta-chip" id="run-status-chip">Preparing view</div>
+      </div>
+    </header>
+
+    <main class="layout">
+      <section class="summary-strip" id="summary-strip"></section>
+      <section class="panel empty-state" id="approved-no-data" hidden>
+        <h3>No NBA markets currently available from the approved source.</h3>
+        <p>Source: https://capping.pro/nba-bestbets</p>
+      </section>
+
+      <section class="control-row">
+        <div class="chip-row" id="bet-type-filters" aria-label="Bet type filters"></div>
+        <div class="chip-row" id="sportsbook-filters" aria-label="Sportsbook filters"></div>
+      </section>
+
+      <section class="main-grid">
+        <div class="left-rail">
+          <section class="panel featured-panel">
+            <div class="section-heading">
+              <div>
+                <p class="eyebrow">Featured Pick</p>
+                <h2>Best play at a glance</h2>
+              </div>
+            </div>
+            <div id="featured-pick"></div>
+          </section>
+
+          <section class="panel">
+            <div class="section-heading">
+              <div>
+                <p class="eyebrow">Top Picks</p>
+                <h2>Ranked card stack</h2>
+              </div>
+              <button class="table-toggle" id="list-toggle" type="button">Show table</button>
+            </div>
+            <div class="pick-stack" id="pick-stack"></div>
+          </section>
+        </div>
+
+        <div class="right-rail">
+          <section class="panel chart-panel">
+            <div class="section-heading">
+              <div>
+                <p class="eyebrow">Value View</p>
+                <h2>Top edges</h2>
+              </div>
+            </div>
+            <div class="value-chart" id="value-chart"></div>
+          </section>
+
+          <section class="panel chart-panel">
+            <div class="section-heading">
+              <div>
+                <p class="eyebrow">Slate Shape</p>
+                <h2>Bet type distribution</h2>
+              </div>
+            </div>
+            <div class="distribution-chart" id="distribution-chart"></div>
+          </section>
+
+          <section class="panel chart-panel desktop-only">
+            <div class="section-heading">
+              <div>
+                <p class="eyebrow">Game Coverage</p>
+                <h2>Matchup x bet type heatmap</h2>
+              </div>
+            </div>
+            <div class="heatmap" id="heatmap"></div>
+          </section>
+        </div>
+      </section>
+
+      <section class="panel table-panel" id="table-panel" hidden>
+        <div class="section-heading">
+          <div>
+            <p class="eyebrow">All Picks</p>
+            <h2>Compact comparison table</h2>
+          </div>
+        </div>
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th>Matchup</th>
+                <th>Pick</th>
+                <th>Type</th>
+                <th>Odds</th>
+                <th>Book</th>
+                <th>Confidence</th>
+                <th>Edge</th>
+                <th>Updated</th>
+              </tr>
+            </thead>
+            <tbody id="pick-table-body"></tbody>
+          </table>
+        </div>
+      </section>
+    </main>
+  </div>
+
+  <template id="empty-state-template">
+    <div class="empty-state">
+      <h3>No picks available</h3>
+      <p>No NBA markets currently available from the approved source.</p>
+    </div>
+  </template>
+
+  <script src="./app.js" type="module"></script>
+</body>
+</html>
