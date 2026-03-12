@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-03-12T13:11:37.125Z",
+  "generated_at": "2026-03-12T19:01:25.696Z",
   "source_domain": "capping.pro",
   "league_id": "NBA",
   "sport": "Basketball",
@@ -12,8 +12,8 @@
         "id": "best-bets",
         "label": "Best Bets",
         "source_url": "https://capping.pro/nba-bestbets",
-        "started_at": "2026-03-12T13:09:49.259Z",
-        "finished_at": "2026-03-12T13:10:14.430Z",
+        "started_at": "2026-03-12T18:59:39.786Z",
+        "finished_at": "2026-03-12T19:00:03.501Z",
         "page_url": "https://capping.pro/nba-bestbets",
         "accepted_items": 97,
         "rejected_wrong_source": 0,
@@ -6806,8 +6806,8 @@
         "id": "edges",
         "label": "Edges",
         "source_url": "https://capping.pro/nba-edges",
-        "started_at": "2026-03-12T13:10:14.430Z",
-        "finished_at": "2026-03-12T13:10:25.088Z",
+        "started_at": "2026-03-12T19:00:03.501Z",
+        "finished_at": "2026-03-12T19:00:14.064Z",
         "page_url": "https://capping.pro/nba-edges",
         "accepted_items": 22,
         "rejected_wrong_source": 0,
@@ -6816,126 +6816,6 @@
         "notes": []
       },
       "items": [
-        {
-          "surface": "edges",
-          "source_url": "https://capping.pro/nba-edges",
-          "league_id": "NBA",
-          "sport": "Basketball",
-          "item_id": "d9a70da0b82f0acb7fed79b6652f6509f88cb223",
-          "title": "Brandon WilliamsPG",
-          "subtitle": "DAL · Points",
-          "matchup": null,
-          "selection": "OVER 10 Points",
-          "market_type": "points",
-          "team": "Dallas Mavericks",
-          "player_name": "Brandon WilliamsPG",
-          "sportsbook_name": null,
-          "odds_decimal": 289,
-          "updated_at": null,
-          "reason": "VALUE · LOW · $0.10",
-          "detail_notes": [],
-          "metrics": [
-            {
-              "key": "win_probability",
-              "label": "Win Prob",
-              "value": "81.6%",
-              "value_numeric": 81.6
-            },
-            {
-              "key": "hit_rate",
-              "label": "Hit Rate",
-              "value": "90.9%",
-              "value_numeric": 90.9
-            },
-            {
-              "key": "recommended_bet",
-              "label": "Rec Bet",
-              "value": "$52.80",
-              "value_numeric": 52.8
-            }
-          ],
-          "tags": [
-            "VALUE",
-            "LOW",
-            "All Props"
-          ],
-          "raw_context": {
-            "player": "Brandon WilliamsPG",
-            "team": "DAL",
-            "prop": "Points",
-            "line": "10",
-            "direction": "OVER",
-            "odds": "−289",
-            "hit_rate": "90.9%",
-            "win_prob": "81.6%",
-            "edge_": "7.3pp",
-            "tier": "VALUE",
-            "ev_unit": "$0.10",
-            "risk": "LOW",
-            "rec_bet": "$52.80",
-            "active_prop_type": "All Props"
-          }
-        },
-        {
-          "surface": "edges",
-          "source_url": "https://capping.pro/nba-edges",
-          "league_id": "NBA",
-          "sport": "Basketball",
-          "item_id": "daac303d1bd3f71e8c4cf8998d631e9d1080ec37",
-          "title": "Ivica ZubacC",
-          "subtitle": "LAC · Rebounds",
-          "matchup": null,
-          "selection": "OVER 10 Rebounds",
-          "market_type": "rebounds",
-          "team": "Los Angeles Clippers",
-          "player_name": "Ivica ZubacC",
-          "sportsbook_name": null,
-          "odds_decimal": 425,
-          "updated_at": null,
-          "reason": "SPECULATIVE · ELEVATED📊 · $0.36",
-          "detail_notes": [],
-          "metrics": [
-            {
-              "key": "win_probability",
-              "label": "Win Prob",
-              "value": "26.0%⚠️",
-              "value_numeric": 26
-            },
-            {
-              "key": "hit_rate",
-              "label": "Hit Rate",
-              "value": "62.5%",
-              "value_numeric": 62.5
-            },
-            {
-              "key": "recommended_bet",
-              "label": "Rec Bet",
-              "value": "$4.10",
-              "value_numeric": 4.1
-            }
-          ],
-          "tags": [
-            "SPECULATIVE",
-            "ELEVATED📊",
-            "All Props"
-          ],
-          "raw_context": {
-            "player": "Ivica ZubacC",
-            "team": "LAC",
-            "prop": "Rebounds",
-            "line": "10",
-            "direction": "OVER",
-            "odds": "+425",
-            "hit_rate": "62.5%",
-            "win_prob": "26.0%⚠️",
-            "edge_": "7.0pp",
-            "tier": "SPECULATIVE",
-            "ev_unit": "$0.36",
-            "risk": "ELEVATED📊",
-            "rec_bet": "$4.10",
-            "active_prop_type": "All Props"
-          }
-        },
         {
           "surface": "edges",
           "source_url": "https://capping.pro/nba-edges",
@@ -7070,16 +6950,16 @@
           "team": "Denver Nuggets",
           "player_name": "Tim Hardaway Jr.SF",
           "sportsbook_name": null,
-          "odds_decimal": 476,
+          "odds_decimal": 485,
           "updated_at": null,
-          "reason": "HIGH RISK · HIGH_VARIANCE · $0.33",
+          "reason": "HIGH RISK · HIGH_VARIANCE · $0.34",
           "detail_notes": [],
           "metrics": [
             {
               "key": "win_probability",
               "label": "Win Prob",
-              "value": "23.0%⚠️",
-              "value_numeric": 23
+              "value": "22.9%⚠️",
+              "value_numeric": 22.9
             },
             {
               "key": "hit_rate",
@@ -7105,12 +6985,12 @@
             "prop": "Points",
             "line": "18",
             "direction": "OVER",
-            "odds": "+476",
+            "odds": "+485",
             "hit_rate": "29.2%",
-            "win_prob": "23.0%⚠️",
-            "edge_": "5.7pp",
+            "win_prob": "22.9%⚠️",
+            "edge_": "5.8pp",
             "tier": "HIGH RISK",
-            "ev_unit": "$0.33",
+            "ev_unit": "$0.34",
             "risk": "HIGH_VARIANCE",
             "rec_bet": "$3.00",
             "active_prop_type": "All Props"
@@ -7241,6 +7121,66 @@
           "source_url": "https://capping.pro/nba-edges",
           "league_id": "NBA",
           "sport": "Basketball",
+          "item_id": "d8d48d053170c8ac96ee36b411ab746f064e56df",
+          "title": "Ivica ZubacC",
+          "subtitle": "LAC · Rebounds",
+          "matchup": null,
+          "selection": "OVER 7 Rebounds",
+          "market_type": "rebounds",
+          "team": "Los Angeles Clippers",
+          "player_name": "Ivica ZubacC",
+          "sportsbook_name": null,
+          "odds_decimal": 116,
+          "updated_at": null,
+          "reason": "STRONG BET · LOW📊 · $0.10",
+          "detail_notes": [],
+          "metrics": [
+            {
+              "key": "win_probability",
+              "label": "Win Prob",
+              "value": "59.1%",
+              "value_numeric": 59.1
+            },
+            {
+              "key": "hit_rate",
+              "label": "Hit Rate",
+              "value": "87.5%",
+              "value_numeric": 87.5
+            },
+            {
+              "key": "recommended_bet",
+              "label": "Rec Bet",
+              "value": "$15.70",
+              "value_numeric": 15.7
+            }
+          ],
+          "tags": [
+            "STRONG BET",
+            "LOW📊",
+            "All Props"
+          ],
+          "raw_context": {
+            "player": "Ivica ZubacC",
+            "team": "LAC",
+            "prop": "Rebounds",
+            "line": "7",
+            "direction": "OVER",
+            "odds": "−116",
+            "hit_rate": "87.5%",
+            "win_prob": "59.1%",
+            "edge_": "5.4pp",
+            "tier": "STRONG BET",
+            "ev_unit": "$0.10",
+            "risk": "LOW📊",
+            "rec_bet": "$15.70",
+            "active_prop_type": "All Props"
+          }
+        },
+        {
+          "surface": "edges",
+          "source_url": "https://capping.pro/nba-edges",
+          "league_id": "NBA",
+          "sport": "Basketball",
           "item_id": "f331569eea5987b254a3bfb3aec8e732de2f7dfe",
           "title": "Bones HylandPG",
           "subtitle": "MIN · Points",
@@ -7293,66 +7233,6 @@
             "ev_unit": "$0.38",
             "risk": "HIGH_VARIANCE",
             "rec_bet": "$2.00",
-            "active_prop_type": "All Props"
-          }
-        },
-        {
-          "surface": "edges",
-          "source_url": "https://capping.pro/nba-edges",
-          "league_id": "NBA",
-          "sport": "Basketball",
-          "item_id": "86b42bc218ff563c3c2159cc492bef35cbceb20c",
-          "title": "Jaylen BrownSF",
-          "subtitle": "BOS · Rebounds",
-          "matchup": null,
-          "selection": "OVER 6 Rebounds",
-          "market_type": "rebounds",
-          "team": "Boston Celtics",
-          "player_name": "Jaylen BrownSF",
-          "sportsbook_name": null,
-          "odds_decimal": 225,
-          "updated_at": null,
-          "reason": "VALUE · LOW · $0.07",
-          "detail_notes": [],
-          "metrics": [
-            {
-              "key": "win_probability",
-              "label": "Win Prob",
-              "value": "74.2%",
-              "value_numeric": 74.2
-            },
-            {
-              "key": "hit_rate",
-              "label": "Hit Rate",
-              "value": "81.0%",
-              "value_numeric": 81
-            },
-            {
-              "key": "recommended_bet",
-              "label": "Rec Bet",
-              "value": "$27.70",
-              "value_numeric": 27.7
-            }
-          ],
-          "tags": [
-            "VALUE",
-            "LOW",
-            "All Props"
-          ],
-          "raw_context": {
-            "player": "Jaylen BrownSF",
-            "team": "BOS",
-            "prop": "Rebounds",
-            "line": "6",
-            "direction": "OVER",
-            "odds": "−225",
-            "hit_rate": "81.0%",
-            "win_prob": "74.2%",
-            "edge_": "4.9pp",
-            "tier": "VALUE",
-            "ev_unit": "$0.07",
-            "risk": "LOW",
-            "rec_bet": "$27.70",
             "active_prop_type": "All Props"
           }
         },
@@ -7430,7 +7310,7 @@
           "team": "Chicago Bulls",
           "player_name": "Jalen SmithC",
           "sportsbook_name": null,
-          "odds_decimal": 408,
+          "odds_decimal": 405,
           "updated_at": null,
           "reason": "VALUE · LOW📊 · $0.05",
           "detail_notes": [],
@@ -7438,8 +7318,8 @@
             {
               "key": "win_probability",
               "label": "Win Prob",
-              "value": "84.6%",
-              "value_numeric": 84.6
+              "value": "84.5%",
+              "value_numeric": 84.5
             },
             {
               "key": "hit_rate",
@@ -7465,9 +7345,9 @@
             "prop": "Points",
             "line": "8",
             "direction": "OVER",
-            "odds": "−408",
+            "odds": "−405",
             "hit_rate": "93.8%",
-            "win_prob": "84.6%",
+            "win_prob": "84.5%",
             "edge_": "4.3pp",
             "tier": "VALUE",
             "ev_unit": "$0.05",
@@ -7901,6 +7781,66 @@
           "source_url": "https://capping.pro/nba-edges",
           "league_id": "NBA",
           "sport": "Basketball",
+          "item_id": "d06623fb9f7f1c1f64c4b81d3152f5568d1090e0",
+          "title": "Guerschon YabuselePF",
+          "subtitle": "CHI · Rebounds",
+          "matchup": null,
+          "selection": "OVER 10 Rebounds",
+          "market_type": "rebounds",
+          "team": "Chicago Bulls",
+          "player_name": "Guerschon YabuselePF",
+          "sportsbook_name": null,
+          "odds_decimal": 1520,
+          "updated_at": null,
+          "reason": "LONGSHOT VALUE · HIGH_VARIANCE · $0.53",
+          "detail_notes": [],
+          "metrics": [
+            {
+              "key": "win_probability",
+              "label": "Win Prob",
+              "value": "9.5%⚠️",
+              "value_numeric": 9.5
+            },
+            {
+              "key": "hit_rate",
+              "label": "Hit Rate",
+              "value": "13.6%",
+              "value_numeric": 13.6
+            },
+            {
+              "key": "recommended_bet",
+              "label": "Rec Bet",
+              "value": "$0.50",
+              "value_numeric": 0.5
+            }
+          ],
+          "tags": [
+            "LONGSHOT VALUE",
+            "HIGH_VARIANCE",
+            "All Props"
+          ],
+          "raw_context": {
+            "player": "Guerschon YabuselePF",
+            "team": "CHI",
+            "prop": "Rebounds",
+            "line": "10",
+            "direction": "OVER",
+            "odds": "+1520",
+            "hit_rate": "13.6%",
+            "win_prob": "9.5%⚠️",
+            "edge_": "3.3pp",
+            "tier": "LONGSHOT VALUE",
+            "ev_unit": "$0.53",
+            "risk": "HIGH_VARIANCE",
+            "rec_bet": "$0.50",
+            "active_prop_type": "All Props"
+          }
+        },
+        {
+          "surface": "edges",
+          "source_url": "https://capping.pro/nba-edges",
+          "league_id": "NBA",
+          "sport": "Basketball",
           "item_id": "bbf49ea8ec3657c614a543c41776373583d26347",
           "title": "Nikola VucevicC",
           "subtitle": "BOS · Assists",
@@ -8135,6 +8075,66 @@
             "rec_bet": "$27.30",
             "active_prop_type": "All Props"
           }
+        },
+        {
+          "surface": "edges",
+          "source_url": "https://capping.pro/nba-edges",
+          "league_id": "NBA",
+          "sport": "Basketball",
+          "item_id": "076688012e2e01d3cbefbde5373931d0a4439892",
+          "title": "Ivica ZubacC",
+          "subtitle": "LAC · Points",
+          "matchup": null,
+          "selection": "OVER 6 Points",
+          "market_type": "points",
+          "team": "Los Angeles Clippers",
+          "player_name": "Ivica ZubacC",
+          "sportsbook_name": null,
+          "odds_decimal": 419,
+          "updated_at": null,
+          "reason": "MARGINAL · LOW📊 · $0.04",
+          "detail_notes": [],
+          "metrics": [
+            {
+              "key": "win_probability",
+              "label": "Win Prob",
+              "value": "83.8%",
+              "value_numeric": 83.8
+            },
+            {
+              "key": "hit_rate",
+              "label": "Hit Rate",
+              "value": "100.0%",
+              "value_numeric": 100
+            },
+            {
+              "key": "recommended_bet",
+              "label": "Rec Bet",
+              "value": "$32.30",
+              "value_numeric": 32.3
+            }
+          ],
+          "tags": [
+            "MARGINAL",
+            "LOW📊",
+            "All Props"
+          ],
+          "raw_context": {
+            "player": "Ivica ZubacC",
+            "team": "LAC",
+            "prop": "Points",
+            "line": "6",
+            "direction": "OVER",
+            "odds": "−419",
+            "hit_rate": "100.0%",
+            "win_prob": "83.8%",
+            "edge_": "3.1pp",
+            "tier": "MARGINAL",
+            "ev_unit": "$0.04",
+            "risk": "LOW📊",
+            "rec_bet": "$32.30",
+            "active_prop_type": "All Props"
+          }
         }
       ]
     },
@@ -8146,8 +8146,8 @@
         "id": "props",
         "label": "Props",
         "source_url": "https://capping.pro/nba-propfinder",
-        "started_at": "2026-03-12T13:10:25.088Z",
-        "finished_at": "2026-03-12T13:10:50.805Z",
+        "started_at": "2026-03-12T19:00:14.064Z",
+        "finished_at": "2026-03-12T19:00:39.662Z",
         "page_url": "https://capping.pro/nba-propfinder",
         "accepted_items": 120,
         "rejected_wrong_source": 0,
@@ -35865,8 +35865,8 @@
         "id": "parlay",
         "label": "Parlay",
         "source_url": "https://capping.pro/parlay-of-the-night",
-        "started_at": "2026-03-12T13:10:50.805Z",
-        "finished_at": "2026-03-12T13:11:01.413Z",
+        "started_at": "2026-03-12T19:00:39.662Z",
+        "finished_at": "2026-03-12T19:00:50.158Z",
         "page_url": "https://capping.pro/parlay-of-the-night",
         "accepted_items": 54,
         "rejected_wrong_source": 0,
@@ -39387,8 +39387,8 @@
         "id": "degen",
         "label": "Degen",
         "source_url": "https://capping.pro/degen-theory",
-        "started_at": "2026-03-12T13:11:01.413Z",
-        "finished_at": "2026-03-12T13:11:19.289Z",
+        "started_at": "2026-03-12T19:00:50.158Z",
+        "finished_at": "2026-03-12T19:01:07.938Z",
         "page_url": "https://capping.pro/degen-theory",
         "accepted_items": 120,
         "rejected_wrong_source": 0,
@@ -47087,8 +47087,8 @@
         "id": "exploits",
         "label": "Exploits",
         "source_url": "https://capping.pro/nba-matchup-exploits",
-        "started_at": "2026-03-12T13:11:19.289Z",
-        "finished_at": "2026-03-12T13:11:37.096Z",
+        "started_at": "2026-03-12T19:01:07.938Z",
+        "finished_at": "2026-03-12T19:01:25.661Z",
         "page_url": "https://capping.pro/nba-matchup-exploits",
         "accepted_items": 25,
         "rejected_wrong_source": 0,
