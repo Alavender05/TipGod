@@ -164,6 +164,7 @@ const nodes = {
   emptyStateTitle: document.getElementById("empty-state-title"),
   emptySourceAttribution: document.getElementById("empty-source-attribution"),
   sourceTabs: document.getElementById("source-tabs"),
+  heroSourceTabs: document.getElementById("hero-source-tabs"),
   surfaceRow: document.querySelector(".surface-row"),
   surfaceFilters: document.getElementById("surface-filters"),
   controlRow: document.querySelector(".control-row"),
@@ -363,13 +364,10 @@ function setTableHeaders(sourceId) {
 }
 
 function renderSourceTabs() {
-  renderChips(
-    nodes.sourceTabs,
-    SOURCE_TABS.map((tab) => tab.id),
-    state.activeDataSource,
-    (value) => switchDataSource(value),
-    (value) => SOURCE_TABS.find((tab) => tab.id === value)?.label || value
-  );
+  const values = SOURCE_TABS.map((tab) => tab.id);
+  const labelFn = (value) => SOURCE_TABS.find((tab) => tab.id === value)?.label || value;
+  renderChips(nodes.sourceTabs, values, state.activeDataSource, (value) => switchDataSource(value), labelFn);
+  renderChips(nodes.heroSourceTabs, values, state.activeDataSource, (value) => switchDataSource(value), labelFn);
 }
 
 function renderFilterBlock(labelNode, chipNode, label, hidden) {
@@ -1449,7 +1447,21 @@ nodes.listToggle.addEventListener("click", () => {
 });
 
 async function init() {
-  await loadApprovedDataset();
+  renderSourceTabs();
+  setTableHeaders(state.activeDataSource);
+
+  try {
+    await loadApprovedDataset();
+  } catch (error) {
+    state.approved.loadError = error.message;
+    state.approved.sourcePolicy = state.approved.sourcePolicy || {
+      approved_root_url: "https://capping.pro/",
+      approved_surfaces: [],
+      league_id: "nba",
+      sport: "basketball",
+    };
+    state.approved.surfaces = [];
+  }
 
   const saved = loadUIState();
   const defaultSurfaceId = state.approved.surfaces.find((surface) => surface.items.length)?.id || state.approved.surfaces[0]?.id || "best-bets";
@@ -1484,19 +1496,31 @@ async function init() {
 }
 
 init().catch((error) => {
-  state.activeDataSource = "approved";
-  nodes.sourceChip.textContent = "Approved source only";
+  renderSourceTabs();
+  setTableHeaders(state.activeDataSource);
+  nodes.sourceChip.textContent = state.activeDataSource === "yahoo" ? "Yahoo NBA dashboard" : "Approved source only";
   nodes.runStatusChip.textContent = error.message;
   nodes.summaryStrip.hidden = true;
   nodes.mainGrid.hidden = true;
   nodes.tablePanel.hidden = true;
-  nodes.surfaceRow.hidden = false;
-  setHeroContent({
+  nodes.surfaceRow.hidden = state.activeDataSource === "yahoo";
+  setHeroContent(state.activeDataSource === "yahoo" ? {
+    eyebrow: "Yahoo NBA Dashboard",
+    title: "Live odds board built from your parsed Yahoo pipeline.",
+    description: "Interactive NBA-only slate view for moneyline, spread, and game totals. Built from the live-compatible Yahoo JSONL outputs inside this Codespace.",
+    attribution: "Source: Yahoo NBA game odds · data/parsed/live_jsonl",
+    isYahoo: true,
+  } : {
     eyebrow: "NBA Betting Results",
     title: "Card-first results for fast betting decisions.",
     description: "Approved source only: capping.pro NBA surfaces for Best Bets, Edges, Props, Parlay, Degen, and Exploits. No alternate feeds, no fallback providers, no mixed-league content.",
     attribution: "Source: https://capping.pro/",
     isYahoo: false,
   });
-  setEmptyState("No NBA markets currently available from the approved source.", `Error: ${error.message}`);
+  setEmptyState(
+    state.activeDataSource === "yahoo"
+      ? "No Yahoo NBA dashboard data available."
+      : "No NBA markets currently available from the approved source.",
+    `Error: ${error.message}`
+  );
 });

@@ -88,6 +88,22 @@ body {
   gap: 12px;
 }
 
+.hero-source-tabs {
+  max-width: min(100%, 440px);
+  justify-content: flex-end;
+}
+
+.hero-source-tabs .chip {
+  background: rgba(255, 255, 255, 0.16);
+  border-color: rgba(255, 255, 255, 0.22);
+  color: white;
+}
+
+.hero-source-tabs .chip.active {
+  background: white;
+  color: var(--text);
+}
+
 .meta-chip,
 .chip {
   display: inline-flex;
@@ -579,6 +595,10 @@ th {
 
   .hero-meta {
     align-items: flex-start;
+  }
+
+  .hero-source-tabs {
+    justify-content: flex-start;
   }
 
   .desktop-only {
