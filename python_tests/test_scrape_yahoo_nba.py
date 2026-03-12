@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import json
 import tempfile
 import unittest
 from pathlib import Path
@@ -33,6 +34,14 @@ class ScrapeYahooNBATest(unittest.TestCase):
         self.assertEqual(parsed["game"]["season"], "2024")
         self.assertEqual(len(parsed["markets"]), 3)
         self.assertEqual([market["market_type"] for market in parsed["markets"]], ["total", "moneyline", "spread"])
+        self.assertEqual(len(parsed["player_lines"]), 1)
+
+    def test_parse_payload_accepts_live_data_games_shape(self) -> None:
+        payload = json.loads(FIXTURE_PATH.read_text())
+        live_like_payload = {"data": payload["data"]["data"]}
+        parsed = self.scraper.parse_payload(live_like_payload, snapshot_ts="live-shape")
+        self.assertEqual(parsed["game"]["game_id"], "nba.g.2025011020")
+        self.assertEqual(len(parsed["markets"]), 3)
         self.assertEqual(len(parsed["player_lines"]), 1)
 
     def test_normalize_and_calculate_edges(self) -> None:

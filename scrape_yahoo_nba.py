@@ -61,7 +61,13 @@ class ScrapeYahooNBA(YahooOddsBaseScraper):
     ) -> dict:
         """Parse one Yahoo payload and keep only supported NBA full-game markets."""
 
-        games = payload.get("data", {}).get("data", {}).get("games", [])  # type: ignore[assignment]
+        data = payload.get("data", {})
+        nested = data.get("data", {}) if isinstance(data, Mapping) else {}
+        games = []
+        if isinstance(nested, Mapping):
+            games = nested.get("games", []) or []
+        if not games and isinstance(data, Mapping):
+            games = data.get("games", []) or []
         if not games:
             raise ValueError("Yahoo payload does not contain any games")
 

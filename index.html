@@ -11,11 +11,11 @@
 </head>
 <body>
   <div class="app-shell">
-    <header class="hero">
+    <header class="hero" id="hero-shell">
       <div class="hero-copy">
-        <p class="eyebrow">NBA Betting Results</p>
-        <h1>Card-first results for fast betting decisions.</h1>
-        <p class="hero-text">
+        <p class="eyebrow" id="hero-eyebrow">NBA Betting Results</p>
+        <h1 id="hero-title">Card-first results for fast betting decisions.</h1>
+        <p class="hero-text" id="hero-description">
           Approved source only: capping.pro NBA surfaces for Best Bets, Edges, Props, Parlay, Degen, and Exploits. No alternate feeds, no fallback providers, no mixed-league content.
         </p>
         <p class="hero-text" id="source-attribution">Source: https://capping.pro/</p>
@@ -29,8 +29,12 @@
     <main class="layout">
       <section class="summary-strip" id="summary-strip"></section>
       <section class="panel empty-state" id="approved-no-data" hidden>
-        <h3>No NBA markets currently available from the approved source.</h3>
+        <h3 id="empty-state-title">No NBA markets currently available from the approved source.</h3>
         <p id="empty-source-attribution">Source: https://capping.pro/</p>
+      </section>
+
+      <section class="source-row">
+        <div class="chip-row" id="source-tabs" aria-label="Source tabs"></div>
       </section>
 
       <section class="surface-row">
@@ -45,6 +49,14 @@
         <div class="filter-block">
           <p class="filter-label" id="secondary-filter-label" hidden></p>
           <div class="chip-row" id="secondary-filters" aria-label="Secondary filters"></div>
+        </div>
+        <div class="filter-block">
+          <p class="filter-label" id="tertiary-filter-label" hidden></p>
+          <div class="chip-row" id="tertiary-filters" aria-label="Tertiary filters"></div>
+        </div>
+        <div class="filter-block">
+          <p class="filter-label" id="quaternary-filter-label" hidden></p>
+          <div class="chip-row" id="quaternary-filters" aria-label="Quaternary filters"></div>
         </div>
       </section>
 

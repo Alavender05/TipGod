@@ -7,8 +7,13 @@ const DATA_FILE = {
 
 const AU_CONFIG_PATH = "./config/au_sportsbooks.json";
 const SOURCE_POLICY_PATH = "./config/source_policy.json";
+const YAHOO_DATA_PATHS = {
+  games: "./data/parsed/live_jsonl/normalized/games.jsonl",
+  edges: "./data/parsed/live_jsonl/derived/edges.jsonl",
+};
 
-// Moneyline enrichment — 4 approved AU bookmakers only
+const REFRESH_INTERVAL_MS = 5 * 60 * 1000;
+
 const APPROVED_BOOKMAKERS = ["ladbrokes", "sportsbet", "pointsbet", "bet365"];
 const BOOKMAKER_DISPLAY_NAMES = {
   ladbrokes: "Ladbrokes",
@@ -17,67 +22,11 @@ const BOOKMAKER_DISPLAY_NAMES = {
   bet365: "Bet365",
 };
 const SURFACE_ORDER = ["best-bets", "edges", "props", "parlay", "degen", "exploits"];
-
 const STORAGE_KEY = "tipgod_ui_state";
-
-function saveUIState() {
-  try {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify({
-      activeSurfaceId: state.activeSurfaceId,
-      filters: state.filters,
-      showTable: state.showTable,
-    }));
-  } catch {
-    // localStorage unavailable (e.g. private browsing with strict settings) — ignore
-  }
-}
-
-function loadUIState() {
-  try {
-    const raw = localStorage.getItem(STORAGE_KEY);
-    return raw ? JSON.parse(raw) : null;
-  } catch {
-    return null;
-  }
-}
-
-const state = {
-  sourceLabel: "",
-  runSummary: null,
-  auConfig: null,
-  sourcePolicy: null,
-  surfaces: [],
-  activeSurfaceId: "best-bets",
-  filters: {
-    primary: "All",
-    secondary: "All",
-  },
-  showTable: false,
-};
-
-const nodes = {
-  sourceChip: document.getElementById("data-source-chip"),
-  sourceAttribution: document.getElementById("source-attribution"),
-  runStatusChip: document.getElementById("run-status-chip"),
-  summaryStrip: document.getElementById("summary-strip"),
-  approvedNoData: document.getElementById("approved-no-data"),
-  emptySourceAttribution: document.getElementById("empty-source-attribution"),
-  surfaceFilters: document.getElementById("surface-filters"),
-  controlRow: document.querySelector(".control-row"),
-  primaryFilters: document.getElementById("primary-filters"),
-  secondaryFilters: document.getElementById("secondary-filters"),
-  primaryFilterLabel: document.getElementById("primary-filter-label"),
-  secondaryFilterLabel: document.getElementById("secondary-filter-label"),
-  mainGrid: document.querySelector(".main-grid"),
-  featuredPick: document.getElementById("featured-pick"),
-  pickStack: document.getElementById("pick-stack"),
-  valueChart: document.getElementById("value-chart"),
-  distributionChart: document.getElementById("distribution-chart"),
-  heatmap: document.getElementById("heatmap"),
-  tablePanel: document.getElementById("table-panel"),
-  tableBody: document.getElementById("pick-table-body"),
-  listToggle: document.getElementById("list-toggle"),
-};
+const SOURCE_TABS = [
+  { id: "approved", label: "Approved Source" },
+  { id: "yahoo", label: "Yahoo NBA" },
+];
 
 const FILTER_SPECS = {
   "best-bets": [
@@ -167,33 +116,122 @@ const FILTER_SPECS = {
   ],
 };
 
+const state = {
+  activeDataSource: window.location.hash === "#yahoo" ? "yahoo" : "approved",
+  approved: {
+    sourceLabel: "",
+    runSummary: null,
+    auConfig: null,
+    sourcePolicy: null,
+    surfaces: [],
+    activeSurfaceId: "best-bets",
+    filters: {
+      primary: "All",
+      secondary: "All",
+    },
+    showTable: false,
+    loadError: null,
+  },
+  yahoo: {
+    games: [],
+    edges: [],
+    rows: [],
+    filters: {
+      marketType: "All",
+      matchup: "All",
+      selection: "All",
+      threshold: "All",
+    },
+    showTable: false,
+    loadError: null,
+    lastRefreshAt: null,
+    refreshTimerId: null,
+    statusMode: "idle",
+    hasLoaded: false,
+  },
+};
+
+const nodes = {
+  heroShell: document.getElementById("hero-shell"),
+  heroEyebrow: document.getElementById("hero-eyebrow"),
+  heroTitle: document.getElementById("hero-title"),
+  heroDescription: document.getElementById("hero-description"),
+  sourceChip: document.getElementById("data-source-chip"),
+  sourceAttribution: document.getElementById("source-attribution"),
+  runStatusChip: document.getElementById("run-status-chip"),
+  summaryStrip: document.getElementById("summary-strip"),
+  emptyState: document.getElementById("approved-no-data"),
+  emptyStateTitle: document.getElementById("empty-state-title"),
+  emptySourceAttribution: document.getElementById("empty-source-attribution"),
+  sourceTabs: document.getElementById("source-tabs"),
+  surfaceRow: document.querySelector(".surface-row"),
+  surfaceFilters: document.getElementById("surface-filters"),
+  controlRow: document.querySelector(".control-row"),
+  primaryFilters: document.getElementById("primary-filters"),
+  secondaryFilters: document.getElementById("secondary-filters"),
+  tertiaryFilters: document.getElementById("tertiary-filters"),
+  quaternaryFilters: document.getElementById("quaternary-filters"),
+  primaryFilterLabel: document.getElementById("primary-filter-label"),
+  secondaryFilterLabel: document.getElementById("secondary-filter-label"),
+  tertiaryFilterLabel: document.getElementById("tertiary-filter-label"),
+  quaternaryFilterLabel: document.getElementById("quaternary-filter-label"),
+  mainGrid: document.querySelector(".main-grid"),
+  featuredPanelEyebrow: document.querySelector(".featured-panel .eyebrow"),
+  featuredPanelTitle: document.querySelector(".featured-panel h2"),
+  stackPanelEyebrow: document.querySelector(".pick-stack").closest(".panel").querySelector(".eyebrow"),
+  stackPanelTitle: document.querySelector(".pick-stack").closest(".panel").querySelector("h2"),
+  valuePanelEyebrow: document.getElementById("value-chart").closest(".panel").querySelector(".eyebrow"),
+  valuePanelTitle: document.getElementById("value-chart").closest(".panel").querySelector("h2"),
+  distributionPanelEyebrow: document.getElementById("distribution-chart").closest(".panel").querySelector(".eyebrow"),
+  distributionPanelTitle: document.getElementById("distribution-chart").closest(".panel").querySelector("h2"),
+  heatmapPanelEyebrow: document.getElementById("heatmap").closest(".panel").querySelector(".eyebrow"),
+  heatmapPanelTitle: document.getElementById("heatmap").closest(".panel").querySelector("h2"),
+  tablePanelEyebrow: document.getElementById("table-panel").querySelector(".eyebrow"),
+  tablePanelTitle: document.getElementById("table-panel").querySelector("h2"),
+  tableHeadRow: document.querySelector("#table-panel thead tr"),
+  featuredPick: document.getElementById("featured-pick"),
+  pickStack: document.getElementById("pick-stack"),
+  valueChart: document.getElementById("value-chart"),
+  distributionChart: document.getElementById("distribution-chart"),
+  heatmap: document.getElementById("heatmap"),
+  tablePanel: document.getElementById("table-panel"),
+  tableBody: document.getElementById("pick-table-body"),
+  listToggle: document.getElementById("list-toggle"),
+};
+
+function saveUIState() {
+  try {
+    localStorage.setItem(STORAGE_KEY, JSON.stringify({
+      approved: {
+        activeSurfaceId: state.approved.activeSurfaceId,
+        filters: state.approved.filters,
+        showTable: state.approved.showTable,
+      },
+      yahoo: {
+        filters: state.yahoo.filters,
+        showTable: state.yahoo.showTable,
+      },
+    }));
+  } catch {
+    // localStorage unavailable; ignore persistence.
+  }
+}
+
+function loadUIState() {
+  try {
+    const raw = localStorage.getItem(STORAGE_KEY);
+    return raw ? JSON.parse(raw) : null;
+  } catch {
+    return null;
+  }
+}
+
 async function loadJson(filePath) {
   const response = await fetch(filePath);
   if (!response.ok) {
     throw new Error(`Failed to load ${filePath}`);
   }
   return response.json();
-}
-
-async function loadDataset() {
-  // Prefer the enriched dataset if available; fall back to the base dataset.
-  const payload = await loadJson(DATA_FILE.enrichedPath).catch(
-    () => loadJson(DATA_FILE.path).catch(() => ({ surfaces: [] }))
-  );
-
-  const [auConfig, sourcePolicy, runSummary] = await Promise.all([
-    loadJson(AU_CONFIG_PATH),
-    loadJson(SOURCE_POLICY_PATH),
-    loadJson(DATA_FILE.summaryPath).catch(() => null),
-  ]);
-
-  return {
-    sourceLabel: DATA_FILE.label,
-    payload,
-    runSummary,
-    auConfig,
-    sourcePolicy,
-  };
 }
 
 function normalizeText(value) {
@@ -205,7 +243,7 @@ function parseNumber(value) {
   return match ? Number(match[0]) : null;
 }
 
-function compactTime(value) {
+function compactTime(value, timeZone = "America/New_York") {
   if (!value) return "Unknown";
   const date = new Date(value);
   if (Number.isNaN(date.getTime())) return value;
@@ -214,7 +252,7 @@ function compactTime(value) {
     day: "numeric",
     hour: "numeric",
     minute: "2-digit",
-    timeZone: state.sourcePolicy?.timezone_display || "America/New_York",
+    timeZone,
   });
 }
 
@@ -232,12 +270,139 @@ function firstMatchingTag(tags, options) {
   return options.find((option) => (tags || []).includes(option)) || null;
 }
 
+function formatPercent(value, digits = 2) {
+  if (value == null || Number.isNaN(Number(value))) return "N/A";
+  return `${(Number(value) * 100).toFixed(digits)}%`;
+}
+
+function formatNumber(value, digits = 2) {
+  if (value == null || Number.isNaN(Number(value))) return "N/A";
+  return Number(value).toFixed(digits);
+}
+
+function formatAmerican(value) {
+  if (value == null || Number.isNaN(Number(value))) return "N/A";
+  const number = Number(value);
+  return `${number > 0 ? "+" : ""}${number}`;
+}
+
+function rawPathLabel(path) {
+  const parts = normalizeText(path).split("/");
+  return parts.slice(-2).join("/");
+}
+
+function renderChips(container, values, activeValue, onClick, labelFn = (value) => value) {
+  container.innerHTML = "";
+  values.forEach((value) => {
+    const button = document.createElement("button");
+    button.type = "button";
+    button.className = `chip${value === activeValue ? " active" : ""}`;
+    button.textContent = labelFn(value);
+    button.addEventListener("click", () => onClick(value));
+    container.appendChild(button);
+  });
+}
+
+function clearDataViews() {
+  nodes.featuredPick.innerHTML = "";
+  nodes.pickStack.innerHTML = "";
+  nodes.valueChart.innerHTML = "";
+  nodes.distributionChart.innerHTML = "";
+  nodes.heatmap.innerHTML = "";
+  nodes.tableBody.innerHTML = "";
+}
+
+function setTableHeaders(sourceId) {
+  if (sourceId === "yahoo") {
+    nodes.tableHeadRow.innerHTML = `
+      <th>Matchup</th>
+      <th>Market</th>
+      <th>Selection</th>
+      <th>Line</th>
+      <th>Odds</th>
+      <th>Fair</th>
+      <th>Edge</th>
+      <th>Overround</th>
+      <th>Snapshot</th>
+    `;
+    nodes.tablePanelEyebrow.textContent = "All Rows";
+    nodes.tablePanelTitle.textContent = "Compact Yahoo edge table";
+    nodes.featuredPanelEyebrow.textContent = "Featured Edge";
+    nodes.featuredPanelTitle.textContent = "Best current Yahoo board signal";
+    nodes.stackPanelEyebrow.textContent = "Ranked Board";
+    nodes.stackPanelTitle.textContent = "Closest to value, sorted live";
+    nodes.valuePanelEyebrow.textContent = "Edge Ladder";
+    nodes.valuePanelTitle.textContent = "Top signals by edge probability";
+    nodes.distributionPanelEyebrow.textContent = "Market Mix";
+    nodes.distributionPanelTitle.textContent = "Distribution by market type";
+    nodes.heatmapPanelEyebrow.textContent = "Slate Coverage";
+    nodes.heatmapPanelTitle.textContent = "Matchup x market heatmap";
+    return;
+  }
+
+  nodes.tableHeadRow.innerHTML = `
+    <th>Context</th>
+    <th>Selection</th>
+    <th>Surface</th>
+    <th>Primary Metric</th>
+    <th>Secondary Metric</th>
+    <th>Updated</th>
+  `;
+  nodes.tablePanelEyebrow.textContent = "All Picks";
+  nodes.tablePanelTitle.textContent = "Compact comparison table";
+  nodes.featuredPanelEyebrow.textContent = "Featured Pick";
+  nodes.featuredPanelTitle.textContent = "Best play at a glance";
+  nodes.stackPanelEyebrow.textContent = "Top Picks";
+  nodes.stackPanelTitle.textContent = "Ranked card stack";
+  nodes.valuePanelEyebrow.textContent = "Value View";
+  nodes.valuePanelTitle.textContent = "Top edges";
+  nodes.distributionPanelEyebrow.textContent = "Slate Shape";
+  nodes.distributionPanelTitle.textContent = "Bet type distribution";
+  nodes.heatmapPanelEyebrow.textContent = "Game Coverage";
+  nodes.heatmapPanelTitle.textContent = "Matchup x bet type heatmap";
+}
+
+function renderSourceTabs() {
+  renderChips(
+    nodes.sourceTabs,
+    SOURCE_TABS.map((tab) => tab.id),
+    state.activeDataSource,
+    (value) => switchDataSource(value),
+    (value) => SOURCE_TABS.find((tab) => tab.id === value)?.label || value
+  );
+}
+
+function renderFilterBlock(labelNode, chipNode, label, hidden) {
+  labelNode.hidden = hidden || !label;
+  labelNode.textContent = hidden ? "" : label;
+  chipNode.innerHTML = hidden ? "" : chipNode.innerHTML;
+  chipNode.parentElement.hidden = hidden;
+}
+
+function setHeroContent(config) {
+  nodes.heroShell.classList.toggle("yahoo-hero", config.isYahoo);
+  nodes.heroEyebrow.textContent = config.eyebrow;
+  nodes.heroTitle.textContent = config.title;
+  nodes.heroDescription.textContent = config.description;
+  nodes.sourceAttribution.textContent = config.attribution;
+}
+
+function setEmptyState(title, attribution) {
+  nodes.emptyState.hidden = false;
+  nodes.emptyStateTitle.textContent = title;
+  nodes.emptySourceAttribution.textContent = attribution;
+}
+
+function hideEmptyState() {
+  nodes.emptyState.hidden = true;
+}
+
 function getApprovedSurfaceMeta(surfaceId) {
-  return (state.sourcePolicy?.approved_surfaces || []).find((surface) => surface.id === surfaceId) || null;
+  return (state.approved.sourcePolicy?.approved_surfaces || []).find((surface) => surface.id === surfaceId) || null;
 }
 
 function validateItem(item, surfaceMeta) {
-  if (!item || item.league_id !== state.sourcePolicy.league_id || item.sport !== state.sourcePolicy.sport) {
+  if (!item || item.league_id !== state.approved.sourcePolicy.league_id || item.sport !== state.approved.sourcePolicy.sport) {
     return false;
   }
   if (!surfaceMeta || item.surface !== surfaceMeta.id) {
@@ -256,7 +421,7 @@ function hydrateSurfaces(payload) {
     return {
       id: surfaceId,
       label: meta?.label || titleize(surfaceId),
-      source_url: existing.source_url || new URL(meta?.allowed_paths?.[0] || "/", state.sourcePolicy.approved_root_url).href,
+      source_url: existing.source_url || new URL(meta?.allowed_paths?.[0] || "/", state.approved.sourcePolicy.approved_root_url).href,
       scan_summary: existing.scan_summary || null,
       items: items.map((item, index) => ({
         ...item,
@@ -267,7 +432,7 @@ function hydrateSurfaces(payload) {
 }
 
 function getActiveSurface() {
-  return state.surfaces.find((surface) => surface.id === state.activeSurfaceId) || state.surfaces[0] || null;
+  return state.approved.surfaces.find((surface) => surface.id === state.approved.activeSurfaceId) || state.approved.surfaces[0] || null;
 }
 
 function metricByKey(item, key) {
@@ -288,95 +453,20 @@ function metricDisplay(metric) {
   return metric.value || (metric.value_numeric != null ? String(metric.value_numeric) : "N/A");
 }
 
-function surfaceFilters(surfaceId) {
+function approvedSurfaceFilters(surfaceId) {
   return FILTER_SPECS[surfaceId] || [];
 }
 
-function itemMatchesFilters(item) {
-  const [primarySpec, secondarySpec] = surfaceFilters(state.activeSurfaceId);
+function approvedItemMatchesFilters(item) {
+  const [primarySpec, secondarySpec] = approvedSurfaceFilters(state.approved.activeSurfaceId);
   const primaryValue = primarySpec ? primarySpec.getValue(item) : "All";
   const secondaryValue = secondarySpec ? secondarySpec.getValue(item) : "All";
-  const primaryOk = state.filters.primary === "All" || primaryValue === state.filters.primary;
-  const secondaryOk = state.filters.secondary === "All" || secondaryValue === state.filters.secondary;
+  const primaryOk = state.approved.filters.primary === "All" || primaryValue === state.approved.filters.primary;
+  const secondaryOk = state.approved.filters.secondary === "All" || secondaryValue === state.approved.filters.secondary;
   return primaryOk && secondaryOk;
 }
 
-function sortItems(items) {
-  return [...items]
-    .sort((a, b) => {
-      const aPrimary = primaryMetric(a)?.value_numeric ?? -Infinity;
-      const bPrimary = primaryMetric(b)?.value_numeric ?? -Infinity;
-      if (bPrimary !== aPrimary) return bPrimary - aPrimary;
-      const aSecondary = secondaryMetric(a)?.value_numeric ?? -Infinity;
-      const bSecondary = secondaryMetric(b)?.value_numeric ?? -Infinity;
-      if (bSecondary !== aSecondary) return bSecondary - aSecondary;
-      return normalizeText(a.title).localeCompare(normalizeText(b.title));
-    })
-    .map((item, index) => ({ ...item, rank: index + 1 }));
-}
-
-function filteredItems() {
-  const surface = getActiveSurface();
-  if (!surface) return [];
-  return sortItems(surface.items.filter(itemMatchesFilters));
-}
-
-function renderChips(container, values, activeValue, onClick, labelFn = (value) => value) {
-  container.innerHTML = "";
-  values.forEach((value) => {
-    const button = document.createElement("button");
-    button.type = "button";
-    button.className = `chip${value === activeValue ? " active" : ""}`;
-    button.textContent = labelFn(value);
-    button.addEventListener("click", () => onClick(value));
-    container.appendChild(button);
-  });
-}
-
-function renderSurfaceTabs() {
-  renderChips(
-    nodes.surfaceFilters,
-    state.surfaces.map((surface) => surface.id),
-    state.activeSurfaceId,
-    (value) => {
-      state.activeSurfaceId = value;
-      state.filters.primary = "All";
-      state.filters.secondary = "All";
-      saveUIState();
-      render();
-    },
-    (value) => state.surfaces.find((surface) => surface.id === value)?.label || value
-  );
-}
-
-function renderDynamicFilters() {
-  const specs = surfaceFilters(state.activeSurfaceId);
-  const surface = getActiveSurface();
-  const items = surface?.items || [];
-
-  const [primarySpec, secondarySpec] = specs;
-  const primaryValues = primarySpec ? ["All", ...new Set(items.map(primarySpec.getValue).filter(Boolean))] : ["All"];
-  const secondaryValues = secondarySpec ? ["All", ...new Set(items.map(secondarySpec.getValue).filter(Boolean))] : ["All"];
-
-  nodes.primaryFilterLabel.hidden = !primarySpec;
-  nodes.secondaryFilterLabel.hidden = !secondarySpec;
-  nodes.primaryFilterLabel.textContent = primarySpec?.label || "";
-  nodes.secondaryFilterLabel.textContent = secondarySpec?.label || "";
-
-  renderChips(nodes.primaryFilters, primaryValues, state.filters.primary, (value) => {
-    state.filters.primary = value;
-    saveUIState();
-    render();
-  });
-
-  renderChips(nodes.secondaryFilters, secondaryValues, state.filters.secondary, (value) => {
-    state.filters.secondary = value;
-    saveUIState();
-    render();
-  });
-}
-
-function metricRatio(item, items) {
+function approvedMetricRatio(item, items) {
   const metric = primaryMetric(item);
   if (!metric?.value_numeric) return 0.35;
   const max = Math.max(...items.map((entry) => Math.abs(primaryMetric(entry)?.value_numeric || 0)), 1);
@@ -390,10 +480,9 @@ function toneColor(ratio) {
   return "var(--confidence-low)";
 }
 
-function meterMarkup(item, items) {
+function approvedMeterMarkup(item, items) {
   const metric = primaryMetric(item);
-  const ratio = metricRatio(item, items);
-  const width = `${Math.round(ratio * 100)}%`;
+  const ratio = approvedMetricRatio(item, items);
   return `
     <div class="confidence-wrap">
       <div class="confidence-row">
@@ -401,7 +490,7 @@ function meterMarkup(item, items) {
         <strong>${metricDisplay(metric)}</strong>
       </div>
       <div class="meter">
-        <div class="meter-fill" style="width: ${width}; background: ${toneColor(ratio)};"></div>
+        <div class="meter-fill" style="width: ${Math.round(ratio * 100)}%; background: ${toneColor(ratio)};"></div>
       </div>
     </div>
   `;
@@ -422,17 +511,10 @@ function itemTopline(item, surfaceLabel) {
 
 function renderLegacyMoneylineComparison(item) {
   const enrichment = item.moneyline_enrichment;
-
-  // No enrichment data at all — show nothing (not even no-data message)
-  // This keeps cards clean when running against the base (non-enriched) dataset
   if (!enrichment) return "";
 
-  const availableQuotes = APPROVED_BOOKMAKERS.filter(
-    (slug) => enrichment.quotes[slug]?.is_available
-  );
+  const availableQuotes = APPROVED_BOOKMAKERS.filter((slug) => enrichment.quotes[slug]?.is_available);
   const coverageCount = availableQuotes.length;
-
-  // All 4 books unavailable — show no-data message
   if (coverageCount === 0) {
     return `
       <div class="moneyline-no-data">
@@ -442,23 +524,19 @@ function renderLegacyMoneylineComparison(item) {
   }
 
   const best = enrichment.best_available;
-  const homeLabel = enrichment.home_team
-    ? enrichment.home_team.split(" ").pop()   // e.g. "Lakers" from "Los Angeles Lakers"
-    : "Home";
-  const awayLabel = enrichment.away_team
-    ? enrichment.away_team.split(" ").pop()
-    : "Away";
+  const homeLabel = enrichment.home_team ? enrichment.home_team.split(" ").pop() : "Home";
+  const awayLabel = enrichment.away_team ? enrichment.away_team.split(" ").pop() : "Away";
   const bestCellMarkup = (odds, bookmaker) => {
     if (odds == null || !bookmaker) {
       return `<span class="best-available-empty">—</span>`;
     }
-
     const displayName = BOOKMAKER_DISPLAY_NAMES[bookmaker] || bookmaker;
     return `
       <span class="best-available-odds">${odds.toFixed(2)}</span>
       <span class="best-available-book">${displayName}</span>
     `;
   };
+
   const bestAvailableRow = `
     <div class="moneyline-row best-available-row" data-available="true">
       <span class="ml-book-name best-available-label">Best Available</span>
@@ -613,7 +691,7 @@ function renderBookmakerComparison(item) {
   `;
 }
 
-function pickCardMarkup(item, items, surfaceLabel, featured = false) {
+function approvedPickCardMarkup(item, items, surfaceLabel, featured = false) {
   const secondary = secondaryMetric(item);
   const metaPills = [
     `<span class="metric-pill">${primaryMetric(item)?.label || "Metric"}: ${metricDisplay(primaryMetric(item))}</span>`,
@@ -631,16 +709,78 @@ function pickCardMarkup(item, items, surfaceLabel, featured = false) {
       <div class="pick-topline">${itemTopline(item, surfaceLabel)}</div>
       <div class="matchup">${item.title || "Untitled item"}</div>
       <div class="pick-text">${item.selection || item.subtitle || "Selection unavailable"}</div>
-      ${meterMarkup(item, items)}
+      ${approvedMeterMarkup(item, items)}
       <div class="pick-meta-grid">${metaPills.join("")}</div>
       ${renderBookmakerComparison(item)}
       <p class="subtext">${item.reason || "Approved-source NBA item."}</p>
-      <div class="edge-strip" style="width: ${Math.round(metricRatio(item, items) * 100)}%; background: ${toneColor(metricRatio(item, items))};"></div>
+      <div class="edge-strip" style="width: ${Math.round(approvedMetricRatio(item, items) * 100)}%; background: ${toneColor(approvedMetricRatio(item, items))};"></div>
     </article>
   `;
 }
 
-function renderSummary(items) {
+function approvedSortItems(items) {
+  return [...items]
+    .sort((a, b) => {
+      const aPrimary = primaryMetric(a)?.value_numeric ?? -Infinity;
+      const bPrimary = primaryMetric(b)?.value_numeric ?? -Infinity;
+      if (bPrimary !== aPrimary) return bPrimary - aPrimary;
+      const aSecondary = secondaryMetric(a)?.value_numeric ?? -Infinity;
+      const bSecondary = secondaryMetric(b)?.value_numeric ?? -Infinity;
+      if (bSecondary !== aSecondary) return bSecondary - aSecondary;
+      return normalizeText(a.title).localeCompare(normalizeText(b.title));
+    })
+    .map((item, index) => ({ ...item, rank: index + 1 }));
+}
+
+function approvedFilteredItems() {
+  const surface = getActiveSurface();
+  if (!surface) return [];
+  return approvedSortItems(surface.items.filter(approvedItemMatchesFilters));
+}
+
+function renderApprovedSurfaceTabs() {
+  renderChips(
+    nodes.surfaceFilters,
+    state.approved.surfaces.map((surface) => surface.id),
+    state.approved.activeSurfaceId,
+    (value) => {
+      state.approved.activeSurfaceId = value;
+      state.approved.filters.primary = "All";
+      state.approved.filters.secondary = "All";
+      saveUIState();
+      render();
+    },
+    (value) => state.approved.surfaces.find((surface) => surface.id === value)?.label || value
+  );
+}
+
+function renderApprovedFilters() {
+  const specs = approvedSurfaceFilters(state.approved.activeSurfaceId);
+  const surface = getActiveSurface();
+  const items = surface?.items || [];
+  const [primarySpec, secondarySpec] = specs;
+  const primaryValues = primarySpec ? ["All", ...new Set(items.map(primarySpec.getValue).filter(Boolean))] : ["All"];
+  const secondaryValues = secondarySpec ? ["All", ...new Set(items.map(secondarySpec.getValue).filter(Boolean))] : ["All"];
+
+  renderFilterBlock(nodes.primaryFilterLabel, nodes.primaryFilters, primarySpec?.label || "", !primarySpec);
+  renderFilterBlock(nodes.secondaryFilterLabel, nodes.secondaryFilters, secondarySpec?.label || "", !secondarySpec);
+  renderFilterBlock(nodes.tertiaryFilterLabel, nodes.tertiaryFilters, "", true);
+  renderFilterBlock(nodes.quaternaryFilterLabel, nodes.quaternaryFilters, "", true);
+
+  renderChips(nodes.primaryFilters, primaryValues, state.approved.filters.primary, (value) => {
+    state.approved.filters.primary = value;
+    saveUIState();
+    render();
+  });
+
+  renderChips(nodes.secondaryFilters, secondaryValues, state.approved.filters.secondary, (value) => {
+    state.approved.filters.secondary = value;
+    saveUIState();
+    render();
+  });
+}
+
+function renderApprovedSummary(items) {
   const strongest = items[0];
   const topMetric = primaryMetric(strongest);
   const secondMetric = secondaryMetric(strongest);
@@ -677,17 +817,17 @@ function renderSummary(items) {
   `).join("");
 }
 
-function renderFeatured(items) {
+function renderApprovedFeatured(items) {
   const surfaceLabel = getActiveSurface()?.label || "Surface";
-  nodes.featuredPick.innerHTML = items.length ? pickCardMarkup(items[0], items, surfaceLabel, true) : "";
+  nodes.featuredPick.innerHTML = items.length ? approvedPickCardMarkup(items[0], items, surfaceLabel, true) : "";
 }
 
-function renderPickStack(items) {
+function renderApprovedPickStack(items) {
   const surfaceLabel = getActiveSurface()?.label || "Surface";
-  nodes.pickStack.innerHTML = items.slice(0, 6).map((item) => pickCardMarkup(item, items, surfaceLabel)).join("");
+  nodes.pickStack.innerHTML = items.slice(0, 6).map((item) => approvedPickCardMarkup(item, items, surfaceLabel)).join("");
 }
 
-function renderValueChart(items) {
+function renderApprovedValueChart(items) {
   const top = items.slice(0, 6);
   const max = Math.max(...top.map((item) => Math.abs(primaryMetric(item)?.value_numeric || 0)), 1);
   nodes.valueChart.innerHTML = top.map((item) => `
@@ -697,14 +837,14 @@ function renderValueChart(items) {
         <div class="value-subtitle">${item.selection || item.subtitle || item.matchup || "No context"}</div>
       </div>
       <div class="value-bar">
-        <div class="value-fill" style="width: ${Math.max(8, (Math.abs(primaryMetric(item)?.value_numeric || 0) / max) * 100)}%; background: ${toneColor(metricRatio(item, top))};"></div>
+        <div class="value-fill" style="width: ${Math.max(8, (Math.abs(primaryMetric(item)?.value_numeric || 0) / max) * 100)}%; background: ${toneColor(approvedMetricRatio(item, top))};"></div>
       </div>
       <div class="value-number">${metricDisplay(primaryMetric(item))}</div>
     </div>
   `).join("");
 }
 
-function renderDistribution(items) {
+function renderApprovedDistribution(items) {
   const counts = [...new Set(items.map((item) => displayMarket(item.market_type)))].map((label) => ({
     label,
     count: items.filter((item) => displayMarket(item.market_type) === label).length,
@@ -723,7 +863,7 @@ function renderDistribution(items) {
   `).join("");
 }
 
-function renderHeatmap(items) {
+function renderApprovedHeatmap(items) {
   const rowKeys = [...new Set(items.map((item) => item.matchup || item.team || item.title).filter(Boolean))].slice(0, 6);
   const columns = [...new Set(items.map((item) => displayMarket(item.market_type)).filter(Boolean))].slice(0, 4);
   if (!rowKeys.length || !columns.length) {
@@ -755,7 +895,7 @@ function renderHeatmap(items) {
   nodes.heatmap.innerHTML = cells.join("");
 }
 
-function renderTable(items) {
+function renderApprovedTable(items) {
   const surfaceLabel = getActiveSurface()?.label || "Surface";
   nodes.tableBody.innerHTML = items.map((item) => `
     <tr>
@@ -769,85 +909,594 @@ function renderTable(items) {
   `).join("");
 }
 
-function renderNoData() {
+function renderApprovedNoData() {
   const surface = getActiveSurface();
   nodes.summaryStrip.hidden = true;
   nodes.controlRow.hidden = false;
   nodes.mainGrid.hidden = true;
   nodes.tablePanel.hidden = true;
-  nodes.approvedNoData.hidden = false;
   nodes.sourceChip.textContent = "Approved source only";
   nodes.runStatusChip.textContent = `${surface?.label || "Surface"}: no valid NBA data`;
-  nodes.sourceAttribution.textContent = `Source: ${surface?.source_url || state.sourcePolicy.approved_root_url}`;
-  nodes.emptySourceAttribution.textContent = `Source: ${surface?.source_url || state.sourcePolicy.approved_root_url}`;
+  setHeroContent({
+    eyebrow: "NBA Betting Results",
+    title: "Card-first results for fast betting decisions.",
+    description: "Approved source only: capping.pro NBA surfaces for Best Bets, Edges, Props, Parlay, Degen, and Exploits. No alternate feeds, no fallback providers, no mixed-league content.",
+    attribution: `Source: ${surface?.source_url || state.approved.sourcePolicy?.approved_root_url || "https://capping.pro/"}`,
+    isYahoo: false,
+  });
+  setEmptyState(
+    "No NBA markets currently available from the approved source.",
+    `Source: ${surface?.source_url || state.approved.sourcePolicy?.approved_root_url || "https://capping.pro/"}`
+  );
 }
 
-function renderData(items) {
+function renderApprovedData(items) {
   const surface = getActiveSurface();
-  nodes.approvedNoData.hidden = true;
+  hideEmptyState();
   nodes.summaryStrip.hidden = false;
   nodes.controlRow.hidden = false;
   nodes.mainGrid.hidden = false;
-  nodes.tablePanel.hidden = !state.showTable;
+  nodes.tablePanel.hidden = !state.approved.showTable;
   nodes.sourceChip.textContent = "Approved source only";
   nodes.runStatusChip.textContent = `${surface?.label || "Surface"}: ${items.length} NBA items`;
-  nodes.sourceAttribution.textContent = `Source: ${surface?.source_url || state.sourcePolicy.approved_root_url}`;
+  setHeroContent({
+    eyebrow: "NBA Betting Results",
+    title: "Card-first results for fast betting decisions.",
+    description: "Approved source only: capping.pro NBA surfaces for Best Bets, Edges, Props, Parlay, Degen, and Exploits. No alternate feeds, no fallback providers, no mixed-league content.",
+    attribution: `Source: ${surface?.source_url || state.approved.sourcePolicy?.approved_root_url || "https://capping.pro/"}`,
+    isYahoo: false,
+  });
+  renderApprovedSummary(items);
+  renderApprovedFeatured(items);
+  renderApprovedPickStack(items);
+  renderApprovedValueChart(items);
+  renderApprovedDistribution(items);
+  renderApprovedHeatmap(items);
+  renderApprovedTable(items);
+  nodes.listToggle.textContent = state.approved.showTable ? "Hide table" : "Show table";
+}
 
-  renderSummary(items);
-  renderFeatured(items);
-  renderPickStack(items);
-  renderValueChart(items);
-  renderDistribution(items);
-  renderHeatmap(items);
-  renderTable(items);
-  nodes.listToggle.textContent = state.showTable ? "Hide table" : "Show table";
+function parseJsonl(text) {
+  return text
+    .split("\n")
+    .map((line) => line.trim())
+    .filter(Boolean)
+    .map((line, index) => {
+      try {
+        return JSON.parse(line);
+      } catch (error) {
+        throw new Error(`Malformed JSONL at line ${index + 1}: ${error.message}`);
+      }
+    });
+}
+
+async function loadJsonl(path) {
+  const response = await fetch(path);
+  if (!response.ok) {
+    throw new Error(`Failed to load ${path}`);
+  }
+  const text = await response.text();
+  return parseJsonl(text);
+}
+
+function latestScheduledTipoff(games) {
+  const timestamps = games
+    .map((game) => game.start_time || game.start_date)
+    .map((value) => new Date(value))
+    .filter((date) => !Number.isNaN(date.getTime()))
+    .map((date) => date.getTime());
+
+  if (!timestamps.length) return null;
+  return new Date(Math.max(...timestamps)).toISOString();
+}
+
+function yahooThresholdBucket(row) {
+  const edge = Number(row.edge_probability ?? Number.NEGATIVE_INFINITY);
+  if (edge > 0) return "Positive";
+  if (edge >= -0.01) return "Near Fair";
+  return "Below Fair";
+}
+
+function joinYahooRows(games, edges) {
+  const gamesBySnapshot = new Map(games.map((game) => [game.snapshot_id, game]));
+  return edges
+    .map((edge) => {
+      const game = gamesBySnapshot.get(edge.snapshot_id) || {};
+      const matchup = `${edge.away_team || game.away_team || "Away"} @ ${edge.home_team || game.home_team || "Home"}`;
+      return {
+        ...game,
+        ...edge,
+        matchup,
+        market_label: titleize(edge.market_type),
+        selection_label: edge.selection_kind === "away" ? `${edge.away_team} moneyline`
+          : edge.selection_kind === "home" ? `${edge.home_team} moneyline`
+          : edge.selection_kind === "over" ? `Over ${formatNumber(edge.line, 1)}`
+          : edge.selection_kind === "under" ? `Under ${formatNumber(edge.line, 1)}`
+          : edge.selection_name || titleize(edge.selection_kind),
+        edge_bucket: yahooThresholdBucket(edge),
+      };
+    })
+    .sort((a, b) => {
+      const edgeDiff = (Number(b.edge_probability) || -Infinity) - (Number(a.edge_probability) || -Infinity);
+      if (edgeDiff !== 0) return edgeDiff;
+      const overroundDiff = (Number(a.overround) || Infinity) - (Number(b.overround) || Infinity);
+      if (overroundDiff !== 0) return overroundDiff;
+      return normalizeText(a.matchup).localeCompare(normalizeText(b.matchup));
+    })
+    .map((row, index) => ({ ...row, rank: index + 1 }));
+}
+
+function yahooFilteredRows() {
+  return state.yahoo.rows.filter((row) => {
+    const marketOk = state.yahoo.filters.marketType === "All" || row.market_label === state.yahoo.filters.marketType;
+    const matchupOk = state.yahoo.filters.matchup === "All" || row.matchup === state.yahoo.filters.matchup;
+    const selectionOk = state.yahoo.filters.selection === "All" || titleize(row.selection_kind) === state.yahoo.filters.selection;
+    const thresholdOk = state.yahoo.filters.threshold === "All" || row.edge_bucket === state.yahoo.filters.threshold;
+    return marketOk && matchupOk && selectionOk && thresholdOk;
+  });
+}
+
+function renderYahooFilters() {
+  const rows = state.yahoo.rows;
+  const marketValues = ["All", ...new Set(rows.map((row) => row.market_label))];
+  const matchupValues = ["All", ...new Set(rows.map((row) => row.matchup))];
+  const selectionValues = ["All", ...new Set(rows.map((row) => titleize(row.selection_kind)))];
+  const thresholdValues = ["All", "Positive", "Near Fair", "Below Fair"];
+
+  renderFilterBlock(nodes.primaryFilterLabel, nodes.primaryFilters, "Market Type", false);
+  renderFilterBlock(nodes.secondaryFilterLabel, nodes.secondaryFilters, "Matchup", false);
+  renderFilterBlock(nodes.tertiaryFilterLabel, nodes.tertiaryFilters, "Selection Side", false);
+  renderFilterBlock(nodes.quaternaryFilterLabel, nodes.quaternaryFilters, "Edge Bucket", false);
+
+  renderChips(nodes.primaryFilters, marketValues, state.yahoo.filters.marketType, (value) => {
+    state.yahoo.filters.marketType = value;
+    saveUIState();
+    render();
+  });
+  renderChips(nodes.secondaryFilters, matchupValues, state.yahoo.filters.matchup, (value) => {
+    state.yahoo.filters.matchup = value;
+    saveUIState();
+    render();
+  });
+  renderChips(nodes.tertiaryFilters, selectionValues, state.yahoo.filters.selection, (value) => {
+    state.yahoo.filters.selection = value;
+    saveUIState();
+    render();
+  });
+  renderChips(nodes.quaternaryFilters, thresholdValues, state.yahoo.filters.threshold, (value) => {
+    state.yahoo.filters.threshold = value;
+    saveUIState();
+    render();
+  });
+}
+
+function yahooMetricRatio(row, rows) {
+  const current = Number(row.edge_probability ?? 0);
+  const max = Math.max(...rows.map((entry) => Math.abs(Number(entry.edge_probability ?? 0))), 0.0001);
+  return Math.max(0.12, Math.min(Math.abs(current) / max, 1));
+}
+
+function yahooMeterMarkup(row, rows) {
+  const ratio = yahooMetricRatio(row, rows);
+  return `
+    <div class="confidence-wrap">
+      <div class="confidence-row">
+        <span>Edge Probability</span>
+        <strong>${formatPercent(row.edge_probability, 2)}</strong>
+      </div>
+      <div class="meter">
+        <div class="meter-fill" style="width: ${Math.round(ratio * 100)}%; background: ${toneColor(ratio)};"></div>
+      </div>
+    </div>
+  `;
+}
+
+function yahooPillsMarkup(row) {
+  const pills = [
+    `<span class="type-chip">${row.market_label}</span>`,
+    `<span class="book-chip">${titleize(row.selection_kind)}</span>`,
+  ];
+  if (row.line != null) pills.push(`<span class="odds-chip">Line ${formatNumber(row.line, 1)}</span>`);
+  pills.push(`<span class="metric-pill ${Number(row.edge_probability) > 0 ? "positive" : ""}">Fair ${formatAmerican(row.fair_american_odds)}</span>`);
+  pills.push(`<span class="metric-pill ${Number(row.overround) > 1.06 ? "warning" : ""}">Overround ${formatPercent((Number(row.overround) || 1) - 1, 2)}</span>`);
+  return pills.join("");
+}
+
+function yahooPickCardMarkup(row, rows, featured = false) {
+  const ratio = yahooMetricRatio(row, rows);
+  const tone = toneColor(ratio);
+  const hasPositive = Number(row.edge_probability) > 0;
+  const edgeText = hasPositive ? "Positive edge" : "Closest to fair";
+  return `
+    <article class="${featured ? "featured-card" : "pick-card"} yahoo-card">
+      ${featured ? "" : `<div class="pick-rank">${row.rank}</div>`}
+      <div class="pick-topline">${yahooPillsMarkup(row)}</div>
+      <div class="matchup">${row.matchup}</div>
+      <div class="pick-text">${row.selection_label}</div>
+      ${yahooMeterMarkup(row, rows)}
+      <div class="pick-meta-grid">
+        <span class="metric-pill ${hasPositive ? "positive" : ""}">Edge ${formatPercent(row.edge_probability, 2)}</span>
+        <span class="metric-pill">Offered ${formatAmerican(row.american_odds)} / ${formatNumber(row.decimal_odds, 2)}</span>
+        <span class="metric-pill">No-vig ${formatPercent(row.no_vig_probability, 2)}</span>
+      </div>
+      <div class="yahoo-detail-grid">
+        <div class="yahoo-detail-row">
+          <span class="muted">Fair odds</span>
+          <strong>${formatAmerican(row.fair_american_odds)} / ${formatNumber(row.fair_decimal_odds, 2)}</strong>
+        </div>
+        <div class="yahoo-detail-row">
+          <span class="muted">Overround</span>
+          <strong>${formatPercent((Number(row.overround) || 1) - 1, 2)}</strong>
+        </div>
+        <div class="yahoo-detail-row">
+          <span class="muted">Snapshot</span>
+          <strong>${row.snapshot_ts || "Unknown"}</strong>
+        </div>
+        <div class="yahoo-detail-row">
+          <span class="muted">Raw file</span>
+          <strong>${rawPathLabel(row.raw_path)}</strong>
+        </div>
+      </div>
+      <p class="subtext">${edgeText}. Market: ${row.market_name || row.market_label}. Source file: ${row.raw_path}.</p>
+      <div class="edge-strip" style="width: ${Math.round(ratio * 100)}%; background: ${tone};"></div>
+    </article>
+  `;
+}
+
+function renderYahooSummary(rows) {
+  const uniqueGames = new Set(rows.map((row) => row.game_id));
+  const positive = rows.filter((row) => Number(row.edge_probability) > 0).length;
+  const nearFair = rows.filter((row) => Number(row.edge_probability) >= -0.01).length;
+  const marketCount = [...new Set(rows.map((row) => row.market_label))].length;
+  const latest = latestScheduledTipoff(state.yahoo.games);
+  const cards = [
+    { label: "Games on slate", value: String(uniqueGames.size), note: rows[0]?.season ? `Season ${rows[0].season}` : "NBA only" },
+    { label: "Market rows", value: String(rows.length), note: `${marketCount} market types loaded` },
+    { label: "Positive / near fair", value: `${positive} / ${nearFair}`, note: "Based on edge probability buckets" },
+    { label: "Latest tipoff", value: compactTime(latest), note: "Latest scheduled game start across the loaded slate" },
+  ];
+
+  nodes.summaryStrip.innerHTML = cards.map((card) => `
+    <article class="summary-card">
+      <span class="summary-label">${card.label}</span>
+      <span class="summary-value">${card.value}</span>
+      <span class="summary-note">${card.note}</span>
+    </article>
+  `).join("");
+}
+
+function renderYahooFeatured(rows) {
+  nodes.featuredPick.innerHTML = rows.length ? yahooPickCardMarkup(rows[0], rows, true) : "";
+}
+
+function renderYahooPickStack(rows) {
+  nodes.pickStack.innerHTML = rows.slice(0, 8).map((row) => yahooPickCardMarkup(row, rows)).join("");
+}
+
+function renderYahooValueChart(rows) {
+  const top = rows.slice(0, 8);
+  const max = Math.max(...top.map((row) => Math.abs(Number(row.edge_probability ?? 0))), 0.0001);
+  nodes.valueChart.innerHTML = top.map((row) => `
+    <div class="value-row">
+      <div class="value-label">
+        <div class="value-title">${row.matchup}</div>
+        <div class="value-subtitle">${row.selection_label}</div>
+      </div>
+      <div class="value-bar">
+        <div class="value-fill" style="width: ${Math.max(8, (Math.abs(Number(row.edge_probability ?? 0)) / max) * 100)}%; background: ${toneColor(yahooMetricRatio(row, top))};"></div>
+      </div>
+      <div class="value-number">${formatPercent(row.edge_probability, 2)}</div>
+    </div>
+  `).join("");
+}
+
+function renderYahooDistribution(rows) {
+  const counts = [...new Set(rows.map((row) => row.market_label))].map((label) => ({
+    label,
+    count: rows.filter((row) => row.market_label === label).length,
+  }));
+  const max = Math.max(...counts.map((entry) => entry.count), 1);
+  nodes.distributionChart.innerHTML = counts.map((entry) => `
+    <div class="dist-row">
+      <div class="dist-label-line">
+        <span>${entry.label}</span>
+        <strong>${entry.count}</strong>
+      </div>
+      <div class="dist-bar">
+        <div class="dist-fill" style="width: ${(entry.count / max) * 100}%;"></div>
+      </div>
+    </div>
+  `).join("");
+}
+
+function renderYahooHeatmap(rows) {
+  const rowKeys = [...new Set(rows.map((row) => row.matchup))].slice(0, 8);
+  const columns = [...new Set(rows.map((row) => row.market_label))].slice(0, 4);
+  if (!rowKeys.length || !columns.length) {
+    nodes.heatmap.innerHTML = "<div class=\"muted\">No matchup coverage to display.</div>";
+    return;
+  }
+
+  const maxCount = Math.max(
+    1,
+    ...rowKeys.flatMap((rowKey) =>
+      columns.map((column) => rows.filter((row) => row.matchup === rowKey && row.market_label === column).length)
+    )
+  );
+
+  const cells = ["<div class=\"heatmap-grid\">", "<div class=\"heatmap-cell label\">Matchup</div>"];
+  columns.forEach((column) => cells.push(`<div class="heatmap-cell label">${column}</div>`));
+  rowKeys.forEach((rowKey) => {
+    cells.push(`<div class="heatmap-cell label">${rowKey}</div>`);
+    columns.forEach((column) => {
+      const count = rows.filter((row) => row.matchup === rowKey && row.market_label === column).length;
+      const intensity = count / maxCount;
+      const background = count ? `rgba(20, 184, 166, ${0.18 + intensity * 0.55})` : "rgba(226, 232, 240, 0.45)";
+      cells.push(`<div class="heatmap-cell" style="background: ${background};">${count || "—"}</div>`);
+    });
+  });
+  cells.push("</div>");
+  nodes.heatmap.innerHTML = cells.join("");
+}
+
+function renderYahooTable(rows) {
+  nodes.tableBody.innerHTML = rows.slice(0, 24).map((row) => `
+    <tr>
+      <td>${row.matchup}</td>
+      <td><span class="table-pill">${row.market_label}</span></td>
+      <td>${row.selection_label}</td>
+      <td>${row.line != null ? formatNumber(row.line, 1) : "—"}</td>
+      <td>${formatAmerican(row.american_odds)} / ${formatNumber(row.decimal_odds, 2)}</td>
+      <td>${formatAmerican(row.fair_american_odds)} / ${formatNumber(row.fair_decimal_odds, 2)}</td>
+      <td>${formatPercent(row.edge_probability, 2)}</td>
+      <td>${formatPercent((Number(row.overround) || 1) - 1, 2)}</td>
+      <td>${row.snapshot_ts || "Unknown"}</td>
+    </tr>
+  `).join("");
+}
+
+function renderYahooNoData(message) {
+  nodes.summaryStrip.hidden = true;
+  nodes.controlRow.hidden = false;
+  nodes.mainGrid.hidden = true;
+  nodes.tablePanel.hidden = true;
+  nodes.sourceChip.textContent = state.yahoo.loadError && !state.yahoo.rows.length ? "Yahoo load failed" : "Yahoo NBA dashboard";
+  nodes.runStatusChip.textContent = message;
+  setHeroContent({
+    eyebrow: "Yahoo NBA Dashboard",
+    title: "Live odds board built from your parsed Yahoo pipeline.",
+    description: "Interactive NBA-only slate view for moneyline, spread, and game totals. Built from the live-compatible Yahoo JSONL outputs inside this Codespace.",
+    attribution: "Source: Yahoo NBA game odds · data/parsed/live_jsonl",
+    isYahoo: true,
+  });
+  setEmptyState("No Yahoo NBA dashboard data available.", message);
+}
+
+function renderYahooData(rows) {
+  const refreshedText = state.yahoo.lastRefreshAt ? ` · refreshed ${compactTime(state.yahoo.lastRefreshAt, "UTC")}` : "";
+  nodes.sourceChip.textContent = state.yahoo.loadError && !state.yahoo.rows.length
+    ? "Yahoo load failed"
+    : `Yahoo NBA · ${state.yahoo.games.length} games · ${state.yahoo.edges.length} derived rows`;
+
+  if (state.yahoo.statusMode === "loading") {
+    nodes.runStatusChip.textContent = "Loading dashboard";
+  } else if (state.yahoo.statusMode === "refresh_failed") {
+    nodes.runStatusChip.textContent = `Refresh failed${refreshedText}`;
+  } else if (rows.length) {
+    nodes.runStatusChip.textContent = `${rows.length} rows in view${refreshedText}`;
+  } else {
+    nodes.runStatusChip.textContent = `No rows in current filter${refreshedText}`;
+  }
+
+  setHeroContent({
+    eyebrow: "Yahoo NBA Dashboard",
+    title: "Live odds board built from your parsed Yahoo pipeline.",
+    description: "Interactive NBA-only slate view for moneyline, spread, and game totals. Built from the live-compatible Yahoo JSONL outputs inside this Codespace.",
+    attribution: "Source: Yahoo NBA game odds · data/parsed/live_jsonl",
+    isYahoo: true,
+  });
+  nodes.summaryStrip.hidden = false;
+  nodes.controlRow.hidden = false;
+  nodes.mainGrid.hidden = false;
+  nodes.tablePanel.hidden = !state.yahoo.showTable;
+  nodes.listToggle.textContent = state.yahoo.showTable ? "Hide table" : "Show table";
+
+  if (!state.yahoo.rows.length) {
+    renderYahooNoData("Run the Yahoo fetch and parse pipeline, then refresh.");
+    return;
+  }
+
+  renderYahooFilters();
+
+  if (!rows.length) {
+    setEmptyState("No Yahoo rows match the current filters.", "Adjust the market, matchup, selection, or edge bucket filters.");
+    clearDataViews();
+    renderYahooSummary(state.yahoo.rows);
+    return;
+  }
+
+  hideEmptyState();
+  renderYahooSummary(rows);
+  renderYahooFeatured(rows);
+  renderYahooPickStack(rows);
+  renderYahooValueChart(rows);
+  renderYahooDistribution(rows);
+  renderYahooHeatmap(rows);
+  renderYahooTable(rows);
+}
+
+async function loadApprovedDataset() {
+  const payload = await loadJson(DATA_FILE.enrichedPath).catch(
+    () => loadJson(DATA_FILE.path).catch(() => ({ surfaces: [] }))
+  );
+
+  const [auConfig, sourcePolicy, runSummary] = await Promise.all([
+    loadJson(AU_CONFIG_PATH),
+    loadJson(SOURCE_POLICY_PATH),
+    loadJson(DATA_FILE.summaryPath).catch(() => null),
+  ]);
+
+  state.approved.sourceLabel = DATA_FILE.label;
+  state.approved.runSummary = runSummary;
+  state.approved.auConfig = auConfig;
+  state.approved.sourcePolicy = sourcePolicy;
+  state.approved.surfaces = hydrateSurfaces(payload);
+  state.approved.loadError = null;
+}
+
+async function loadYahooDashboardData() {
+  if (state.yahoo.statusMode === "loading" && state.yahoo.hasLoaded) return;
+  state.yahoo.statusMode = "loading";
+  if (state.activeDataSource === "yahoo") {
+    render();
+  }
+
+  try {
+    const [games, edges] = await Promise.all([
+      loadJsonl(YAHOO_DATA_PATHS.games),
+      loadJsonl(YAHOO_DATA_PATHS.edges),
+    ]);
+    state.yahoo.games = games;
+    state.yahoo.edges = edges;
+    state.yahoo.rows = joinYahooRows(games, edges);
+    state.yahoo.loadError = null;
+    state.yahoo.lastRefreshAt = new Date().toISOString();
+    state.yahoo.statusMode = "updated";
+    state.yahoo.hasLoaded = true;
+  } catch (error) {
+    state.yahoo.loadError = error.message || "Unknown dashboard load failure";
+    state.yahoo.statusMode = state.yahoo.rows.length ? "refresh_failed" : "load_failed";
+    state.yahoo.hasLoaded = true;
+  }
+
+  if (state.activeDataSource === "yahoo") {
+    render();
+  }
+}
+
+function startYahooRefreshLoop() {
+  if (state.yahoo.refreshTimerId != null) return;
+  state.yahoo.refreshTimerId = window.setInterval(() => {
+    if (state.activeDataSource === "yahoo") {
+      loadYahooDashboardData();
+    }
+  }, REFRESH_INTERVAL_MS);
+}
+
+function stopYahooRefreshLoop() {
+  if (state.yahoo.refreshTimerId == null) return;
+  window.clearInterval(state.yahoo.refreshTimerId);
+  state.yahoo.refreshTimerId = null;
+}
+
+function switchDataSource(sourceId) {
+  if (state.activeDataSource === sourceId) return;
+  state.activeDataSource = sourceId;
+  window.location.hash = sourceId === "yahoo" ? "yahoo" : "";
+  if (sourceId === "yahoo") {
+    startYahooRefreshLoop();
+    if (!state.yahoo.hasLoaded) {
+      loadYahooDashboardData();
+    }
+  } else {
+    stopYahooRefreshLoop();
+  }
+  render();
+}
+
+function renderApprovedView() {
+  nodes.surfaceRow.hidden = false;
+  renderApprovedSurfaceTabs();
+  renderApprovedFilters();
+  const items = approvedFilteredItems();
+  if (!items.length) {
+    renderApprovedNoData();
+    return;
+  }
+  renderApprovedData(items);
+}
+
+function renderYahooView() {
+  nodes.surfaceRow.hidden = true;
+  const rows = yahooFilteredRows();
+  if (state.yahoo.loadError && !state.yahoo.rows.length) {
+    renderYahooNoData(state.yahoo.loadError);
+    return;
+  }
+  renderYahooData(rows);
 }
 
 function render() {
-  renderSurfaceTabs();
-  renderDynamicFilters();
-  const items = filteredItems();
-  if (!items.length) {
-    renderNoData();
+  renderSourceTabs();
+  setTableHeaders(state.activeDataSource);
+
+  if (state.activeDataSource === "yahoo") {
+    renderYahooView();
     return;
   }
-  renderData(items);
+
+  renderApprovedView();
 }
 
 nodes.listToggle.addEventListener("click", () => {
-  state.showTable = !state.showTable;
+  if (state.activeDataSource === "yahoo") {
+    state.yahoo.showTable = !state.yahoo.showTable;
+  } else {
+    state.approved.showTable = !state.approved.showTable;
+  }
   saveUIState();
   render();
 });
 
 async function init() {
-  const dataset = await loadDataset();
-  state.sourceLabel = dataset.sourceLabel;
-  state.runSummary = dataset.runSummary;
-  state.auConfig = dataset.auConfig;
-  state.sourcePolicy = dataset.sourcePolicy;
-  state.surfaces = hydrateSurfaces(dataset.payload);
+  await loadApprovedDataset();
 
-  // Restore persisted UI state (surface, filters, showTable)
   const saved = loadUIState();
-  const defaultSurfaceId = state.surfaces.find((surface) => surface.items.length)?.id || state.surfaces[0]?.id || "best-bets";
-  if (saved) {
-    const surfaceExists = state.surfaces.some((s) => s.id === saved.activeSurfaceId);
-    state.activeSurfaceId = surfaceExists ? saved.activeSurfaceId : defaultSurfaceId;
-    state.filters = { primary: saved.filters?.primary || "All", secondary: saved.filters?.secondary || "All" };
-    state.showTable = saved.showTable ?? false;
+  const defaultSurfaceId = state.approved.surfaces.find((surface) => surface.items.length)?.id || state.approved.surfaces[0]?.id || "best-bets";
+  if (saved?.approved) {
+    const surfaceExists = state.approved.surfaces.some((surface) => surface.id === saved.approved.activeSurfaceId);
+    state.approved.activeSurfaceId = surfaceExists ? saved.approved.activeSurfaceId : defaultSurfaceId;
+    state.approved.filters = {
+      primary: saved.approved.filters?.primary || "All",
+      secondary: saved.approved.filters?.secondary || "All",
+    };
+    state.approved.showTable = saved.approved.showTable ?? false;
   } else {
-    state.activeSurfaceId = defaultSurfaceId;
+    state.approved.activeSurfaceId = defaultSurfaceId;
+  }
+
+  if (saved?.yahoo) {
+    state.yahoo.filters = {
+      marketType: saved.yahoo.filters?.marketType || "All",
+      matchup: saved.yahoo.filters?.matchup || "All",
+      selection: saved.yahoo.filters?.selection || "All",
+      threshold: saved.yahoo.filters?.threshold || "All",
+    };
+    state.yahoo.showTable = saved.yahoo.showTable ?? false;
+  }
+
+  if (state.activeDataSource === "yahoo") {
+    startYahooRefreshLoop();
+    void loadYahooDashboardData();
   }
 
   render();
 }
 
 init().catch((error) => {
+  state.activeDataSource = "approved";
   nodes.sourceChip.textContent = "Approved source only";
   nodes.runStatusChip.textContent = error.message;
-  nodes.approvedNoData.hidden = false;
   nodes.summaryStrip.hidden = true;
   nodes.mainGrid.hidden = true;
   nodes.tablePanel.hidden = true;
+  nodes.surfaceRow.hidden = false;
+  setHeroContent({
+    eyebrow: "NBA Betting Results",
+    title: "Card-first results for fast betting decisions.",
+    description: "Approved source only: capping.pro NBA surfaces for Best Bets, Edges, Props, Parlay, Degen, and Exploits. No alternate feeds, no fallback providers, no mixed-league content.",
+    attribution: "Source: https://capping.pro/",
+    isYahoo: false,
+  });
+  setEmptyState("No NBA markets currently available from the approved source.", `Error: ${error.message}`);
 });

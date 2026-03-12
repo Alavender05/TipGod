@@ -13,5 +13,10 @@ dependencies = [
   "jsonpath-ng>=1.7.0",
 ]
 
+[project.scripts]
+yahoo-nba-fetch = "build_yahoo_nba_fetch:main"
+yahoo-nba-parse = "build_yahoo_nba_longform:main"
+yahoo-nba-report = "build_yahoo_nba_report:main"
+
 [project.optional-dependencies]
 dev = []
