@@ -1,0 +1,195 @@
+{
+  "data": {
+    "data": {
+      "games": [
+        {
+          "activePropBets": [
+            {
+              "id": 3001,
+              "players": [
+                {
+                  "playerId": "nba.p.1",
+                  "displayName": "Tyrese Maxey"
+                }
+              ],
+              "type": "PLAYER_POINTS"
+            }
+          ],
+          "awayTeam": {
+            "displayName": "New Orleans",
+            "teamId": "nba.t.3"
+          },
+          "closedPropBets": [],
+          "gameId": "nba.g.2025011020",
+          "gameLineSixPack": [
+            {
+              "baseCategory": "TOTALS",
+              "eventState": "PREGAME",
+              "id": 207675323,
+              "name": "Totals",
+              "options": [
+                {
+                  "americanOdds": -110,
+                  "decimalOdds": "1.910",
+                  "displayName": "O 219.5",
+                  "id": 644086623,
+                  "isCorrect": true,
+                  "name": "Over 219.5",
+                  "optionDetails": [
+                    {
+                      "key": "over",
+                      "value": "219.5"
+                    }
+                  ],
+                  "shortName": "O 219.5",
+                  "stakePercentage": "70.37",
+                  "status": "CLOSED",
+                  "teamIds": [],
+                  "wagerPercentage": "76.78"
+                },
+                {
+                  "americanOdds": -110,
+                  "decimalOdds": "1.910",
+                  "displayName": "U 219.5",
+                  "id": 644086624,
+                  "isCorrect": false,
+                  "name": "Under 219.5",
+                  "optionDetails": [
+                    {
+                      "key": "under",
+                      "value": "219.5"
+                    }
+                  ],
+                  "shortName": "U 219.5",
+                  "stakePercentage": "29.63",
+                  "status": "CLOSED",
+                  "teamIds": [],
+                  "wagerPercentage": "23.22"
+                }
+              ],
+              "period": "FULL_GAME",
+              "type": "OVER_UNDER"
+            },
+            {
+              "baseCategory": "MONEY_LINE",
+              "eventState": "PREGAME",
+              "id": 207675345,
+              "name": "Money Line (US)",
+              "options": [
+                {
+                  "americanOdds": 225,
+                  "decimalOdds": "3.250",
+                  "displayName": "+225",
+                  "id": 644086672,
+                  "isCorrect": true,
+                  "name": "New Orleans Pelicans",
+                  "optionDetails": [],
+                  "shortName": "+225",
+                  "stakePercentage": "13.52",
+                  "status": "CLOSED",
+                  "teamIds": [
+                    "nba.t.3"
+                  ],
+                  "wagerPercentage": "10.27"
+                },
+                {
+                  "americanOdds": -275,
+                  "decimalOdds": "1.350",
+                  "displayName": "-275",
+                  "id": 644086673,
+                  "isCorrect": false,
+                  "name": "Philadelphia 76ers",
+                  "optionDetails": [],
+                  "shortName": "-275",
+                  "stakePercentage": "86.48",
+                  "status": "CLOSED",
+                  "teamIds": [
+                    "nba.t.20"
+                  ],
+                  "wagerPercentage": "89.73"
+                }
+              ],
+              "period": "FULL_GAME",
+              "type": "MONEY_LINE"
+            },
+            {
+              "baseCategory": "SPREAD",
+              "eventState": "PREGAME",
+              "id": 207675350,
+              "name": "Spread",
+              "options": [
+                {
+                  "americanOdds": -115,
+                  "decimalOdds": "1.870",
+                  "displayName": "+7.5",
+                  "id": 644086682,
+                  "isCorrect": true,
+                  "name": "New Orleans Pelicans +7.5",
+                  "optionDetails": [
+                    {
+                      "key": "points",
+                      "value": "7.5"
+                    }
+                  ],
+                  "shortName": "+7.5",
+                  "stakePercentage": "39.83",
+                  "status": "CLOSED",
+                  "teamIds": [
+                    "nba.t.3"
+                  ],
+                  "wagerPercentage": "40.82"
+                },
+                {
+                  "americanOdds": -105,
+                  "decimalOdds": "1.950",
+                  "displayName": "-7.5",
+                  "id": 644086683,
+                  "isCorrect": false,
+                  "name": "Philadelphia 76ers -7.5",
+                  "optionDetails": [
+                    {
+                      "key": "points",
+                      "value": "-7.5"
+                    }
+                  ],
+                  "shortName": "-7.5",
+                  "stakePercentage": "60.17",
+                  "status": "CLOSED",
+                  "teamIds": [
+                    "nba.t.20"
+                  ],
+                  "wagerPercentage": "59.18"
+                }
+              ],
+              "period": "FULL_GAME",
+              "type": "SPREAD"
+            },
+            {
+              "baseCategory": "MONEY_LINE",
+              "eventState": "LIVE",
+              "id": 999999999,
+              "name": "Money Line (US)",
+              "options": [],
+              "period": "FULL_GAME",
+              "type": "MONEY_LINE"
+            }
+          ],
+          "gameOddsSummary": {
+            "favoriteId": "nba.t.20",
+            "pregameOddsDisplay": "-7.5, O/U 219.5"
+          },
+          "homeTeam": {
+            "displayName": "Philadelphia",
+            "teamId": "nba.t.20"
+          },
+          "league": {
+            "shortName": "NBA"
+          },
+          "startDate": "2025-01-10-10:00",
+          "startTime": "2025-01-10T14:00:00-10:00",
+          "status": "FINAL"
+        }
+      ]
+    }
+  }
+}

@@ -1,62 +1,24 @@
-from scrape_yahoo import *
+"""Compatibility helpers for spread-focused analysis on normalized NBA rows."""
 
-class ScrapeYahooNBA(ScrapeYahoo):
-    # games with teams not on this list (like all-star games) are ignored
-    TEAMS = {
-        'Atlanta',
-        'Boston',
-        'Brooklyn',
-        'Charlotte',
-        'Chicago',
-        'Cleveland',
-        'Dallas',
-        'Denver',
-        'Detroit',
-        'Golden State',
-        'Houston',
-        'Indiana',
-        'LA Clippers',
-        'LA Lakers',
-        'Memphis',
-        'Miami',
-        'Milwaukee',
-        'Minnesota',
-        'New Orleans',
-        'New York',
-        'Oklahoma City',
-        'Orlando',
-        'Philadelphia',
-        'Phoenix',
-        'Portland',
-        'Sacramento',
-        'San Antonio',
-        'Toronto',
-        'Utah',
-        'Washington'
-    }
+from __future__ import annotations
 
-    def parse_yahoo_data(self, json_data, filename='', parsed_rules=None):
-        """
-        takes json data from a single game and parses it with the rules in scrape_rules.RULES.
-
-        it returns None for postponed/non-completed games, and games with unrecognized teams (all star games)
-        """
-        row = {}
-        for k, jsonpath_expression in parsed_rules.items():
-            try:
-                results = [item.value for item in jsonpath_expression.find(json_data)][0]
-                row[k] = results
-            except:
-                print(f"file: {filename} failed on {jsonpath_expression}")
-
-        # need to filter out all-star games and other nonsense
-        if row['home_team'] not in self.TEAMS:
-            print(f"skipping game between {row['home_team']} and {row['away_team']}")
-            return None
-
-        if ('total_over_won' in row) and (row['total_over_won'] or row['total_under_won']):
-            return row
-        else:
-            return None # nobody won (postponed game) or yahoo missing data
+from typing import Iterable
 
 
+def filter_spread_rows(rows: Iterable[dict]) -> list[dict]:
+    """Return spread-only rows from normalized market options or edges."""
+
+    return [dict(row) for row in rows if row.get("market_type") == "spread"]
+
+
+def add_spread_columns(rows: Iterable[dict]) -> list[dict]:
+    """Compatibility helper for older notebooks expecting spread-derived fields."""
+
+    enriched: list[dict] = []
+    for row in rows:
+        item = dict(row)
+        if item.get("market_type") == "spread":
+            item["spread_points"] = item.get("line")
+            item["spread_side"] = item.get("selection_kind")
+        enriched.append(item)
+    return enriched

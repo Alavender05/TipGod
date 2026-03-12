@@ -1,0 +1,2 @@
+cloudscraper>=1.2.71
+pyarrow>=16.0.0
