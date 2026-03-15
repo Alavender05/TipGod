@@ -1,11 +1,11 @@
 {
   "dataset_file": "capping-pro-nba-surfaces.json",
   "run_summary_file": "capping-pro-nba-surfaces.run-summary.json",
-  "generated_at": "2026-03-15T02:47:49.092Z",
+  "generated_at": "2026-03-15T07:05:35.916Z",
   "source_domain": "capping.pro",
   "league_id": "NBA",
   "sport": "Basketball",
-  "total_items": 444,
+  "total_items": 447,
   "surface_count": 6,
   "surfaces": [
     {
@@ -41,14 +41,14 @@
       "id": "edges",
       "label": "Edges",
       "source_url": "https://capping.pro/nba-edges",
-      "item_count": 27,
+      "item_count": 30,
       "top_titles": [
         {
           "title": "Jeremiah FearsPG",
           "count": 2
         },
         {
-          "title": "Brandon WilliamsPG",
+          "title": "Kevin LoveC",
           "count": 1
         },
         {
@@ -56,11 +56,11 @@
           "count": 1
         },
         {
-          "title": "Kevin LoveC",
+          "title": "Saddiq BeySF",
           "count": 1
         },
         {
-          "title": "Saddiq BeySF",
+          "title": "Klay ThompsonSF",
           "count": 1
         }
       ],
@@ -89,7 +89,7 @@
           "count": 4
         },
         {
-          "title": "Jamal Murray🟠",
+          "title": "Jamal Murray",
           "count": 4
         }
       ],
@@ -110,7 +110,7 @@
           "count": 1
         },
         {
-          "title": "Elite Mixed1 Legs",
+          "title": "Elite Mixed2 Legs",
           "count": 1
         },
         {
@@ -118,7 +118,7 @@
           "count": 1
         },
         {
-          "title": "Simone FontecchioMIA • PF",
+          "title": "Brooks BarnhizerOKC • C",
           "count": 1
         }
       ],
@@ -143,7 +143,7 @@
           "count": 2
         },
         {
-          "title": "Payton Pritchard",
+          "title": "Christian Braun",
           "count": 2
         },
         {
@@ -160,6 +160,10 @@
       "item_count": 25,
       "top_titles": [
         {
+          "title": "Joel Embiid",
+          "count": 3
+        },
+        {
           "title": "Daniel Gafford",
           "count": 2
         },
@@ -172,19 +176,15 @@
           "count": 2
         },
         {
-          "title": "Ryan Rollins",
-          "count": 2
-        },
-        {
-          "title": "Joel Embiid",
-          "count": 2
+          "title": "Jarrett Allen",
+          "count": 1
         }
       ],
       "notes": []
     }
   ],
   "run_summary": {
-    "generated_at": "2026-03-15T02:46:03.321Z",
+    "generated_at": "2026-03-15T07:03:48.316Z",
     "source_domain": "capping.pro",
     "league_id": "NBA",
     "sport": "Basketball",
@@ -195,8 +195,8 @@
         "id": "best-bets",
         "label": "Best Bets",
         "source_url": "https://capping.pro/nba-bestbets",
-        "started_at": "2026-03-15T02:46:03.322Z",
-        "finished_at": "2026-03-15T02:46:26.907Z",
+        "started_at": "2026-03-15T07:03:48.317Z",
+        "finished_at": "2026-03-15T07:04:13.277Z",
         "page_url": "https://capping.pro/nba-bestbets",
         "accepted_items": 98,
         "rejected_wrong_source": 0,
@@ -208,10 +208,10 @@
         "id": "edges",
         "label": "Edges",
         "source_url": "https://capping.pro/nba-edges",
-        "started_at": "2026-03-15T02:46:26.907Z",
-        "finished_at": "2026-03-15T02:46:37.449Z",
+        "started_at": "2026-03-15T07:04:13.277Z",
+        "finished_at": "2026-03-15T07:04:23.929Z",
         "page_url": "https://capping.pro/nba-edges",
-        "accepted_items": 27,
+        "accepted_items": 30,
         "rejected_wrong_source": 0,
         "rejected_wrong_league": 0,
         "rejected_wrong_surface": 0,
@@ -221,8 +221,8 @@
         "id": "props",
         "label": "Props",
         "source_url": "https://capping.pro/nba-propfinder",
-        "started_at": "2026-03-15T02:46:37.449Z",
-        "finished_at": "2026-03-15T02:47:03.012Z",
+        "started_at": "2026-03-15T07:04:23.929Z",
+        "finished_at": "2026-03-15T07:04:49.577Z",
         "page_url": "https://capping.pro/nba-propfinder",
         "accepted_items": 120,
         "rejected_wrong_source": 0,
@@ -234,8 +234,8 @@
         "id": "parlay",
         "label": "Parlay",
         "source_url": "https://capping.pro/parlay-of-the-night",
-        "started_at": "2026-03-15T02:47:03.012Z",
-        "finished_at": "2026-03-15T02:47:13.554Z",
+        "started_at": "2026-03-15T07:04:49.577Z",
+        "finished_at": "2026-03-15T07:05:00.197Z",
         "page_url": "https://capping.pro/parlay-of-the-night",
         "accepted_items": 54,
         "rejected_wrong_source": 0,
@@ -247,8 +247,8 @@
         "id": "degen",
         "label": "Degen",
         "source_url": "https://capping.pro/degen-theory",
-        "started_at": "2026-03-15T02:47:13.554Z",
-        "finished_at": "2026-03-15T02:47:31.334Z",
+        "started_at": "2026-03-15T07:05:00.197Z",
+        "finished_at": "2026-03-15T07:05:18.092Z",
         "page_url": "https://capping.pro/degen-theory",
         "accepted_items": 120,
         "rejected_wrong_source": 0,
@@ -260,8 +260,8 @@
         "id": "exploits",
         "label": "Exploits",
         "source_url": "https://capping.pro/nba-matchup-exploits",
-        "started_at": "2026-03-15T02:47:31.334Z",
-        "finished_at": "2026-03-15T02:47:49.058Z",
+        "started_at": "2026-03-15T07:05:18.092Z",
+        "finished_at": "2026-03-15T07:05:35.880Z",
         "page_url": "https://capping.pro/nba-matchup-exploits",
         "accepted_items": 25,
         "rejected_wrong_source": 0,
@@ -271,7 +271,7 @@
       }
     ],
     "totals": {
-      "unique_items": 444,
+      "unique_items": 447,
       "rejected_wrong_source": 0,
       "rejected_wrong_league": 0,
       "rejected_wrong_surface": 0
