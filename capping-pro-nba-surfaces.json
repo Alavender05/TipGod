@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-03-15T13:03:31.748Z",
+  "generated_at": "2026-03-15T18:47:02.182Z",
   "source_domain": "capping.pro",
   "league_id": "NBA",
   "sport": "Basketball",
@@ -12,8 +12,8 @@
         "id": "best-bets",
         "label": "Best Bets",
         "source_url": "https://capping.pro/nba-bestbets",
-        "started_at": "2026-03-15T13:01:45.484Z",
-        "finished_at": "2026-03-15T13:02:09.307Z",
+        "started_at": "2026-03-15T18:45:15.368Z",
+        "finished_at": "2026-03-15T18:45:39.524Z",
         "page_url": "https://capping.pro/nba-bestbets",
         "accepted_items": 98,
         "rejected_wrong_source": 0,
@@ -6877,10 +6877,10 @@
         "id": "edges",
         "label": "Edges",
         "source_url": "https://capping.pro/nba-edges",
-        "started_at": "2026-03-15T13:02:09.307Z",
-        "finished_at": "2026-03-15T13:02:19.904Z",
+        "started_at": "2026-03-15T18:45:39.524Z",
+        "finished_at": "2026-03-15T18:45:50.178Z",
         "page_url": "https://capping.pro/nba-edges",
-        "accepted_items": 26,
+        "accepted_items": 27,
         "rejected_wrong_source": 0,
         "rejected_wrong_league": 0,
         "rejected_wrong_surface": 0,
@@ -6901,16 +6901,16 @@
           "team": "Oklahoma City Thunder",
           "player_name": "Isaiah JoeSG",
           "sportsbook_name": null,
-          "odds_decimal": 120,
+          "odds_decimal": 118,
           "updated_at": null,
-          "reason": "STRONG BET · LOW · $0.16",
+          "reason": "STRONG BET · LOW · $0.17",
           "detail_notes": [],
           "metrics": [
             {
               "key": "win_probability",
               "label": "Win Prob",
-              "value": "63.3%",
-              "value_numeric": 63.3
+              "value": "63.1%",
+              "value_numeric": 63.1
             },
             {
               "key": "hit_rate",
@@ -6921,8 +6921,8 @@
             {
               "key": "recommended_bet",
               "label": "Rec Bet",
-              "value": "$26.20",
-              "value_numeric": 26.2
+              "value": "$26.40",
+              "value_numeric": 26.4
             }
           ],
           "tags": [
@@ -6936,14 +6936,14 @@
             "prop": "Points",
             "line": "7",
             "direction": "OVER",
-            "odds": "−120",
+            "odds": "−118",
             "hit_rate": "72.0%",
-            "win_prob": "63.3%",
-            "edge_": "8.7pp",
+            "win_prob": "63.1%",
+            "edge_": "8.9pp",
             "tier": "STRONG BET",
-            "ev_unit": "$0.16",
+            "ev_unit": "$0.17",
             "risk": "LOW",
-            "rec_bet": "$26.20",
+            "rec_bet": "$26.40",
             "active_prop_type": "All Props"
           }
         },
@@ -7312,6 +7312,126 @@
           "source_url": "https://capping.pro/nba-edges",
           "league_id": "NBA",
           "sport": "Basketball",
+          "item_id": "9559fade302db2990221e97b82781ece6b6a0eaa",
+          "title": "Sandro MamukelashviliC",
+          "subtitle": "TOR · Points",
+          "matchup": null,
+          "selection": "OVER 6 Points",
+          "market_type": "points",
+          "team": "Toronto Raptors",
+          "player_name": "Sandro MamukelashviliC",
+          "sportsbook_name": null,
+          "odds_decimal": 277,
+          "updated_at": null,
+          "reason": "VALUE · LOW · $0.07",
+          "detail_notes": [],
+          "metrics": [
+            {
+              "key": "win_probability",
+              "label": "Win Prob",
+              "value": "78.6%",
+              "value_numeric": 78.6
+            },
+            {
+              "key": "hit_rate",
+              "label": "Hit Rate",
+              "value": "85.7%",
+              "value_numeric": 85.7
+            },
+            {
+              "key": "recommended_bet",
+              "label": "Rec Bet",
+              "value": "$35.60",
+              "value_numeric": 35.6
+            }
+          ],
+          "tags": [
+            "VALUE",
+            "LOW",
+            "All Props"
+          ],
+          "raw_context": {
+            "player": "Sandro MamukelashviliC",
+            "team": "TOR",
+            "prop": "Points",
+            "line": "6",
+            "direction": "OVER",
+            "odds": "−277",
+            "hit_rate": "85.7%",
+            "win_prob": "78.6%",
+            "edge_": "5.1pp",
+            "tier": "VALUE",
+            "ev_unit": "$0.07",
+            "risk": "LOW",
+            "rec_bet": "$35.60",
+            "active_prop_type": "All Props"
+          }
+        },
+        {
+          "surface": "edges",
+          "source_url": "https://capping.pro/nba-edges",
+          "league_id": "NBA",
+          "sport": "Basketball",
+          "item_id": "8f6c4edf2dfcef3da2e89ba53906ed07b0433658",
+          "title": "James HardenPG",
+          "subtitle": "CLE · Points",
+          "matchup": null,
+          "selection": "OVER 15 Points",
+          "market_type": "points",
+          "team": "Cleveland Cavaliers",
+          "player_name": "James HardenPG",
+          "sportsbook_name": null,
+          "odds_decimal": 411,
+          "updated_at": null,
+          "reason": "VALUE · LOW📊 · $0.06",
+          "detail_notes": [],
+          "metrics": [
+            {
+              "key": "win_probability",
+              "label": "Win Prob",
+              "value": "85.5%",
+              "value_numeric": 85.5
+            },
+            {
+              "key": "hit_rate",
+              "label": "Hit Rate",
+              "value": "94.4%",
+              "value_numeric": 94.4
+            },
+            {
+              "key": "recommended_bet",
+              "label": "Rec Bet",
+              "value": "$51.80",
+              "value_numeric": 51.8
+            }
+          ],
+          "tags": [
+            "VALUE",
+            "LOW📊",
+            "All Props"
+          ],
+          "raw_context": {
+            "player": "James HardenPG",
+            "team": "CLE",
+            "prop": "Points",
+            "line": "15",
+            "direction": "OVER",
+            "odds": "−411",
+            "hit_rate": "94.4%",
+            "win_prob": "85.5%",
+            "edge_": "5.0pp",
+            "tier": "VALUE",
+            "ev_unit": "$0.06",
+            "risk": "LOW📊",
+            "rec_bet": "$51.80",
+            "active_prop_type": "All Props"
+          }
+        },
+        {
+          "surface": "edges",
+          "source_url": "https://capping.pro/nba-edges",
+          "league_id": "NBA",
+          "sport": "Basketball",
           "item_id": "a239c5b686a07e74dd73ada4284fa7d2c77a7ea8",
           "title": "Jeremiah FearsPG",
           "subtitle": "NOP · Assists",
@@ -7424,66 +7544,6 @@
             "ev_unit": "$0.08",
             "risk": "LOW",
             "rec_bet": "$19.90",
-            "active_prop_type": "All Props"
-          }
-        },
-        {
-          "surface": "edges",
-          "source_url": "https://capping.pro/nba-edges",
-          "league_id": "NBA",
-          "sport": "Basketball",
-          "item_id": "8f6c4edf2dfcef3da2e89ba53906ed07b0433658",
-          "title": "James HardenPG",
-          "subtitle": "CLE · Points",
-          "matchup": null,
-          "selection": "OVER 15 Points",
-          "market_type": "points",
-          "team": "Cleveland Cavaliers",
-          "player_name": "James HardenPG",
-          "sportsbook_name": null,
-          "odds_decimal": 428,
-          "updated_at": null,
-          "reason": "VALUE · LOW📊 · $0.06",
-          "detail_notes": [],
-          "metrics": [
-            {
-              "key": "win_probability",
-              "label": "Win Prob",
-              "value": "85.9%",
-              "value_numeric": 85.9
-            },
-            {
-              "key": "hit_rate",
-              "label": "Hit Rate",
-              "value": "94.4%",
-              "value_numeric": 94.4
-            },
-            {
-              "key": "recommended_bet",
-              "label": "Rec Bet",
-              "value": "$51.60",
-              "value_numeric": 51.6
-            }
-          ],
-          "tags": [
-            "VALUE",
-            "LOW📊",
-            "All Props"
-          ],
-          "raw_context": {
-            "player": "James HardenPG",
-            "team": "CLE",
-            "prop": "Points",
-            "line": "15",
-            "direction": "OVER",
-            "odds": "−428",
-            "hit_rate": "94.4%",
-            "win_prob": "85.9%",
-            "edge_": "4.8pp",
-            "tier": "VALUE",
-            "ev_unit": "$0.06",
-            "risk": "LOW📊",
-            "rec_bet": "$51.60",
             "active_prop_type": "All Props"
           }
         },
@@ -7681,16 +7741,16 @@
           "team": "Portland Trail Blazers",
           "player_name": "Jerami GrantPF",
           "sportsbook_name": null,
-          "odds_decimal": 133,
+          "odds_decimal": 131,
           "updated_at": null,
-          "reason": "VALUE · MODERATE · $0.10",
+          "reason": "VALUE · MODERATE · $0.09",
           "detail_notes": [],
           "metrics": [
             {
               "key": "win_probability",
               "label": "Win Prob",
-              "value": "47.2%",
-              "value_numeric": 47.2
+              "value": "47.4%",
+              "value_numeric": 47.4
             },
             {
               "key": "hit_rate",
@@ -7701,8 +7761,8 @@
             {
               "key": "recommended_bet",
               "label": "Rec Bet",
-              "value": "$8.00",
-              "value_numeric": 8
+              "value": "$7.80",
+              "value_numeric": 7.8
             }
           ],
           "tags": [
@@ -7716,14 +7776,14 @@
             "prop": "Points",
             "line": "20",
             "direction": "OVER",
-            "odds": "+133",
+            "odds": "+131",
             "hit_rate": "52.2%",
-            "win_prob": "47.2%",
-            "edge_": "4.3pp",
+            "win_prob": "47.4%",
+            "edge_": "4.1pp",
             "tier": "VALUE",
-            "ev_unit": "$0.10",
+            "ev_unit": "$0.09",
             "risk": "MODERATE",
-            "rec_bet": "$8.00",
+            "rec_bet": "$7.80",
             "active_prop_type": "All Props"
           }
         },
@@ -8457,8 +8517,8 @@
         "id": "props",
         "label": "Props",
         "source_url": "https://capping.pro/nba-propfinder",
-        "started_at": "2026-03-15T13:02:19.904Z",
-        "finished_at": "2026-03-15T13:02:45.541Z",
+        "started_at": "2026-03-15T18:45:50.178Z",
+        "finished_at": "2026-03-15T18:46:15.876Z",
         "page_url": "https://capping.pro/nba-propfinder",
         "accepted_items": 120,
         "rejected_wrong_source": 0,
@@ -36631,8 +36691,8 @@
         "id": "parlay",
         "label": "Parlay",
         "source_url": "https://capping.pro/parlay-of-the-night",
-        "started_at": "2026-03-15T13:02:45.541Z",
-        "finished_at": "2026-03-15T13:02:56.099Z",
+        "started_at": "2026-03-15T18:46:15.876Z",
+        "finished_at": "2026-03-15T18:46:26.478Z",
         "page_url": "https://capping.pro/parlay-of-the-night",
         "accepted_items": 54,
         "rejected_wrong_source": 0,
@@ -40153,8 +40213,8 @@
         "id": "degen",
         "label": "Degen",
         "source_url": "https://capping.pro/degen-theory",
-        "started_at": "2026-03-15T13:02:56.099Z",
-        "finished_at": "2026-03-15T13:03:13.952Z",
+        "started_at": "2026-03-15T18:46:26.478Z",
+        "finished_at": "2026-03-15T18:46:44.341Z",
         "page_url": "https://capping.pro/degen-theory",
         "accepted_items": 120,
         "rejected_wrong_source": 0,
@@ -47853,8 +47913,8 @@
         "id": "exploits",
         "label": "Exploits",
         "source_url": "https://capping.pro/nba-matchup-exploits",
-        "started_at": "2026-03-15T13:03:13.952Z",
-        "finished_at": "2026-03-15T13:03:31.718Z",
+        "started_at": "2026-03-15T18:46:44.341Z",
+        "finished_at": "2026-03-15T18:47:02.147Z",
         "page_url": "https://capping.pro/nba-matchup-exploits",
         "accepted_items": 25,
         "rejected_wrong_source": 0,
