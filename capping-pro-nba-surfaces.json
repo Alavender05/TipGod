@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-03-16T13:24:00.252Z",
+  "generated_at": "2026-03-16T19:10:54.643Z",
   "source_domain": "capping.pro",
   "league_id": "NBA",
   "sport": "Basketball",
@@ -12,8 +12,8 @@
         "id": "best-bets",
         "label": "Best Bets",
         "source_url": "https://capping.pro/nba-bestbets",
-        "started_at": "2026-03-16T13:22:11.817Z",
-        "finished_at": "2026-03-16T13:22:37.511Z",
+        "started_at": "2026-03-16T19:09:06.509Z",
+        "finished_at": "2026-03-16T19:09:31.828Z",
         "page_url": "https://capping.pro/nba-bestbets",
         "accepted_items": 98,
         "rejected_wrong_source": 0,
@@ -6877,10 +6877,10 @@
         "id": "edges",
         "label": "Edges",
         "source_url": "https://capping.pro/nba-edges",
-        "started_at": "2026-03-16T13:22:37.511Z",
-        "finished_at": "2026-03-16T13:22:48.161Z",
+        "started_at": "2026-03-16T19:09:31.828Z",
+        "finished_at": "2026-03-16T19:09:42.500Z",
         "page_url": "https://capping.pro/nba-edges",
-        "accepted_items": 24,
+        "accepted_items": 22,
         "rejected_wrong_source": 0,
         "rejected_wrong_league": 0,
         "rejected_wrong_surface": 0,
@@ -6961,16 +6961,16 @@
           "team": "Phoenix Suns",
           "player_name": "Grayson AllenSG",
           "sportsbook_name": null,
-          "odds_decimal": 239,
+          "odds_decimal": 244,
           "updated_at": null,
-          "reason": "MARGINAL · MODERATE📊 · $0.22",
+          "reason": "MARGINAL · MODERATE📊 · $0.23",
           "detail_notes": [],
           "metrics": [
             {
               "key": "win_probability",
               "label": "Win Prob",
-              "value": "36.1%",
-              "value_numeric": 36.1
+              "value": "35.8%",
+              "value_numeric": 35.8
             },
             {
               "key": "hit_rate",
@@ -6996,12 +6996,12 @@
             "prop": "Assists",
             "line": "5",
             "direction": "OVER",
-            "odds": "+239",
+            "odds": "+244",
             "hit_rate": "50.0%",
-            "win_prob": "36.1%",
-            "edge_": "6.6pp",
+            "win_prob": "35.8%",
+            "edge_": "6.7pp",
             "tier": "MARGINAL",
-            "ev_unit": "$0.22",
+            "ev_unit": "$0.23",
             "risk": "MODERATE📊",
             "rec_bet": "$6.90",
             "active_prop_type": "All Props"
@@ -7424,6 +7424,66 @@
             "ev_unit": "$0.08",
             "risk": "LOW",
             "rec_bet": "$19.90",
+            "active_prop_type": "All Props"
+          }
+        },
+        {
+          "surface": "edges",
+          "source_url": "https://capping.pro/nba-edges",
+          "league_id": "NBA",
+          "sport": "Basketball",
+          "item_id": "66219ada3905538c1558a15c55d4889ac9b1199e",
+          "title": "Collin GillespieSG",
+          "subtitle": "PHX · Points",
+          "matchup": null,
+          "selection": "OVER 10 Points",
+          "market_type": "points",
+          "team": "Phoenix Suns",
+          "player_name": "Collin GillespieSG",
+          "sportsbook_name": null,
+          "odds_decimal": 136,
+          "updated_at": null,
+          "reason": "VALUE · LOW · $0.08",
+          "detail_notes": [],
+          "metrics": [
+            {
+              "key": "win_probability",
+              "label": "Win Prob",
+              "value": "62.3%",
+              "value_numeric": 62.3
+            },
+            {
+              "key": "hit_rate",
+              "label": "Hit Rate",
+              "value": "68.2%",
+              "value_numeric": 68.2
+            },
+            {
+              "key": "recommended_bet",
+              "label": "Rec Bet",
+              "value": "$15.80",
+              "value_numeric": 15.8
+            }
+          ],
+          "tags": [
+            "VALUE",
+            "LOW",
+            "All Props"
+          ],
+          "raw_context": {
+            "player": "Collin GillespieSG",
+            "team": "PHX",
+            "prop": "Points",
+            "line": "10",
+            "direction": "OVER",
+            "odds": "−136",
+            "hit_rate": "68.2%",
+            "win_prob": "62.3%",
+            "edge_": "4.6pp",
+            "tier": "VALUE",
+            "ev_unit": "$0.08",
+            "risk": "LOW",
+            "rec_bet": "$15.80",
             "active_prop_type": "All Props"
           }
         },
@@ -7912,118 +7972,58 @@
           "source_url": "https://capping.pro/nba-edges",
           "league_id": "NBA",
           "sport": "Basketball",
-          "item_id": "54b5808600434531886c4d78efda717facac06ce",
-          "title": "Naji MarshallPF",
-          "subtitle": "DAL · Points",
+          "item_id": "a954f97ca88b08155f4c011b9d5851ef877fdf79",
+          "title": "Jaylen BrownSF",
+          "subtitle": "BOS · Points",
           "matchup": null,
-          "selection": "OVER 30 Points",
+          "selection": "OVER 20 Points",
           "market_type": "points",
-          "team": "Dallas Mavericks",
-          "player_name": "Naji MarshallPF",
+          "team": "Boston Celtics",
+          "player_name": "Jaylen BrownSF",
           "sportsbook_name": null,
-          "odds_decimal": 1920,
+          "odds_decimal": 278,
           "updated_at": null,
-          "reason": "LONGSHOT VALUE · HIGH_VARIANCE · $0.75",
+          "reason": "MARGINAL · LOW · $0.05",
           "detail_notes": [],
           "metrics": [
             {
               "key": "win_probability",
               "label": "Win Prob",
-              "value": "8.7%⚠️",
-              "value_numeric": 8.7
+              "value": "77.2%",
+              "value_numeric": 77.2
             },
             {
               "key": "hit_rate",
               "label": "Hit Rate",
-              "value": "13.0%",
-              "value_numeric": 13
+              "value": "81.8%",
+              "value_numeric": 81.8
             },
             {
               "key": "recommended_bet",
               "label": "Rec Bet",
-              "value": "$0.50",
-              "value_numeric": 0.5
+              "value": "$25.30",
+              "value_numeric": 25.3
             }
           ],
           "tags": [
-            "LONGSHOT VALUE",
-            "HIGH_VARIANCE",
+            "MARGINAL",
+            "LOW",
             "All Props"
           ],
           "raw_context": {
-            "player": "Naji MarshallPF",
-            "team": "DAL",
+            "player": "Jaylen BrownSF",
+            "team": "BOS",
             "prop": "Points",
-            "line": "30",
+            "line": "20",
             "direction": "OVER",
-            "odds": "+1920",
-            "hit_rate": "13.0%",
-            "win_prob": "8.7%⚠️",
-            "edge_": "3.7pp",
-            "tier": "LONGSHOT VALUE",
-            "ev_unit": "$0.75",
-            "risk": "HIGH_VARIANCE",
-            "rec_bet": "$0.50",
-            "active_prop_type": "All Props"
-          }
-        },
-        {
-          "surface": "edges",
-          "source_url": "https://capping.pro/nba-edges",
-          "league_id": "NBA",
-          "sport": "Basketball",
-          "item_id": "7d605b2e451c8484e6765c3c9879f1e89297e0da",
-          "title": "Jordan GoodwinSF",
-          "subtitle": "PHX · Points",
-          "matchup": null,
-          "selection": "OVER 10 Points",
-          "market_type": "points",
-          "team": "Phoenix Suns",
-          "player_name": "Jordan GoodwinSF",
-          "sportsbook_name": null,
-          "odds_decimal": 395,
-          "updated_at": null,
-          "reason": "HIGH RISK · HIGH_VARIANCE📊 · $0.18",
-          "detail_notes": [],
-          "metrics": [
-            {
-              "key": "win_probability",
-              "label": "Win Prob",
-              "value": "23.7%⚠️",
-              "value_numeric": 23.7
-            },
-            {
-              "key": "hit_rate",
-              "label": "Hit Rate",
-              "value": "31.3%",
-              "value_numeric": 31.3
-            },
-            {
-              "key": "recommended_bet",
-              "label": "Rec Bet",
-              "value": "$2.20",
-              "value_numeric": 2.2
-            }
-          ],
-          "tags": [
-            "HIGH RISK",
-            "HIGH_VARIANCE📊",
-            "All Props"
-          ],
-          "raw_context": {
-            "player": "Jordan GoodwinSF",
-            "team": "PHX",
-            "prop": "Points",
-            "line": "10",
-            "direction": "OVER",
-            "odds": "+395",
-            "hit_rate": "31.3%",
-            "win_prob": "23.7%⚠️",
-            "edge_": "3.5pp",
-            "tier": "HIGH RISK",
-            "ev_unit": "$0.18",
-            "risk": "HIGH_VARIANCE📊",
-            "rec_bet": "$2.20",
+            "odds": "−278",
+            "hit_rate": "81.8%",
+            "win_prob": "77.2%",
+            "edge_": "3.6pp",
+            "tier": "MARGINAL",
+            "ev_unit": "$0.05",
+            "risk": "LOW",
+            "rec_bet": "$25.30",
             "active_prop_type": "All Props"
           }
         },
@@ -8092,66 +8092,6 @@
           "source_url": "https://capping.pro/nba-edges",
           "league_id": "NBA",
           "sport": "Basketball",
-          "item_id": "6cef8bc9a45dfff809222e0f6e080e8588d0ac72",
-          "title": "Deandre AytonC",
-          "subtitle": "LAL · Points",
-          "matchup": null,
-          "selection": "OVER 20 Points",
-          "market_type": "points",
-          "team": "Los Angeles Lakers",
-          "player_name": "Deandre AytonC",
-          "sportsbook_name": null,
-          "odds_decimal": 1440,
-          "updated_at": null,
-          "reason": "LONGSHOT VALUE · HIGH_VARIANCE · $0.50",
-          "detail_notes": [],
-          "metrics": [
-            {
-              "key": "win_probability",
-              "label": "Win Prob",
-              "value": "9.8%⚠️",
-              "value_numeric": 9.8
-            },
-            {
-              "key": "hit_rate",
-              "label": "Hit Rate",
-              "value": "14.3%",
-              "value_numeric": 14.3
-            },
-            {
-              "key": "recommended_bet",
-              "label": "Rec Bet",
-              "value": "$0.60",
-              "value_numeric": 0.6
-            }
-          ],
-          "tags": [
-            "LONGSHOT VALUE",
-            "HIGH_VARIANCE",
-            "All Props"
-          ],
-          "raw_context": {
-            "player": "Deandre AytonC",
-            "team": "LAL",
-            "prop": "Points",
-            "line": "20",
-            "direction": "OVER",
-            "odds": "+1440",
-            "hit_rate": "14.3%",
-            "win_prob": "9.8%⚠️",
-            "edge_": "3.3pp",
-            "tier": "LONGSHOT VALUE",
-            "ev_unit": "$0.50",
-            "risk": "HIGH_VARIANCE",
-            "rec_bet": "$0.60",
-            "active_prop_type": "All Props"
-          }
-        },
-        {
-          "surface": "edges",
-          "source_url": "https://capping.pro/nba-edges",
-          "league_id": "NBA",
-          "sport": "Basketball",
           "item_id": "620f3ee37ddc2138b980366ed7bdb49f2cddc8dc",
           "title": "Kevin LoveC",
           "subtitle": "UTA · Rebounds",
@@ -8204,66 +8144,6 @@
             "ev_unit": "$0.06",
             "risk": "LOW📊",
             "rec_bet": "$10.70",
-            "active_prop_type": "All Props"
-          }
-        },
-        {
-          "surface": "edges",
-          "source_url": "https://capping.pro/nba-edges",
-          "league_id": "NBA",
-          "sport": "Basketball",
-          "item_id": "45b270588015340873f283b825092d2cf2d5d243",
-          "title": "Guerschon YabuselePF",
-          "subtitle": "CHI · Rebounds",
-          "matchup": null,
-          "selection": "OVER 10 Rebounds",
-          "market_type": "rebounds",
-          "team": "Chicago Bulls",
-          "player_name": "Guerschon YabuselePF",
-          "sportsbook_name": null,
-          "odds_decimal": 1280,
-          "updated_at": null,
-          "reason": "HIGH RISK · HIGH_VARIANCE · $0.41",
-          "detail_notes": [],
-          "metrics": [
-            {
-              "key": "win_probability",
-              "label": "Win Prob",
-              "value": "10.2%⚠️",
-              "value_numeric": 10.2
-            },
-            {
-              "key": "hit_rate",
-              "label": "Hit Rate",
-              "value": "14.3%",
-              "value_numeric": 14.3
-            },
-            {
-              "key": "recommended_bet",
-              "label": "Rec Bet",
-              "value": "$0.60",
-              "value_numeric": 0.6
-            }
-          ],
-          "tags": [
-            "HIGH RISK",
-            "HIGH_VARIANCE",
-            "All Props"
-          ],
-          "raw_context": {
-            "player": "Guerschon YabuselePF",
-            "team": "CHI",
-            "prop": "Rebounds",
-            "line": "10",
-            "direction": "OVER",
-            "odds": "+1280",
-            "hit_rate": "14.3%",
-            "win_prob": "10.2%⚠️",
-            "edge_": "3.0pp",
-            "tier": "HIGH RISK",
-            "ev_unit": "$0.41",
-            "risk": "HIGH_VARIANCE",
-            "rec_bet": "$0.60",
             "active_prop_type": "All Props"
           }
         },
@@ -8337,8 +8217,8 @@
         "id": "props",
         "label": "Props",
         "source_url": "https://capping.pro/nba-propfinder",
-        "started_at": "2026-03-16T13:22:48.161Z",
-        "finished_at": "2026-03-16T13:23:13.808Z",
+        "started_at": "2026-03-16T19:09:42.500Z",
+        "finished_at": "2026-03-16T19:10:08.207Z",
         "page_url": "https://capping.pro/nba-propfinder",
         "accepted_items": 120,
         "rejected_wrong_source": 0,
@@ -36527,8 +36407,8 @@
         "id": "parlay",
         "label": "Parlay",
         "source_url": "https://capping.pro/parlay-of-the-night",
-        "started_at": "2026-03-16T13:23:13.808Z",
-        "finished_at": "2026-03-16T13:23:24.446Z",
+        "started_at": "2026-03-16T19:10:08.207Z",
+        "finished_at": "2026-03-16T19:10:18.854Z",
         "page_url": "https://capping.pro/parlay-of-the-night",
         "accepted_items": 54,
         "rejected_wrong_source": 0,
@@ -40049,8 +39929,8 @@
         "id": "degen",
         "label": "Degen",
         "source_url": "https://capping.pro/degen-theory",
-        "started_at": "2026-03-16T13:23:24.446Z",
-        "finished_at": "2026-03-16T13:23:42.362Z",
+        "started_at": "2026-03-16T19:10:18.854Z",
+        "finished_at": "2026-03-16T19:10:36.770Z",
         "page_url": "https://capping.pro/degen-theory",
         "accepted_items": 120,
         "rejected_wrong_source": 0,
@@ -47749,8 +47629,8 @@
         "id": "exploits",
         "label": "Exploits",
         "source_url": "https://capping.pro/nba-matchup-exploits",
-        "started_at": "2026-03-16T13:23:42.362Z",
-        "finished_at": "2026-03-16T13:24:00.215Z",
+        "started_at": "2026-03-16T19:10:36.770Z",
+        "finished_at": "2026-03-16T19:10:54.609Z",
         "page_url": "https://capping.pro/nba-matchup-exploits",
         "accepted_items": 25,
         "rejected_wrong_source": 0,
