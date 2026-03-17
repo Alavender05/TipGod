@@ -1,11 +1,11 @@
 {
   "dataset_file": "capping-pro-nba-surfaces.json",
   "run_summary_file": "capping-pro-nba-surfaces.run-summary.json",
-  "generated_at": "2026-03-17T07:12:30.436Z",
+  "generated_at": "2026-03-17T13:22:34.647Z",
   "source_domain": "capping.pro",
   "league_id": "NBA",
   "sport": "Basketball",
-  "total_items": 436,
+  "total_items": 431,
   "surface_count": 6,
   "surfaces": [
     {
@@ -41,18 +41,10 @@
       "id": "edges",
       "label": "Edges",
       "source_url": "https://capping.pro/nba-edges",
-      "item_count": 24,
+      "item_count": 19,
       "top_titles": [
         {
-          "title": "Cason WallaceSG",
-          "count": 2
-        },
-        {
           "title": "Isaiah JoeSG",
-          "count": 1
-        },
-        {
-          "title": "Grayson AllenSG",
           "count": 1
         },
         {
@@ -61,6 +53,14 @@
         },
         {
           "title": "Rayan RupertPG",
+          "count": 1
+        },
+        {
+          "title": "Paolo BancheroPF",
+          "count": 1
+        },
+        {
+          "title": "Julian StrawtherC",
           "count": 1
         }
       ],
@@ -184,7 +184,7 @@
     }
   ],
   "run_summary": {
-    "generated_at": "2026-03-17T07:10:44.452Z",
+    "generated_at": "2026-03-17T13:20:48.710Z",
     "source_domain": "capping.pro",
     "league_id": "NBA",
     "sport": "Basketball",
@@ -195,8 +195,8 @@
         "id": "best-bets",
         "label": "Best Bets",
         "source_url": "https://capping.pro/nba-bestbets",
-        "started_at": "2026-03-17T07:10:44.452Z",
-        "finished_at": "2026-03-17T07:11:08.281Z",
+        "started_at": "2026-03-17T13:20:48.710Z",
+        "finished_at": "2026-03-17T13:21:12.453Z",
         "page_url": "https://capping.pro/nba-bestbets",
         "accepted_items": 93,
         "rejected_wrong_source": 0,
@@ -208,10 +208,10 @@
         "id": "edges",
         "label": "Edges",
         "source_url": "https://capping.pro/nba-edges",
-        "started_at": "2026-03-17T07:11:08.281Z",
-        "finished_at": "2026-03-17T07:11:18.821Z",
+        "started_at": "2026-03-17T13:21:12.453Z",
+        "finished_at": "2026-03-17T13:21:22.985Z",
         "page_url": "https://capping.pro/nba-edges",
-        "accepted_items": 24,
+        "accepted_items": 19,
         "rejected_wrong_source": 0,
         "rejected_wrong_league": 0,
         "rejected_wrong_surface": 0,
@@ -221,8 +221,8 @@
         "id": "props",
         "label": "Props",
         "source_url": "https://capping.pro/nba-propfinder",
-        "started_at": "2026-03-17T07:11:18.821Z",
-        "finished_at": "2026-03-17T07:11:44.358Z",
+        "started_at": "2026-03-17T13:21:22.985Z",
+        "finished_at": "2026-03-17T13:21:48.522Z",
         "page_url": "https://capping.pro/nba-propfinder",
         "accepted_items": 120,
         "rejected_wrong_source": 0,
@@ -234,8 +234,8 @@
         "id": "parlay",
         "label": "Parlay",
         "source_url": "https://capping.pro/parlay-of-the-night",
-        "started_at": "2026-03-17T07:11:44.358Z",
-        "finished_at": "2026-03-17T07:11:54.883Z",
+        "started_at": "2026-03-17T13:21:48.522Z",
+        "finished_at": "2026-03-17T13:21:59.062Z",
         "page_url": "https://capping.pro/parlay-of-the-night",
         "accepted_items": 54,
         "rejected_wrong_source": 0,
@@ -247,8 +247,8 @@
         "id": "degen",
         "label": "Degen",
         "source_url": "https://capping.pro/degen-theory",
-        "started_at": "2026-03-17T07:11:54.883Z",
-        "finished_at": "2026-03-17T07:12:12.674Z",
+        "started_at": "2026-03-17T13:21:59.062Z",
+        "finished_at": "2026-03-17T13:22:16.888Z",
         "page_url": "https://capping.pro/degen-theory",
         "accepted_items": 120,
         "rejected_wrong_source": 0,
@@ -260,8 +260,8 @@
         "id": "exploits",
         "label": "Exploits",
         "source_url": "https://capping.pro/nba-matchup-exploits",
-        "started_at": "2026-03-17T07:12:12.674Z",
-        "finished_at": "2026-03-17T07:12:30.404Z",
+        "started_at": "2026-03-17T13:22:16.888Z",
+        "finished_at": "2026-03-17T13:22:34.614Z",
         "page_url": "https://capping.pro/nba-matchup-exploits",
         "accepted_items": 25,
         "rejected_wrong_source": 0,
@@ -271,7 +271,7 @@
       }
     ],
     "totals": {
-      "unique_items": 436,
+      "unique_items": 431,
       "rejected_wrong_source": 0,
       "rejected_wrong_league": 0,
       "rejected_wrong_surface": 0

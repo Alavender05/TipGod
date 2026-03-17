@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-03-17T07:12:30.436Z",
+  "generated_at": "2026-03-17T13:22:34.647Z",
   "source_domain": "capping.pro",
   "league_id": "NBA",
   "sport": "Basketball",
@@ -12,8 +12,8 @@
         "id": "best-bets",
         "label": "Best Bets",
         "source_url": "https://capping.pro/nba-bestbets",
-        "started_at": "2026-03-17T07:10:44.452Z",
-        "finished_at": "2026-03-17T07:11:08.281Z",
+        "started_at": "2026-03-17T13:20:48.710Z",
+        "finished_at": "2026-03-17T13:21:12.453Z",
         "page_url": "https://capping.pro/nba-bestbets",
         "accepted_items": 93,
         "rejected_wrong_source": 0,
@@ -6525,10 +6525,10 @@
         "id": "edges",
         "label": "Edges",
         "source_url": "https://capping.pro/nba-edges",
-        "started_at": "2026-03-17T07:11:08.281Z",
-        "finished_at": "2026-03-17T07:11:18.821Z",
+        "started_at": "2026-03-17T13:21:12.453Z",
+        "finished_at": "2026-03-17T13:21:22.985Z",
         "page_url": "https://capping.pro/nba-edges",
-        "accepted_items": 24,
+        "accepted_items": 19,
         "rejected_wrong_source": 0,
         "rejected_wrong_league": 0,
         "rejected_wrong_surface": 0,
@@ -6592,126 +6592,6 @@
             "ev_unit": "$0.20",
             "risk": "LOW",
             "rec_bet": "$32.30",
-            "active_prop_type": "All Props"
-          }
-        },
-        {
-          "surface": "edges",
-          "source_url": "https://capping.pro/nba-edges",
-          "league_id": "NBA",
-          "sport": "Basketball",
-          "item_id": "b3a69594c26c408ad063bb9747485fe7efec2e89",
-          "title": "Cason WallaceSG",
-          "subtitle": "OKC · Points",
-          "matchup": null,
-          "selection": "OVER 18 Points",
-          "market_type": "points",
-          "team": "Oklahoma City Thunder",
-          "player_name": "Cason WallaceSG",
-          "sportsbook_name": null,
-          "odds_decimal": 2400,
-          "updated_at": null,
-          "reason": "LONGSHOT VALUE · HIGH_VARIANCE · $2.02",
-          "detail_notes": [],
-          "metrics": [
-            {
-              "key": "win_probability",
-              "label": "Win Prob",
-              "value": "12.1%⚠️",
-              "value_numeric": 12.1
-            },
-            {
-              "key": "hit_rate",
-              "label": "Hit Rate",
-              "value": "20.8%",
-              "value_numeric": 20.8
-            },
-            {
-              "key": "recommended_bet",
-              "label": "Rec Bet",
-              "value": "$0.80",
-              "value_numeric": 0.8
-            }
-          ],
-          "tags": [
-            "LONGSHOT VALUE",
-            "HIGH_VARIANCE",
-            "All Props"
-          ],
-          "raw_context": {
-            "player": "Cason WallaceSG",
-            "team": "OKC",
-            "prop": "Points",
-            "line": "18",
-            "direction": "OVER",
-            "odds": "+2400",
-            "hit_rate": "20.8%",
-            "win_prob": "12.1%⚠️",
-            "edge_": "8.1pp",
-            "tier": "LONGSHOT VALUE",
-            "ev_unit": "$2.02",
-            "risk": "HIGH_VARIANCE",
-            "rec_bet": "$0.80",
-            "active_prop_type": "All Props"
-          }
-        },
-        {
-          "surface": "edges",
-          "source_url": "https://capping.pro/nba-edges",
-          "league_id": "NBA",
-          "sport": "Basketball",
-          "item_id": "acd8d4c16e0bfb313002094e090eb2ec3f9ddef6",
-          "title": "Grayson AllenSG",
-          "subtitle": "PHX · Points",
-          "matchup": null,
-          "selection": "OVER 10 Points",
-          "market_type": "points",
-          "team": "Phoenix Suns",
-          "player_name": "Grayson AllenSG",
-          "sportsbook_name": null,
-          "odds_decimal": 432,
-          "updated_at": null,
-          "reason": "VALUE · LOW📊 · $0.08",
-          "detail_notes": [],
-          "metrics": [
-            {
-              "key": "win_probability",
-              "label": "Win Prob",
-              "value": "87.6%",
-              "value_numeric": 87.6
-            },
-            {
-              "key": "hit_rate",
-              "label": "Hit Rate",
-              "value": "100.0%",
-              "value_numeric": 100
-            },
-            {
-              "key": "recommended_bet",
-              "label": "Rec Bet",
-              "value": "$69.00",
-              "value_numeric": 69
-            }
-          ],
-          "tags": [
-            "VALUE",
-            "LOW📊",
-            "All Props"
-          ],
-          "raw_context": {
-            "player": "Grayson AllenSG",
-            "team": "PHX",
-            "prop": "Points",
-            "line": "10",
-            "direction": "OVER",
-            "odds": "−432",
-            "hit_rate": "100.0%",
-            "win_prob": "87.6%",
-            "edge_": "6.4pp",
-            "tier": "VALUE",
-            "ev_unit": "$0.08",
-            "risk": "LOW📊",
-            "rec_bet": "$69.00",
             "active_prop_type": "All Props"
           }
         },
@@ -6840,6 +6720,66 @@
           "source_url": "https://capping.pro/nba-edges",
           "league_id": "NBA",
           "sport": "Basketball",
+          "item_id": "ac98f5b4a0b7fede08e052c0e6a053337dfe78c0",
+          "title": "Paolo BancheroPF",
+          "subtitle": "ORL · Points",
+          "matchup": null,
+          "selection": "OVER 15 Points",
+          "market_type": "points",
+          "team": "Orlando Magic",
+          "player_name": "Paolo BancheroPF",
+          "sportsbook_name": null,
+          "odds_decimal": 543,
+          "updated_at": null,
+          "reason": "VALUE · LOW · $0.07",
+          "detail_notes": [],
+          "metrics": [
+            {
+              "key": "win_probability",
+              "label": "Win Prob",
+              "value": "90.2%",
+              "value_numeric": 90.2
+            },
+            {
+              "key": "hit_rate",
+              "label": "Hit Rate",
+              "value": "96.0%",
+              "value_numeric": 96
+            },
+            {
+              "key": "recommended_bet",
+              "label": "Rec Bet",
+              "value": "$78.40",
+              "value_numeric": 78.4
+            }
+          ],
+          "tags": [
+            "VALUE",
+            "LOW",
+            "All Props"
+          ],
+          "raw_context": {
+            "player": "Paolo BancheroPF",
+            "team": "ORL",
+            "prop": "Points",
+            "line": "15",
+            "direction": "OVER",
+            "odds": "−543",
+            "hit_rate": "96.0%",
+            "win_prob": "90.2%",
+            "edge_": "5.8pp",
+            "tier": "VALUE",
+            "ev_unit": "$0.07",
+            "risk": "LOW",
+            "rec_bet": "$78.40",
+            "active_prop_type": "All Props"
+          }
+        },
+        {
+          "surface": "edges",
+          "source_url": "https://capping.pro/nba-edges",
+          "league_id": "NBA",
+          "sport": "Basketball",
           "item_id": "cb9b11d472902cf990d84f0019799fa5b3b01fc3",
           "title": "Julian StrawtherC",
           "subtitle": "DEN · Points",
@@ -6952,126 +6892,6 @@
             "ev_unit": "$0.07",
             "risk": "LOW",
             "rec_bet": "$35.60",
-            "active_prop_type": "All Props"
-          }
-        },
-        {
-          "surface": "edges",
-          "source_url": "https://capping.pro/nba-edges",
-          "league_id": "NBA",
-          "sport": "Basketball",
-          "item_id": "99ccd491eab53bf972a50a40e9c357feffc7cae0",
-          "title": "Dean WadePF",
-          "subtitle": "CLE · Points",
-          "matchup": null,
-          "selection": "OVER 10 Points",
-          "market_type": "points",
-          "team": "Cleveland Cavaliers",
-          "player_name": "Dean WadePF",
-          "sportsbook_name": null,
-          "odds_decimal": 533,
-          "updated_at": null,
-          "reason": "HIGH RISK · HIGH_VARIANCE📊 · $0.29",
-          "detail_notes": [],
-          "metrics": [
-            {
-              "key": "win_probability",
-              "label": "Win Prob",
-              "value": "20.4%⚠️",
-              "value_numeric": 20.4
-            },
-            {
-              "key": "hit_rate",
-              "label": "Hit Rate",
-              "value": "29.4%",
-              "value_numeric": 29.4
-            },
-            {
-              "key": "recommended_bet",
-              "label": "Rec Bet",
-              "value": "$2.20",
-              "value_numeric": 2.2
-            }
-          ],
-          "tags": [
-            "HIGH RISK",
-            "HIGH_VARIANCE📊",
-            "All Props"
-          ],
-          "raw_context": {
-            "player": "Dean WadePF",
-            "team": "CLE",
-            "prop": "Points",
-            "line": "10",
-            "direction": "OVER",
-            "odds": "+533",
-            "hit_rate": "29.4%",
-            "win_prob": "20.4%⚠️",
-            "edge_": "4.6pp",
-            "tier": "HIGH RISK",
-            "ev_unit": "$0.29",
-            "risk": "HIGH_VARIANCE📊",
-            "rec_bet": "$2.20",
-            "active_prop_type": "All Props"
-          }
-        },
-        {
-          "surface": "edges",
-          "source_url": "https://capping.pro/nba-edges",
-          "league_id": "NBA",
-          "sport": "Basketball",
-          "item_id": "e4c5d70d779062eaceeecf7dce54fa98d321598c",
-          "title": "Cason WallaceSG",
-          "subtitle": "OKC · Assists",
-          "matchup": null,
-          "selection": "OVER 6 Assists",
-          "market_type": "assists",
-          "team": "Oklahoma City Thunder",
-          "player_name": "Cason WallaceSG",
-          "sportsbook_name": null,
-          "odds_decimal": 1280,
-          "updated_at": null,
-          "reason": "LONGSHOT VALUE · HIGH_VARIANCE · $0.62",
-          "detail_notes": [],
-          "metrics": [
-            {
-              "key": "win_probability",
-              "label": "Win Prob",
-              "value": "11.8%⚠️",
-              "value_numeric": 11.8
-            },
-            {
-              "key": "hit_rate",
-              "label": "Hit Rate",
-              "value": "16.7%",
-              "value_numeric": 16.7
-            },
-            {
-              "key": "recommended_bet",
-              "label": "Rec Bet",
-              "value": "$0.90",
-              "value_numeric": 0.9
-            }
-          ],
-          "tags": [
-            "LONGSHOT VALUE",
-            "HIGH_VARIANCE",
-            "All Props"
-          ],
-          "raw_context": {
-            "player": "Cason WallaceSG",
-            "team": "OKC",
-            "prop": "Assists",
-            "line": "6",
-            "direction": "OVER",
-            "odds": "+1280",
-            "hit_rate": "16.7%",
-            "win_prob": "11.8%⚠️",
-            "edge_": "4.5pp",
-            "tier": "LONGSHOT VALUE",
-            "ev_unit": "$0.62",
-            "risk": "HIGH_VARIANCE",
-            "rec_bet": "$0.90",
             "active_prop_type": "All Props"
           }
         },
@@ -7200,6 +7020,126 @@
           "source_url": "https://capping.pro/nba-edges",
           "league_id": "NBA",
           "sport": "Basketball",
+          "item_id": "4e46acb34008ebe0ff5567b4f0a4335fe06b430c",
+          "title": "Jaylon TysonSF",
+          "subtitle": "CLE · Points",
+          "matchup": null,
+          "selection": "OVER 6 Points",
+          "market_type": "points",
+          "team": "Cleveland Cavaliers",
+          "player_name": "Jaylon TysonSF",
+          "sportsbook_name": null,
+          "odds_decimal": 431,
+          "updated_at": null,
+          "reason": "VALUE · LOW · $0.05",
+          "detail_notes": [],
+          "metrics": [
+            {
+              "key": "win_probability",
+              "label": "Win Prob",
+              "value": "85.5%",
+              "value_numeric": 85.5
+            },
+            {
+              "key": "hit_rate",
+              "label": "Hit Rate",
+              "value": "90.9%",
+              "value_numeric": 90.9
+            },
+            {
+              "key": "recommended_bet",
+              "label": "Rec Bet",
+              "value": "$46.20",
+              "value_numeric": 46.2
+            }
+          ],
+          "tags": [
+            "VALUE",
+            "LOW",
+            "All Props"
+          ],
+          "raw_context": {
+            "player": "Jaylon TysonSF",
+            "team": "CLE",
+            "prop": "Points",
+            "line": "6",
+            "direction": "OVER",
+            "odds": "−431",
+            "hit_rate": "90.9%",
+            "win_prob": "85.5%",
+            "edge_": "4.3pp",
+            "tier": "VALUE",
+            "ev_unit": "$0.05",
+            "risk": "LOW",
+            "rec_bet": "$46.20",
+            "active_prop_type": "All Props"
+          }
+        },
+        {
+          "surface": "edges",
+          "source_url": "https://capping.pro/nba-edges",
+          "league_id": "NBA",
+          "sport": "Basketball",
+          "item_id": "99ccd491eab53bf972a50a40e9c357feffc7cae0",
+          "title": "Dean WadePF",
+          "subtitle": "CLE · Points",
+          "matchup": null,
+          "selection": "OVER 10 Points",
+          "market_type": "points",
+          "team": "Cleveland Cavaliers",
+          "player_name": "Dean WadePF",
+          "sportsbook_name": null,
+          "odds_decimal": 483,
+          "updated_at": null,
+          "reason": "HIGH RISK · HIGH_VARIANCE📊 · $0.24",
+          "detail_notes": [],
+          "metrics": [
+            {
+              "key": "win_probability",
+              "label": "Win Prob",
+              "value": "21.3%⚠️",
+              "value_numeric": 21.3
+            },
+            {
+              "key": "hit_rate",
+              "label": "Hit Rate",
+              "value": "29.4%",
+              "value_numeric": 29.4
+            },
+            {
+              "key": "recommended_bet",
+              "label": "Rec Bet",
+              "value": "$2.20",
+              "value_numeric": 2.2
+            }
+          ],
+          "tags": [
+            "HIGH RISK",
+            "HIGH_VARIANCE📊",
+            "All Props"
+          ],
+          "raw_context": {
+            "player": "Dean WadePF",
+            "team": "CLE",
+            "prop": "Points",
+            "line": "10",
+            "direction": "OVER",
+            "odds": "+483",
+            "hit_rate": "29.4%",
+            "win_prob": "21.3%⚠️",
+            "edge_": "4.2pp",
+            "tier": "HIGH RISK",
+            "ev_unit": "$0.24",
+            "risk": "HIGH_VARIANCE📊",
+            "rec_bet": "$2.20",
+            "active_prop_type": "All Props"
+          }
+        },
+        {
+          "surface": "edges",
+          "source_url": "https://capping.pro/nba-edges",
+          "league_id": "NBA",
+          "sport": "Basketball",
           "item_id": "3daefdf92c5787bd9e4fdcb85d67568106061670",
           "title": "Svi MykhailiukSG",
           "subtitle": "UTA · 3-Pointers",
@@ -7320,66 +7260,6 @@
           "source_url": "https://capping.pro/nba-edges",
           "league_id": "NBA",
           "sport": "Basketball",
-          "item_id": "7f8e5357f88dad0bec197442526a34d1d4590bfe",
-          "title": "Brandon MillerSF",
-          "subtitle": "CHA · Points",
-          "matchup": null,
-          "selection": "OVER 15 Points",
-          "market_type": "points",
-          "team": "Charlotte Hornets",
-          "player_name": "Brandon MillerSF",
-          "sportsbook_name": null,
-          "odds_decimal": 448,
-          "updated_at": null,
-          "reason": "MARGINAL · LOW · $0.05",
-          "detail_notes": [],
-          "metrics": [
-            {
-              "key": "win_probability",
-              "label": "Win Prob",
-              "value": "85.6%",
-              "value_numeric": 85.6
-            },
-            {
-              "key": "hit_rate",
-              "label": "Hit Rate",
-              "value": "88.9%",
-              "value_numeric": 88.9
-            },
-            {
-              "key": "recommended_bet",
-              "label": "Rec Bet",
-              "value": "$43.20",
-              "value_numeric": 43.2
-            }
-          ],
-          "tags": [
-            "MARGINAL",
-            "LOW",
-            "All Props"
-          ],
-          "raw_context": {
-            "player": "Brandon MillerSF",
-            "team": "CHA",
-            "prop": "Points",
-            "line": "15",
-            "direction": "OVER",
-            "odds": "−448",
-            "hit_rate": "88.9%",
-            "win_prob": "85.6%",
-            "edge_": "3.9pp",
-            "tier": "MARGINAL",
-            "ev_unit": "$0.05",
-            "risk": "LOW",
-            "rec_bet": "$43.20",
-            "active_prop_type": "All Props"
-          }
-        },
-        {
-          "surface": "edges",
-          "source_url": "https://capping.pro/nba-edges",
-          "league_id": "NBA",
-          "sport": "Basketball",
           "item_id": "fd9d7defc9f8183182767a95691897363a49be33",
           "title": "Jaylen BrownSF",
           "subtitle": "BOS · Points",
@@ -7492,66 +7372,6 @@
             "ev_unit": "$0.13",
             "risk": "ELEVATED",
             "rec_bet": "$3.80",
-            "active_prop_type": "All Props"
-          }
-        },
-        {
-          "surface": "edges",
-          "source_url": "https://capping.pro/nba-edges",
-          "league_id": "NBA",
-          "sport": "Basketball",
-          "item_id": "d0379b87f3bd7184444f76ae66495566a825f4de",
-          "title": "Thomas BryantC",
-          "subtitle": "CLE · Points",
-          "matchup": null,
-          "selection": "OVER 5 Points",
-          "market_type": "points",
-          "team": "Cleveland Cavaliers",
-          "player_name": "Thomas BryantC",
-          "sportsbook_name": null,
-          "odds_decimal": 114,
-          "updated_at": null,
-          "reason": "VALUE · LOW📊 · $0.07",
-          "detail_notes": [],
-          "metrics": [
-            {
-              "key": "win_probability",
-              "label": "Win Prob",
-              "value": "57.0%",
-              "value_numeric": 57
-            },
-            {
-              "key": "hit_rate",
-              "label": "Hit Rate",
-              "value": "63.2%",
-              "value_numeric": 63.2
-            },
-            {
-              "key": "recommended_bet",
-              "label": "Rec Bet",
-              "value": "$10.70",
-              "value_numeric": 10.7
-            }
-          ],
-          "tags": [
-            "VALUE",
-            "LOW📊",
-            "All Props"
-          ],
-          "raw_context": {
-            "player": "Thomas BryantC",
-            "team": "CLE",
-            "prop": "Points",
-            "line": "5",
-            "direction": "OVER",
-            "odds": "−114",
-            "hit_rate": "63.2%",
-            "win_prob": "57.0%",
-            "edge_": "3.8pp",
-            "tier": "VALUE",
-            "ev_unit": "$0.07",
-            "risk": "LOW📊",
-            "rec_bet": "$10.70",
             "active_prop_type": "All Props"
           }
         },
@@ -7854,126 +7674,6 @@
             "rec_bet": "$1.30",
             "active_prop_type": "All Props"
           }
-        },
-        {
-          "surface": "edges",
-          "source_url": "https://capping.pro/nba-edges",
-          "league_id": "NBA",
-          "sport": "Basketball",
-          "item_id": "4a3bbbcd29614fdbf82272fffd973f6e3840a605",
-          "title": "Duncan RobinsonSG",
-          "subtitle": "DET · Points",
-          "matchup": null,
-          "selection": "OVER 10 Points",
-          "market_type": "points",
-          "team": "Detroit Pistons",
-          "player_name": "Duncan RobinsonSG",
-          "sportsbook_name": null,
-          "odds_decimal": 124,
-          "updated_at": null,
-          "reason": "VALUE · LOW · $0.06",
-          "detail_notes": [],
-          "metrics": [
-            {
-              "key": "win_probability",
-              "label": "Win Prob",
-              "value": "58.6%",
-              "value_numeric": 58.6
-            },
-            {
-              "key": "hit_rate",
-              "label": "Hit Rate",
-              "value": "61.5%",
-              "value_numeric": 61.5
-            },
-            {
-              "key": "recommended_bet",
-              "label": "Rec Bet",
-              "value": "$10.00",
-              "value_numeric": 10
-            }
-          ],
-          "tags": [
-            "VALUE",
-            "LOW",
-            "All Props"
-          ],
-          "raw_context": {
-            "player": "Duncan RobinsonSG",
-            "team": "DET",
-            "prop": "Points",
-            "line": "10",
-            "direction": "OVER",
-            "odds": "−124",
-            "hit_rate": "61.5%",
-            "win_prob": "58.6%",
-            "edge_": "3.2pp",
-            "tier": "VALUE",
-            "ev_unit": "$0.06",
-            "risk": "LOW",
-            "rec_bet": "$10.00",
-            "active_prop_type": "All Props"
-          }
-        },
-        {
-          "surface": "edges",
-          "source_url": "https://capping.pro/nba-edges",
-          "league_id": "NBA",
-          "sport": "Basketball",
-          "item_id": "f88ac10553431a3650e7f1d63f1f1cb83a73b8f2",
-          "title": "James HardenPG",
-          "subtitle": "CLE · Points",
-          "matchup": null,
-          "selection": "OVER 12 Points",
-          "market_type": "points",
-          "team": "Cleveland Cavaliers",
-          "player_name": "James HardenPG",
-          "sportsbook_name": null,
-          "odds_decimal": 1060,
-          "updated_at": null,
-          "reason": "MARGINAL · LOW📊 · $0.03",
-          "detail_notes": [],
-          "metrics": [
-            {
-              "key": "win_probability",
-              "label": "Win Prob",
-              "value": "94.5%",
-              "value_numeric": 94.5
-            },
-            {
-              "key": "hit_rate",
-              "label": "Hit Rate",
-              "value": "100.0%",
-              "value_numeric": 100
-            },
-            {
-              "key": "recommended_bet",
-              "label": "Rec Bet",
-              "value": "$82.20",
-              "value_numeric": 82.2
-            }
-          ],
-          "tags": [
-            "MARGINAL",
-            "LOW📊",
-            "All Props"
-          ],
-          "raw_context": {
-            "player": "James HardenPG",
-            "team": "CLE",
-            "prop": "Points",
-            "line": "12",
-            "direction": "OVER",
-            "odds": "−1060",
-            "hit_rate": "100.0%",
-            "win_prob": "94.5%",
-            "edge_": "3.1pp",
-            "tier": "MARGINAL",
-            "ev_unit": "$0.03",
-            "risk": "LOW📊",
-            "rec_bet": "$82.20",
-            "active_prop_type": "All Props"
-          }
         }
       ]
     },
@@ -7985,8 +7685,8 @@
         "id": "props",
         "label": "Props",
         "source_url": "https://capping.pro/nba-propfinder",
-        "started_at": "2026-03-17T07:11:18.821Z",
-        "finished_at": "2026-03-17T07:11:44.358Z",
+        "started_at": "2026-03-17T13:21:22.985Z",
+        "finished_at": "2026-03-17T13:21:48.522Z",
         "page_url": "https://capping.pro/nba-propfinder",
         "accepted_items": 120,
         "rejected_wrong_source": 0,
@@ -36478,8 +36178,8 @@
         "id": "parlay",
         "label": "Parlay",
         "source_url": "https://capping.pro/parlay-of-the-night",
-        "started_at": "2026-03-17T07:11:44.358Z",
-        "finished_at": "2026-03-17T07:11:54.883Z",
+        "started_at": "2026-03-17T13:21:48.522Z",
+        "finished_at": "2026-03-17T13:21:59.062Z",
         "page_url": "https://capping.pro/parlay-of-the-night",
         "accepted_items": 54,
         "rejected_wrong_source": 0,
@@ -40000,8 +39700,8 @@
         "id": "degen",
         "label": "Degen",
         "source_url": "https://capping.pro/degen-theory",
-        "started_at": "2026-03-17T07:11:54.883Z",
-        "finished_at": "2026-03-17T07:12:12.674Z",
+        "started_at": "2026-03-17T13:21:59.062Z",
+        "finished_at": "2026-03-17T13:22:16.888Z",
         "page_url": "https://capping.pro/degen-theory",
         "accepted_items": 120,
         "rejected_wrong_source": 0,
@@ -47700,8 +47400,8 @@
         "id": "exploits",
         "label": "Exploits",
         "source_url": "https://capping.pro/nba-matchup-exploits",
-        "started_at": "2026-03-17T07:12:12.674Z",
-        "finished_at": "2026-03-17T07:12:30.404Z",
+        "started_at": "2026-03-17T13:22:16.888Z",
+        "finished_at": "2026-03-17T13:22:34.614Z",
         "page_url": "https://capping.pro/nba-matchup-exploits",
         "accepted_items": 25,
         "rejected_wrong_source": 0,
