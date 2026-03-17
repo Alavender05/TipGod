@@ -1,11 +1,11 @@
 {
   "dataset_file": "capping-pro-nba-surfaces.json",
   "run_summary_file": "capping-pro-nba-surfaces.run-summary.json",
-  "generated_at": "2026-03-17T13:22:34.647Z",
+  "generated_at": "2026-03-17T19:09:40.455Z",
   "source_domain": "capping.pro",
   "league_id": "NBA",
   "sport": "Basketball",
-  "total_items": 431,
+  "total_items": 433,
   "surface_count": 6,
   "surfaces": [
     {
@@ -41,10 +41,14 @@
       "id": "edges",
       "label": "Edges",
       "source_url": "https://capping.pro/nba-edges",
-      "item_count": 19,
+      "item_count": 21,
       "top_titles": [
         {
           "title": "Isaiah JoeSG",
+          "count": 1
+        },
+        {
+          "title": "Cason WallaceSG",
           "count": 1
         },
         {
@@ -53,10 +57,6 @@
         },
         {
           "title": "Rayan RupertPG",
-          "count": 1
-        },
-        {
-          "title": "Paolo BancheroPF",
           "count": 1
         },
         {
@@ -184,7 +184,7 @@
     }
   ],
   "run_summary": {
-    "generated_at": "2026-03-17T13:20:48.710Z",
+    "generated_at": "2026-03-17T19:07:54.177Z",
     "source_domain": "capping.pro",
     "league_id": "NBA",
     "sport": "Basketball",
@@ -195,8 +195,8 @@
         "id": "best-bets",
         "label": "Best Bets",
         "source_url": "https://capping.pro/nba-bestbets",
-        "started_at": "2026-03-17T13:20:48.710Z",
-        "finished_at": "2026-03-17T13:21:12.453Z",
+        "started_at": "2026-03-17T19:07:54.178Z",
+        "finished_at": "2026-03-17T19:08:18.024Z",
         "page_url": "https://capping.pro/nba-bestbets",
         "accepted_items": 93,
         "rejected_wrong_source": 0,
@@ -208,10 +208,10 @@
         "id": "edges",
         "label": "Edges",
         "source_url": "https://capping.pro/nba-edges",
-        "started_at": "2026-03-17T13:21:12.453Z",
-        "finished_at": "2026-03-17T13:21:22.985Z",
+        "started_at": "2026-03-17T19:08:18.024Z",
+        "finished_at": "2026-03-17T19:08:28.599Z",
         "page_url": "https://capping.pro/nba-edges",
-        "accepted_items": 19,
+        "accepted_items": 21,
         "rejected_wrong_source": 0,
         "rejected_wrong_league": 0,
         "rejected_wrong_surface": 0,
@@ -221,8 +221,8 @@
         "id": "props",
         "label": "Props",
         "source_url": "https://capping.pro/nba-propfinder",
-        "started_at": "2026-03-17T13:21:22.985Z",
-        "finished_at": "2026-03-17T13:21:48.522Z",
+        "started_at": "2026-03-17T19:08:28.599Z",
+        "finished_at": "2026-03-17T19:08:54.224Z",
         "page_url": "https://capping.pro/nba-propfinder",
         "accepted_items": 120,
         "rejected_wrong_source": 0,
@@ -234,8 +234,8 @@
         "id": "parlay",
         "label": "Parlay",
         "source_url": "https://capping.pro/parlay-of-the-night",
-        "started_at": "2026-03-17T13:21:48.522Z",
-        "finished_at": "2026-03-17T13:21:59.062Z",
+        "started_at": "2026-03-17T19:08:54.224Z",
+        "finished_at": "2026-03-17T19:09:04.795Z",
         "page_url": "https://capping.pro/parlay-of-the-night",
         "accepted_items": 54,
         "rejected_wrong_source": 0,
@@ -247,8 +247,8 @@
         "id": "degen",
         "label": "Degen",
         "source_url": "https://capping.pro/degen-theory",
-        "started_at": "2026-03-17T13:21:59.062Z",
-        "finished_at": "2026-03-17T13:22:16.888Z",
+        "started_at": "2026-03-17T19:09:04.795Z",
+        "finished_at": "2026-03-17T19:09:22.644Z",
         "page_url": "https://capping.pro/degen-theory",
         "accepted_items": 120,
         "rejected_wrong_source": 0,
@@ -260,8 +260,8 @@
         "id": "exploits",
         "label": "Exploits",
         "source_url": "https://capping.pro/nba-matchup-exploits",
-        "started_at": "2026-03-17T13:22:16.888Z",
-        "finished_at": "2026-03-17T13:22:34.614Z",
+        "started_at": "2026-03-17T19:09:22.644Z",
+        "finished_at": "2026-03-17T19:09:40.424Z",
         "page_url": "https://capping.pro/nba-matchup-exploits",
         "accepted_items": 25,
         "rejected_wrong_source": 0,
@@ -271,7 +271,7 @@
       }
     ],
     "totals": {
-      "unique_items": 431,
+      "unique_items": 433,
       "rejected_wrong_source": 0,
       "rejected_wrong_league": 0,
       "rejected_wrong_surface": 0
