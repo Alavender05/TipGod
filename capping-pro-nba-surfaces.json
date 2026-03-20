@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-03-20T07:03:25.326Z",
+  "generated_at": "2026-03-20T13:10:17.033Z",
   "source_domain": "capping.pro",
   "league_id": "NBA",
   "sport": "Basketball",
@@ -12,8 +12,8 @@
         "id": "best-bets",
         "label": "Best Bets",
         "source_url": "https://capping.pro/nba-bestbets",
-        "started_at": "2026-03-20T07:01:39.651Z",
-        "finished_at": "2026-03-20T07:02:03.185Z",
+        "started_at": "2026-03-20T13:08:29.993Z",
+        "finished_at": "2026-03-20T13:08:54.259Z",
         "page_url": "https://capping.pro/nba-bestbets",
         "accepted_items": 96,
         "rejected_wrong_source": 0,
@@ -6735,10 +6735,10 @@
         "id": "edges",
         "label": "Edges",
         "source_url": "https://capping.pro/nba-edges",
-        "started_at": "2026-03-20T07:02:03.185Z",
-        "finished_at": "2026-03-20T07:02:13.758Z",
+        "started_at": "2026-03-20T13:08:54.259Z",
+        "finished_at": "2026-03-20T13:09:04.913Z",
         "page_url": "https://capping.pro/nba-edges",
-        "accepted_items": 21,
+        "accepted_items": 19,
         "rejected_wrong_source": 0,
         "rejected_wrong_league": 0,
         "rejected_wrong_surface": 0,
@@ -6810,6 +6810,126 @@
           "source_url": "https://capping.pro/nba-edges",
           "league_id": "NBA",
           "sport": "Basketball",
+          "item_id": "7f70364903681e6babb6e35b75132315fa73b100",
+          "title": "Jrue HolidayPG",
+          "subtitle": "POR · Points",
+          "matchup": null,
+          "selection": "OVER 18 Points",
+          "market_type": "points",
+          "team": "Portland Trail Blazers",
+          "player_name": "Jrue HolidayPG",
+          "sportsbook_name": null,
+          "odds_decimal": 169,
+          "updated_at": null,
+          "reason": "MARGINAL · MODERATE · $0.19",
+          "detail_notes": [],
+          "metrics": [
+            {
+              "key": "win_probability",
+              "label": "Win Prob",
+              "value": "44.1%",
+              "value_numeric": 44.1
+            },
+            {
+              "key": "hit_rate",
+              "label": "Hit Rate",
+              "value": "52.2%",
+              "value_numeric": 52.2
+            },
+            {
+              "key": "recommended_bet",
+              "label": "Rec Bet",
+              "value": "$10.20",
+              "value_numeric": 10.2
+            }
+          ],
+          "tags": [
+            "MARGINAL",
+            "MODERATE",
+            "All Props"
+          ],
+          "raw_context": {
+            "player": "Jrue HolidayPG",
+            "team": "POR",
+            "prop": "Points",
+            "line": "18",
+            "direction": "OVER",
+            "odds": "+169",
+            "hit_rate": "52.2%",
+            "win_prob": "44.1%",
+            "edge_": "6.9pp",
+            "tier": "MARGINAL",
+            "ev_unit": "$0.19",
+            "risk": "MODERATE",
+            "rec_bet": "$10.20",
+            "active_prop_type": "All Props"
+          }
+        },
+        {
+          "surface": "edges",
+          "source_url": "https://capping.pro/nba-edges",
+          "league_id": "NBA",
+          "sport": "Basketball",
+          "item_id": "9559fade302db2990221e97b82781ece6b6a0eaa",
+          "title": "Sandro MamukelashviliC",
+          "subtitle": "TOR · Points",
+          "matchup": null,
+          "selection": "OVER 6 Points",
+          "market_type": "points",
+          "team": "Toronto Raptors",
+          "player_name": "Sandro MamukelashviliC",
+          "sportsbook_name": null,
+          "odds_decimal": 240,
+          "updated_at": null,
+          "reason": "VALUE · LOW · $0.09",
+          "detail_notes": [],
+          "metrics": [
+            {
+              "key": "win_probability",
+              "label": "Win Prob",
+              "value": "76.9%",
+              "value_numeric": 76.9
+            },
+            {
+              "key": "hit_rate",
+              "label": "Hit Rate",
+              "value": "85.7%",
+              "value_numeric": 85.7
+            },
+            {
+              "key": "recommended_bet",
+              "label": "Rec Bet",
+              "value": "$38.10",
+              "value_numeric": 38.1
+            }
+          ],
+          "tags": [
+            "VALUE",
+            "LOW",
+            "All Props"
+          ],
+          "raw_context": {
+            "player": "Sandro MamukelashviliC",
+            "team": "TOR",
+            "prop": "Points",
+            "line": "6",
+            "direction": "OVER",
+            "odds": "−240",
+            "hit_rate": "85.7%",
+            "win_prob": "76.9%",
+            "edge_": "6.4pp",
+            "tier": "VALUE",
+            "ev_unit": "$0.09",
+            "risk": "LOW",
+            "rec_bet": "$38.10",
+            "active_prop_type": "All Props"
+          }
+        },
+        {
+          "surface": "edges",
+          "source_url": "https://capping.pro/nba-edges",
+          "league_id": "NBA",
+          "sport": "Basketball",
           "item_id": "66a9ae329ade40a6258f0335639ff300693e297e",
           "title": "Jonas ValanciunasC",
           "subtitle": "DEN · Points",
@@ -6862,66 +6982,6 @@
             "ev_unit": "$0.11",
             "risk": "LOW",
             "rec_bet": "$17.90",
-            "active_prop_type": "All Props"
-          }
-        },
-        {
-          "surface": "edges",
-          "source_url": "https://capping.pro/nba-edges",
-          "league_id": "NBA",
-          "sport": "Basketball",
-          "item_id": "9559fade302db2990221e97b82781ece6b6a0eaa",
-          "title": "Sandro MamukelashviliC",
-          "subtitle": "TOR · Points",
-          "matchup": null,
-          "selection": "OVER 6 Points",
-          "market_type": "points",
-          "team": "Toronto Raptors",
-          "player_name": "Sandro MamukelashviliC",
-          "sportsbook_name": null,
-          "odds_decimal": 268,
-          "updated_at": null,
-          "reason": "VALUE · LOW · $0.07",
-          "detail_notes": [],
-          "metrics": [
-            {
-              "key": "win_probability",
-              "label": "Win Prob",
-              "value": "78.2%",
-              "value_numeric": 78.2
-            },
-            {
-              "key": "hit_rate",
-              "label": "Hit Rate",
-              "value": "85.7%",
-              "value_numeric": 85.7
-            },
-            {
-              "key": "recommended_bet",
-              "label": "Rec Bet",
-              "value": "$36.30",
-              "value_numeric": 36.3
-            }
-          ],
-          "tags": [
-            "VALUE",
-            "LOW",
-            "All Props"
-          ],
-          "raw_context": {
-            "player": "Sandro MamukelashviliC",
-            "team": "TOR",
-            "prop": "Points",
-            "line": "6",
-            "direction": "OVER",
-            "odds": "−268",
-            "hit_rate": "85.7%",
-            "win_prob": "78.2%",
-            "edge_": "5.4pp",
-            "tier": "VALUE",
-            "ev_unit": "$0.07",
-            "risk": "LOW",
-            "rec_bet": "$36.30",
             "active_prop_type": "All Props"
           }
         },
@@ -7162,66 +7222,6 @@
             "ev_unit": "$0.24",
             "risk": "HIGH_VARIANCE📊",
             "rec_bet": "$2.40",
-            "active_prop_type": "All Props"
-          }
-        },
-        {
-          "surface": "edges",
-          "source_url": "https://capping.pro/nba-edges",
-          "league_id": "NBA",
-          "sport": "Basketball",
-          "item_id": "ddcc7aec8b3d740a4d16a1a57a47b6f2976d5239",
-          "title": "Ty Jerome",
-          "subtitle": "MEM · Assists",
-          "matchup": null,
-          "selection": "OVER 6 Assists",
-          "market_type": "assists",
-          "team": "Memphis Grizzlies",
-          "player_name": "Ty Jerome",
-          "sportsbook_name": null,
-          "odds_decimal": 163,
-          "updated_at": null,
-          "reason": "MARGINAL · MODERATE📊 · $0.11",
-          "detail_notes": [],
-          "metrics": [
-            {
-              "key": "win_probability",
-              "label": "Win Prob",
-              "value": "42.1%",
-              "value_numeric": 42.1
-            },
-            {
-              "key": "hit_rate",
-              "label": "Hit Rate",
-              "value": "53.8%",
-              "value_numeric": 53.8
-            },
-            {
-              "key": "recommended_bet",
-              "label": "Rec Bet",
-              "value": "$6.30",
-              "value_numeric": 6.3
-            }
-          ],
-          "tags": [
-            "MARGINAL",
-            "MODERATE📊",
-            "All Props"
-          ],
-          "raw_context": {
-            "player": "Ty Jerome",
-            "team": "MEM",
-            "prop": "Assists",
-            "line": "6",
-            "direction": "OVER",
-            "odds": "+163",
-            "hit_rate": "53.8%",
-            "win_prob": "42.1%",
-            "edge_": "4.1pp",
-            "tier": "MARGINAL",
-            "ev_unit": "$0.11",
-            "risk": "MODERATE📊",
-            "rec_bet": "$6.30",
             "active_prop_type": "All Props"
           }
         },
@@ -7590,126 +7590,6 @@
           "source_url": "https://capping.pro/nba-edges",
           "league_id": "NBA",
           "sport": "Basketball",
-          "item_id": "716ef23c732a11e67de94a44022f9efb2060a5b3",
-          "title": "Jrue HolidayPG",
-          "subtitle": "POR · Points",
-          "matchup": null,
-          "selection": "OVER 12 Points",
-          "market_type": "points",
-          "team": "Portland Trail Blazers",
-          "player_name": "Jrue HolidayPG",
-          "sportsbook_name": null,
-          "odds_decimal": 201,
-          "updated_at": null,
-          "reason": "MARGINAL · LOW · $0.05",
-          "detail_notes": [],
-          "metrics": [
-            {
-              "key": "win_probability",
-              "label": "Win Prob",
-              "value": "70.1%",
-              "value_numeric": 70.1
-            },
-            {
-              "key": "hit_rate",
-              "label": "Hit Rate",
-              "value": "73.9%",
-              "value_numeric": 73.9
-            },
-            {
-              "key": "recommended_bet",
-              "label": "Rec Bet",
-              "value": "$16.50",
-              "value_numeric": 16.5
-            }
-          ],
-          "tags": [
-            "MARGINAL",
-            "LOW",
-            "All Props"
-          ],
-          "raw_context": {
-            "player": "Jrue HolidayPG",
-            "team": "POR",
-            "prop": "Points",
-            "line": "12",
-            "direction": "OVER",
-            "odds": "−201",
-            "hit_rate": "73.9%",
-            "win_prob": "70.1%",
-            "edge_": "3.3pp",
-            "tier": "MARGINAL",
-            "ev_unit": "$0.05",
-            "risk": "LOW",
-            "rec_bet": "$16.50",
-            "active_prop_type": "All Props"
-          }
-        },
-        {
-          "surface": "edges",
-          "source_url": "https://capping.pro/nba-edges",
-          "league_id": "NBA",
-          "sport": "Basketball",
-          "item_id": "58c65286be05d590002e636d95632523655b27a2",
-          "title": "Jaylen WellsSF",
-          "subtitle": "MEM · Points",
-          "matchup": null,
-          "selection": "OVER 6 Points",
-          "market_type": "points",
-          "team": "Memphis Grizzlies",
-          "player_name": "Jaylen WellsSF",
-          "sportsbook_name": null,
-          "odds_decimal": 780,
-          "updated_at": null,
-          "reason": "MARGINAL · LOW · $0.04",
-          "detail_notes": [],
-          "metrics": [
-            {
-              "key": "win_probability",
-              "label": "Win Prob",
-              "value": "91.9%",
-              "value_numeric": 91.9
-            },
-            {
-              "key": "hit_rate",
-              "label": "Hit Rate",
-              "value": "95.7%",
-              "value_numeric": 95.7
-            },
-            {
-              "key": "recommended_bet",
-              "label": "Rec Bet",
-              "value": "$62.90",
-              "value_numeric": 62.9
-            }
-          ],
-          "tags": [
-            "MARGINAL",
-            "LOW",
-            "All Props"
-          ],
-          "raw_context": {
-            "player": "Jaylen WellsSF",
-            "team": "MEM",
-            "prop": "Points",
-            "line": "6",
-            "direction": "OVER",
-            "odds": "−780",
-            "hit_rate": "95.7%",
-            "win_prob": "91.9%",
-            "edge_": "3.2pp",
-            "tier": "MARGINAL",
-            "ev_unit": "$0.04",
-            "risk": "LOW",
-            "rec_bet": "$62.90",
-            "active_prop_type": "All Props"
-          }
-        },
-        {
-          "surface": "edges",
-          "source_url": "https://capping.pro/nba-edges",
-          "league_id": "NBA",
-          "sport": "Basketball",
           "item_id": "2cd6ecb8af934cfcfaf192d9a783f464054c25f0",
           "title": "Daniel GaffordC",
           "subtitle": "DAL · Points",
@@ -7950,37 +7830,37 @@
           "source_url": "https://capping.pro/nba-edges",
           "league_id": "NBA",
           "sport": "Basketball",
-          "item_id": "0c5375f56e27bc791326320320f31d5367fa77e1",
-          "title": "Gui SantosPF",
-          "subtitle": "GSW · Points",
+          "item_id": "6680b1474aa3a9d0c63c5a379a22bfe45468eebf",
+          "title": "Toumani CamaraSF",
+          "subtitle": "POR · Points",
           "matchup": null,
-          "selection": "OVER 12 Points",
+          "selection": "OVER 6 Points",
           "market_type": "points",
-          "team": "Golden State Warriors",
-          "player_name": "Gui SantosPF",
+          "team": "Portland Trail Blazers",
+          "player_name": "Toumani CamaraSF",
           "sportsbook_name": null,
-          "odds_decimal": 253,
+          "odds_decimal": 860,
           "updated_at": null,
-          "reason": "MARGINAL · LOW · $0.04",
+          "reason": "MARGINAL · LOW · $0.03",
           "detail_notes": [],
           "metrics": [
             {
               "key": "win_probability",
               "label": "Win Prob",
-              "value": "74.7%",
-              "value_numeric": 74.7
+              "value": "92.6%",
+              "value_numeric": 92.6
             },
             {
               "key": "hit_rate",
               "label": "Hit Rate",
-              "value": "78.3%",
-              "value_numeric": 78.3
+              "value": "95.8%",
+              "value_numeric": 95.8
             },
             {
               "key": "recommended_bet",
               "label": "Rec Bet",
-              "value": "$19.20",
-              "value_numeric": 19.2
+              "value": "$64.50",
+              "value_numeric": 64.5
             }
           ],
           "tags": [
@@ -7989,19 +7869,19 @@
             "All Props"
           ],
           "raw_context": {
-            "player": "Gui SantosPF",
-            "team": "GSW",
+            "player": "Toumani CamaraSF",
+            "team": "POR",
             "prop": "Points",
-            "line": "12",
+            "line": "6",
             "direction": "OVER",
-            "odds": "−253",
-            "hit_rate": "78.3%",
-            "win_prob": "74.7%",
+            "odds": "−860",
+            "hit_rate": "95.8%",
+            "win_prob": "92.6%",
             "edge_": "3.0pp",
             "tier": "MARGINAL",
-            "ev_unit": "$0.04",
+            "ev_unit": "$0.03",
             "risk": "LOW",
-            "rec_bet": "$19.20",
+            "rec_bet": "$64.50",
             "active_prop_type": "All Props"
           }
         }
@@ -8015,8 +7895,8 @@
         "id": "props",
         "label": "Props",
         "source_url": "https://capping.pro/nba-propfinder",
-        "started_at": "2026-03-20T07:02:13.758Z",
-        "finished_at": "2026-03-20T07:02:39.319Z",
+        "started_at": "2026-03-20T13:09:04.914Z",
+        "finished_at": "2026-03-20T13:09:30.612Z",
         "page_url": "https://capping.pro/nba-propfinder",
         "accepted_items": 120,
         "rejected_wrong_source": 0,
@@ -37414,8 +37294,8 @@
         "id": "parlay",
         "label": "Parlay",
         "source_url": "https://capping.pro/parlay-of-the-night",
-        "started_at": "2026-03-20T07:02:39.319Z",
-        "finished_at": "2026-03-20T07:02:49.811Z",
+        "started_at": "2026-03-20T13:09:30.612Z",
+        "finished_at": "2026-03-20T13:09:41.224Z",
         "page_url": "https://capping.pro/parlay-of-the-night",
         "accepted_items": 54,
         "rejected_wrong_source": 0,
@@ -40936,8 +40816,8 @@
         "id": "degen",
         "label": "Degen",
         "source_url": "https://capping.pro/degen-theory",
-        "started_at": "2026-03-20T07:02:49.811Z",
-        "finished_at": "2026-03-20T07:03:07.581Z",
+        "started_at": "2026-03-20T13:09:41.224Z",
+        "finished_at": "2026-03-20T13:09:59.164Z",
         "page_url": "https://capping.pro/degen-theory",
         "accepted_items": 120,
         "rejected_wrong_source": 0,
@@ -48636,8 +48516,8 @@
         "id": "exploits",
         "label": "Exploits",
         "source_url": "https://capping.pro/nba-matchup-exploits",
-        "started_at": "2026-03-20T07:03:07.581Z",
-        "finished_at": "2026-03-20T07:03:25.299Z",
+        "started_at": "2026-03-20T13:09:59.164Z",
+        "finished_at": "2026-03-20T13:10:16.997Z",
         "page_url": "https://capping.pro/nba-matchup-exploits",
         "accepted_items": 25,
         "rejected_wrong_source": 0,
