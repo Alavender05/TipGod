@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-03-20T13:10:17.033Z",
+  "generated_at": "2026-03-20T18:58:17.691Z",
   "source_domain": "capping.pro",
   "league_id": "NBA",
   "sport": "Basketball",
@@ -12,8 +12,8 @@
         "id": "best-bets",
         "label": "Best Bets",
         "source_url": "https://capping.pro/nba-bestbets",
-        "started_at": "2026-03-20T13:08:29.993Z",
-        "finished_at": "2026-03-20T13:08:54.259Z",
+        "started_at": "2026-03-20T18:56:29.777Z",
+        "finished_at": "2026-03-20T18:56:54.963Z",
         "page_url": "https://capping.pro/nba-bestbets",
         "accepted_items": 96,
         "rejected_wrong_source": 0,
@@ -6735,10 +6735,10 @@
         "id": "edges",
         "label": "Edges",
         "source_url": "https://capping.pro/nba-edges",
-        "started_at": "2026-03-20T13:08:54.259Z",
-        "finished_at": "2026-03-20T13:09:04.913Z",
+        "started_at": "2026-03-20T18:56:54.963Z",
+        "finished_at": "2026-03-20T18:57:05.649Z",
         "page_url": "https://capping.pro/nba-edges",
-        "accepted_items": 19,
+        "accepted_items": 18,
         "rejected_wrong_source": 0,
         "rejected_wrong_league": 0,
         "rejected_wrong_surface": 0,
@@ -6870,66 +6870,6 @@
           "source_url": "https://capping.pro/nba-edges",
           "league_id": "NBA",
           "sport": "Basketball",
-          "item_id": "9559fade302db2990221e97b82781ece6b6a0eaa",
-          "title": "Sandro MamukelashviliC",
-          "subtitle": "TOR · Points",
-          "matchup": null,
-          "selection": "OVER 6 Points",
-          "market_type": "points",
-          "team": "Toronto Raptors",
-          "player_name": "Sandro MamukelashviliC",
-          "sportsbook_name": null,
-          "odds_decimal": 240,
-          "updated_at": null,
-          "reason": "VALUE · LOW · $0.09",
-          "detail_notes": [],
-          "metrics": [
-            {
-              "key": "win_probability",
-              "label": "Win Prob",
-              "value": "76.9%",
-              "value_numeric": 76.9
-            },
-            {
-              "key": "hit_rate",
-              "label": "Hit Rate",
-              "value": "85.7%",
-              "value_numeric": 85.7
-            },
-            {
-              "key": "recommended_bet",
-              "label": "Rec Bet",
-              "value": "$38.10",
-              "value_numeric": 38.1
-            }
-          ],
-          "tags": [
-            "VALUE",
-            "LOW",
-            "All Props"
-          ],
-          "raw_context": {
-            "player": "Sandro MamukelashviliC",
-            "team": "TOR",
-            "prop": "Points",
-            "line": "6",
-            "direction": "OVER",
-            "odds": "−240",
-            "hit_rate": "85.7%",
-            "win_prob": "76.9%",
-            "edge_": "6.4pp",
-            "tier": "VALUE",
-            "ev_unit": "$0.09",
-            "risk": "LOW",
-            "rec_bet": "$38.10",
-            "active_prop_type": "All Props"
-          }
-        },
-        {
-          "surface": "edges",
-          "source_url": "https://capping.pro/nba-edges",
-          "league_id": "NBA",
-          "sport": "Basketball",
           "item_id": "66a9ae329ade40a6258f0335639ff300693e297e",
           "title": "Jonas ValanciunasC",
           "subtitle": "DEN · Points",
@@ -6982,6 +6922,66 @@
             "ev_unit": "$0.11",
             "risk": "LOW",
             "rec_bet": "$17.90",
+            "active_prop_type": "All Props"
+          }
+        },
+        {
+          "surface": "edges",
+          "source_url": "https://capping.pro/nba-edges",
+          "league_id": "NBA",
+          "sport": "Basketball",
+          "item_id": "9559fade302db2990221e97b82781ece6b6a0eaa",
+          "title": "Sandro MamukelashviliC",
+          "subtitle": "TOR · Points",
+          "matchup": null,
+          "selection": "OVER 6 Points",
+          "market_type": "points",
+          "team": "Toronto Raptors",
+          "player_name": "Sandro MamukelashviliC",
+          "sportsbook_name": null,
+          "odds_decimal": 246,
+          "updated_at": null,
+          "reason": "VALUE · LOW · $0.09",
+          "detail_notes": [],
+          "metrics": [
+            {
+              "key": "win_probability",
+              "label": "Win Prob",
+              "value": "77.2%",
+              "value_numeric": 77.2
+            },
+            {
+              "key": "hit_rate",
+              "label": "Hit Rate",
+              "value": "85.7%",
+              "value_numeric": 85.7
+            },
+            {
+              "key": "recommended_bet",
+              "label": "Rec Bet",
+              "value": "$37.80",
+              "value_numeric": 37.8
+            }
+          ],
+          "tags": [
+            "VALUE",
+            "LOW",
+            "All Props"
+          ],
+          "raw_context": {
+            "player": "Sandro MamukelashviliC",
+            "team": "TOR",
+            "prop": "Points",
+            "line": "6",
+            "direction": "OVER",
+            "odds": "−246",
+            "hit_rate": "85.7%",
+            "win_prob": "77.2%",
+            "edge_": "6.1pp",
+            "tier": "VALUE",
+            "ev_unit": "$0.09",
+            "risk": "LOW",
+            "rec_bet": "$37.80",
             "active_prop_type": "All Props"
           }
         },
@@ -7824,66 +7824,6 @@
             "rec_bet": "$8.10",
             "active_prop_type": "All Props"
           }
-        },
-        {
-          "surface": "edges",
-          "source_url": "https://capping.pro/nba-edges",
-          "league_id": "NBA",
-          "sport": "Basketball",
-          "item_id": "6680b1474aa3a9d0c63c5a379a22bfe45468eebf",
-          "title": "Toumani CamaraSF",
-          "subtitle": "POR · Points",
-          "matchup": null,
-          "selection": "OVER 6 Points",
-          "market_type": "points",
-          "team": "Portland Trail Blazers",
-          "player_name": "Toumani CamaraSF",
-          "sportsbook_name": null,
-          "odds_decimal": 860,
-          "updated_at": null,
-          "reason": "MARGINAL · LOW · $0.03",
-          "detail_notes": [],
-          "metrics": [
-            {
-              "key": "win_probability",
-              "label": "Win Prob",
-              "value": "92.6%",
-              "value_numeric": 92.6
-            },
-            {
-              "key": "hit_rate",
-              "label": "Hit Rate",
-              "value": "95.8%",
-              "value_numeric": 95.8
-            },
-            {
-              "key": "recommended_bet",
-              "label": "Rec Bet",
-              "value": "$64.50",
-              "value_numeric": 64.5
-            }
-          ],
-          "tags": [
-            "MARGINAL",
-            "LOW",
-            "All Props"
-          ],
-          "raw_context": {
-            "player": "Toumani CamaraSF",
-            "team": "POR",
-            "prop": "Points",
-            "line": "6",
-            "direction": "OVER",
-            "odds": "−860",
-            "hit_rate": "95.8%",
-            "win_prob": "92.6%",
-            "edge_": "3.0pp",
-            "tier": "MARGINAL",
-            "ev_unit": "$0.03",
-            "risk": "LOW",
-            "rec_bet": "$64.50",
-            "active_prop_type": "All Props"
-          }
         }
       ]
     },
@@ -7895,8 +7835,8 @@
         "id": "props",
         "label": "Props",
         "source_url": "https://capping.pro/nba-propfinder",
-        "started_at": "2026-03-20T13:09:04.914Z",
-        "finished_at": "2026-03-20T13:09:30.612Z",
+        "started_at": "2026-03-20T18:57:05.649Z",
+        "finished_at": "2026-03-20T18:57:31.238Z",
         "page_url": "https://capping.pro/nba-propfinder",
         "accepted_items": 120,
         "rejected_wrong_source": 0,
@@ -37294,8 +37234,8 @@
         "id": "parlay",
         "label": "Parlay",
         "source_url": "https://capping.pro/parlay-of-the-night",
-        "started_at": "2026-03-20T13:09:30.612Z",
-        "finished_at": "2026-03-20T13:09:41.224Z",
+        "started_at": "2026-03-20T18:57:31.238Z",
+        "finished_at": "2026-03-20T18:57:41.897Z",
         "page_url": "https://capping.pro/parlay-of-the-night",
         "accepted_items": 54,
         "rejected_wrong_source": 0,
@@ -40816,8 +40756,8 @@
         "id": "degen",
         "label": "Degen",
         "source_url": "https://capping.pro/degen-theory",
-        "started_at": "2026-03-20T13:09:41.224Z",
-        "finished_at": "2026-03-20T13:09:59.164Z",
+        "started_at": "2026-03-20T18:57:41.897Z",
+        "finished_at": "2026-03-20T18:57:59.803Z",
         "page_url": "https://capping.pro/degen-theory",
         "accepted_items": 120,
         "rejected_wrong_source": 0,
@@ -48516,8 +48456,8 @@
         "id": "exploits",
         "label": "Exploits",
         "source_url": "https://capping.pro/nba-matchup-exploits",
-        "started_at": "2026-03-20T13:09:59.164Z",
-        "finished_at": "2026-03-20T13:10:16.997Z",
+        "started_at": "2026-03-20T18:57:59.803Z",
+        "finished_at": "2026-03-20T18:58:17.662Z",
         "page_url": "https://capping.pro/nba-matchup-exploits",
         "accepted_items": 25,
         "rejected_wrong_source": 0,
