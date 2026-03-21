@@ -1,18 +1,18 @@
 {
   "dataset_file": "capping-pro-nba-surfaces.json",
   "run_summary_file": "capping-pro-nba-surfaces.run-summary.json",
-  "generated_at": "2026-03-20T18:58:17.691Z",
+  "generated_at": "2026-03-21T02:25:08.753Z",
   "source_domain": "capping.pro",
   "league_id": "NBA",
   "sport": "Basketball",
-  "total_items": 433,
+  "total_items": 430,
   "surface_count": 6,
   "surfaces": [
     {
       "id": "best-bets",
       "label": "Best Bets",
       "source_url": "https://capping.pro/nba-bestbets",
-      "item_count": 96,
+      "item_count": 95,
       "top_titles": [
         {
           "title": "LaMelo Ball🏠",
@@ -23,15 +23,15 @@
           "count": 3
         },
         {
-          "title": "Deni Avdija",
-          "count": 3
-        },
-        {
           "title": "Dejounte Murray🏠",
           "count": 3
         },
         {
           "title": "Trey Murphy III🏠",
+          "count": 3
+        },
+        {
+          "title": "Jalen Johnson🏠",
           "count": 3
         }
       ],
@@ -41,7 +41,7 @@
       "id": "edges",
       "label": "Edges",
       "source_url": "https://capping.pro/nba-edges",
-      "item_count": 18,
+      "item_count": 16,
       "top_titles": [
         {
           "title": "Kasparas JakucionisPG",
@@ -52,7 +52,7 @@
           "count": 1
         },
         {
-          "title": "Jrue HolidayPG",
+          "title": "Zaccharie RisacherSF",
           "count": 1
         },
         {
@@ -60,7 +60,7 @@
           "count": 1
         },
         {
-          "title": "Sandro MamukelashviliC",
+          "title": "Naji MarshallPF",
           "count": 1
         }
       ],
@@ -160,23 +160,23 @@
       "item_count": 25,
       "top_titles": [
         {
-          "title": "Kevin Durant",
-          "count": 4
+          "title": "Luka Doncic",
+          "count": 5
         },
         {
-          "title": "Rudy Gobert",
+          "title": "James Harden",
           "count": 3
         },
         {
-          "title": "Cade Cunningham",
-          "count": 2
+          "title": "Dyson Daniels",
+          "count": 3
         },
         {
-          "title": "Payton Pritchard",
-          "count": 2
+          "title": "Amen Thompson",
+          "count": 3
         },
         {
-          "title": "Scottie Barnes",
+          "title": "Jaren Jackson Jr.",
           "count": 2
         }
       ],
@@ -184,7 +184,7 @@
     }
   ],
   "run_summary": {
-    "generated_at": "2026-03-20T18:56:29.777Z",
+    "generated_at": "2026-03-21T02:23:22.454Z",
     "source_domain": "capping.pro",
     "league_id": "NBA",
     "sport": "Basketball",
@@ -195,10 +195,10 @@
         "id": "best-bets",
         "label": "Best Bets",
         "source_url": "https://capping.pro/nba-bestbets",
-        "started_at": "2026-03-20T18:56:29.777Z",
-        "finished_at": "2026-03-20T18:56:54.963Z",
+        "started_at": "2026-03-21T02:23:22.454Z",
+        "finished_at": "2026-03-21T02:23:46.359Z",
         "page_url": "https://capping.pro/nba-bestbets",
-        "accepted_items": 96,
+        "accepted_items": 95,
         "rejected_wrong_source": 0,
         "rejected_wrong_league": 0,
         "rejected_wrong_surface": 0,
@@ -208,10 +208,10 @@
         "id": "edges",
         "label": "Edges",
         "source_url": "https://capping.pro/nba-edges",
-        "started_at": "2026-03-20T18:56:54.963Z",
-        "finished_at": "2026-03-20T18:57:05.649Z",
+        "started_at": "2026-03-21T02:23:46.359Z",
+        "finished_at": "2026-03-21T02:23:56.949Z",
         "page_url": "https://capping.pro/nba-edges",
-        "accepted_items": 18,
+        "accepted_items": 16,
         "rejected_wrong_source": 0,
         "rejected_wrong_league": 0,
         "rejected_wrong_surface": 0,
@@ -221,8 +221,8 @@
         "id": "props",
         "label": "Props",
         "source_url": "https://capping.pro/nba-propfinder",
-        "started_at": "2026-03-20T18:57:05.649Z",
-        "finished_at": "2026-03-20T18:57:31.238Z",
+        "started_at": "2026-03-21T02:23:56.949Z",
+        "finished_at": "2026-03-21T02:24:22.573Z",
         "page_url": "https://capping.pro/nba-propfinder",
         "accepted_items": 120,
         "rejected_wrong_source": 0,
@@ -234,8 +234,8 @@
         "id": "parlay",
         "label": "Parlay",
         "source_url": "https://capping.pro/parlay-of-the-night",
-        "started_at": "2026-03-20T18:57:31.238Z",
-        "finished_at": "2026-03-20T18:57:41.897Z",
+        "started_at": "2026-03-21T02:24:22.573Z",
+        "finished_at": "2026-03-21T02:24:33.112Z",
         "page_url": "https://capping.pro/parlay-of-the-night",
         "accepted_items": 54,
         "rejected_wrong_source": 0,
@@ -247,8 +247,8 @@
         "id": "degen",
         "label": "Degen",
         "source_url": "https://capping.pro/degen-theory",
-        "started_at": "2026-03-20T18:57:41.897Z",
-        "finished_at": "2026-03-20T18:57:59.803Z",
+        "started_at": "2026-03-21T02:24:33.112Z",
+        "finished_at": "2026-03-21T02:24:50.944Z",
         "page_url": "https://capping.pro/degen-theory",
         "accepted_items": 120,
         "rejected_wrong_source": 0,
@@ -260,8 +260,8 @@
         "id": "exploits",
         "label": "Exploits",
         "source_url": "https://capping.pro/nba-matchup-exploits",
-        "started_at": "2026-03-20T18:57:59.803Z",
-        "finished_at": "2026-03-20T18:58:17.662Z",
+        "started_at": "2026-03-21T02:24:50.944Z",
+        "finished_at": "2026-03-21T02:25:08.722Z",
         "page_url": "https://capping.pro/nba-matchup-exploits",
         "accepted_items": 25,
         "rejected_wrong_source": 0,
@@ -271,7 +271,7 @@
       }
     ],
     "totals": {
-      "unique_items": 433,
+      "unique_items": 430,
       "rejected_wrong_source": 0,
       "rejected_wrong_league": 0,
       "rejected_wrong_surface": 0
