@@ -1,190 +1,76 @@
 {
   "dataset_file": "capping-pro-nba-surfaces.json",
   "run_summary_file": "capping-pro-nba-surfaces.run-summary.json",
-  "generated_at": "2026-03-22T18:44:39.794Z",
+  "generated_at": "2026-03-23T02:38:06.684Z",
   "source_domain": "capping.pro",
   "league_id": "NBA",
   "sport": "Basketball",
-  "total_items": 428,
+  "total_items": 0,
   "surface_count": 6,
   "surfaces": [
     {
       "id": "best-bets",
       "label": "Best Bets",
       "source_url": "https://capping.pro/nba-bestbets",
-      "item_count": 94,
-      "top_titles": [
-        {
-          "title": "Amen Thompson",
-          "count": 3
-        },
-        {
-          "title": "Deni Avdija",
-          "count": 3
-        },
-        {
-          "title": "Cooper Flagg🏠",
-          "count": 3
-        },
-        {
-          "title": "Dejounte Murray",
-          "count": 3
-        },
-        {
-          "title": "Dyson Daniels🏠",
-          "count": 2
-        }
-      ],
-      "notes": []
+      "item_count": 0,
+      "top_titles": [],
+      "notes": [
+        "NBA sport switch not found"
+      ]
     },
     {
       "id": "edges",
       "label": "Edges",
       "source_url": "https://capping.pro/nba-edges",
-      "item_count": 20,
-      "top_titles": [
-        {
-          "title": "Kasparas JakucionisPG",
-          "count": 2
-        },
-        {
-          "title": "Peyton WatsonPF",
-          "count": 2
-        },
-        {
-          "title": "Jonas ValanciunasC",
-          "count": 1
-        },
-        {
-          "title": "Cason WallaceSG",
-          "count": 1
-        },
-        {
-          "title": "Ryan RollinsSG",
-          "count": 1
-        }
-      ],
-      "notes": []
+      "item_count": 0,
+      "top_titles": [],
+      "notes": [
+        "NBA sport switch not found"
+      ]
     },
     {
       "id": "props",
       "label": "Props",
       "source_url": "https://capping.pro/nba-propfinder",
-      "item_count": 120,
-      "top_titles": [
-        {
-          "title": "Luka Doncic",
-          "count": 4
-        },
-        {
-          "title": "Nikola Jokic",
-          "count": 4
-        },
-        {
-          "title": "Jalen Brunson",
-          "count": 4
-        },
-        {
-          "title": "Jamal Murray",
-          "count": 4
-        },
-        {
-          "title": "James Harden",
-          "count": 4
-        }
-      ],
-      "notes": []
+      "item_count": 0,
+      "top_titles": [],
+      "notes": [
+        "NBA sport switch not found"
+      ]
     },
     {
       "id": "parlay",
       "label": "Parlay",
       "source_url": "https://capping.pro/parlay-of-the-night",
-      "item_count": 54,
-      "top_titles": [
-        {
-          "title": "All Unders3 Legs",
-          "count": 1
-        },
-        {
-          "title": "All Overs5 Legs",
-          "count": 1
-        },
-        {
-          "title": "Elite Mixed1 Legs",
-          "count": 1
-        },
-        {
-          "title": "Safe Mixed6 Legs",
-          "count": 1
-        },
-        {
-          "title": "Blake WesleyPOR • SG",
-          "count": 1
-        }
-      ],
-      "notes": []
+      "item_count": 0,
+      "top_titles": [],
+      "notes": [
+        "NBA sport switch not found"
+      ]
     },
     {
       "id": "degen",
       "label": "Degen",
       "source_url": "https://capping.pro/degen-theory",
-      "item_count": 120,
-      "top_titles": [
-        {
-          "title": "Blake Wesley",
-          "count": 2
-        },
-        {
-          "title": "Brooks Barnhizer",
-          "count": 2
-        },
-        {
-          "title": "Jamal Cain",
-          "count": 2
-        },
-        {
-          "title": "Ty Jerome",
-          "count": 2
-        },
-        {
-          "title": "Paul George",
-          "count": 2
-        }
-      ],
-      "notes": []
+      "item_count": 0,
+      "top_titles": [],
+      "notes": [
+        "NBA sport switch not found"
+      ]
     },
     {
       "id": "exploits",
       "label": "Exploits",
       "source_url": "https://capping.pro/nba-matchup-exploits",
-      "item_count": 20,
-      "top_titles": [
-        {
-          "title": "Karl-Anthony Towns",
-          "count": 5
-        },
-        {
-          "title": "Josh Minott",
-          "count": 2
-        },
-        {
-          "title": "Nic Claxton",
-          "count": 2
-        },
-        {
-          "title": "DeMar DeRozan",
-          "count": 1
-        },
-        {
-          "title": "Day'Ron Sharpe",
-          "count": 1
-        }
-      ],
-      "notes": []
+      "item_count": 0,
+      "top_titles": [],
+      "notes": [
+        "NBA sport switch not found"
+      ]
     }
   ],
   "run_summary": {
-    "generated_at": "2026-03-22T18:42:54.216Z",
+    "generated_at": "2026-03-23T02:37:44.862Z",
     "source_domain": "capping.pro",
     "league_id": "NBA",
     "sport": "Basketball",
@@ -195,83 +81,95 @@
         "id": "best-bets",
         "label": "Best Bets",
         "source_url": "https://capping.pro/nba-bestbets",
-        "started_at": "2026-03-22T18:42:54.216Z",
-        "finished_at": "2026-03-22T18:43:18.823Z",
-        "page_url": "https://capping.pro/nba-bestbets",
-        "accepted_items": 94,
+        "started_at": "2026-03-23T02:37:44.862Z",
+        "finished_at": "2026-03-23T02:37:48.879Z",
+        "page_url": null,
+        "accepted_items": 0,
         "rejected_wrong_source": 0,
         "rejected_wrong_league": 0,
         "rejected_wrong_surface": 0,
-        "notes": []
+        "notes": [
+          "NBA sport switch not found"
+        ]
       },
       {
         "id": "edges",
         "label": "Edges",
         "source_url": "https://capping.pro/nba-edges",
-        "started_at": "2026-03-22T18:43:18.823Z",
-        "finished_at": "2026-03-22T18:43:29.376Z",
-        "page_url": "https://capping.pro/nba-edges",
-        "accepted_items": 20,
+        "started_at": "2026-03-23T02:37:48.879Z",
+        "finished_at": "2026-03-23T02:37:52.435Z",
+        "page_url": null,
+        "accepted_items": 0,
         "rejected_wrong_source": 0,
         "rejected_wrong_league": 0,
         "rejected_wrong_surface": 0,
-        "notes": []
+        "notes": [
+          "NBA sport switch not found"
+        ]
       },
       {
         "id": "props",
         "label": "Props",
         "source_url": "https://capping.pro/nba-propfinder",
-        "started_at": "2026-03-22T18:43:29.376Z",
-        "finished_at": "2026-03-22T18:43:54.908Z",
-        "page_url": "https://capping.pro/nba-propfinder",
-        "accepted_items": 120,
+        "started_at": "2026-03-23T02:37:52.435Z",
+        "finished_at": "2026-03-23T02:37:55.991Z",
+        "page_url": null,
+        "accepted_items": 0,
         "rejected_wrong_source": 0,
         "rejected_wrong_league": 0,
         "rejected_wrong_surface": 0,
-        "notes": []
+        "notes": [
+          "NBA sport switch not found"
+        ]
       },
       {
         "id": "parlay",
         "label": "Parlay",
         "source_url": "https://capping.pro/parlay-of-the-night",
-        "started_at": "2026-03-22T18:43:54.908Z",
-        "finished_at": "2026-03-22T18:44:05.439Z",
-        "page_url": "https://capping.pro/parlay-of-the-night",
-        "accepted_items": 54,
+        "started_at": "2026-03-23T02:37:55.991Z",
+        "finished_at": "2026-03-23T02:37:59.542Z",
+        "page_url": null,
+        "accepted_items": 0,
         "rejected_wrong_source": 0,
         "rejected_wrong_league": 0,
         "rejected_wrong_surface": 0,
-        "notes": []
+        "notes": [
+          "NBA sport switch not found"
+        ]
       },
       {
         "id": "degen",
         "label": "Degen",
         "source_url": "https://capping.pro/degen-theory",
-        "started_at": "2026-03-22T18:44:05.439Z",
-        "finished_at": "2026-03-22T18:44:23.236Z",
-        "page_url": "https://capping.pro/degen-theory",
-        "accepted_items": 120,
+        "started_at": "2026-03-23T02:37:59.542Z",
+        "finished_at": "2026-03-23T02:38:03.095Z",
+        "page_url": null,
+        "accepted_items": 0,
         "rejected_wrong_source": 0,
         "rejected_wrong_league": 0,
         "rejected_wrong_surface": 0,
-        "notes": []
+        "notes": [
+          "NBA sport switch not found"
+        ]
       },
       {
         "id": "exploits",
         "label": "Exploits",
         "source_url": "https://capping.pro/nba-matchup-exploits",
-        "started_at": "2026-03-22T18:44:23.236Z",
-        "finished_at": "2026-03-22T18:44:39.765Z",
-        "page_url": "https://capping.pro/nba-matchup-exploits",
-        "accepted_items": 20,
+        "started_at": "2026-03-23T02:38:03.095Z",
+        "finished_at": "2026-03-23T02:38:06.657Z",
+        "page_url": null,
+        "accepted_items": 0,
         "rejected_wrong_source": 0,
         "rejected_wrong_league": 0,
         "rejected_wrong_surface": 0,
-        "notes": []
+        "notes": [
+          "NBA sport switch not found"
+        ]
       }
     ],
     "totals": {
-      "unique_items": 428,
+      "unique_items": 0,
       "rejected_wrong_source": 0,
       "rejected_wrong_league": 0,
       "rejected_wrong_surface": 0

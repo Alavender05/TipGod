@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-03-22T18:42:54.216Z",
+  "generated_at": "2026-03-23T02:37:44.862Z",
   "source_domain": "capping.pro",
   "league_id": "NBA",
   "sport": "Basketball",
@@ -10,83 +10,95 @@
       "id": "best-bets",
       "label": "Best Bets",
       "source_url": "https://capping.pro/nba-bestbets",
-      "started_at": "2026-03-22T18:42:54.216Z",
-      "finished_at": "2026-03-22T18:43:18.823Z",
-      "page_url": "https://capping.pro/nba-bestbets",
-      "accepted_items": 94,
+      "started_at": "2026-03-23T02:37:44.862Z",
+      "finished_at": "2026-03-23T02:37:48.879Z",
+      "page_url": null,
+      "accepted_items": 0,
       "rejected_wrong_source": 0,
       "rejected_wrong_league": 0,
       "rejected_wrong_surface": 0,
-      "notes": []
+      "notes": [
+        "NBA sport switch not found"
+      ]
     },
     {
       "id": "edges",
       "label": "Edges",
       "source_url": "https://capping.pro/nba-edges",
-      "started_at": "2026-03-22T18:43:18.823Z",
-      "finished_at": "2026-03-22T18:43:29.376Z",
-      "page_url": "https://capping.pro/nba-edges",
-      "accepted_items": 20,
+      "started_at": "2026-03-23T02:37:48.879Z",
+      "finished_at": "2026-03-23T02:37:52.435Z",
+      "page_url": null,
+      "accepted_items": 0,
       "rejected_wrong_source": 0,
       "rejected_wrong_league": 0,
       "rejected_wrong_surface": 0,
-      "notes": []
+      "notes": [
+        "NBA sport switch not found"
+      ]
     },
     {
       "id": "props",
       "label": "Props",
       "source_url": "https://capping.pro/nba-propfinder",
-      "started_at": "2026-03-22T18:43:29.376Z",
-      "finished_at": "2026-03-22T18:43:54.908Z",
-      "page_url": "https://capping.pro/nba-propfinder",
-      "accepted_items": 120,
+      "started_at": "2026-03-23T02:37:52.435Z",
+      "finished_at": "2026-03-23T02:37:55.991Z",
+      "page_url": null,
+      "accepted_items": 0,
       "rejected_wrong_source": 0,
       "rejected_wrong_league": 0,
       "rejected_wrong_surface": 0,
-      "notes": []
+      "notes": [
+        "NBA sport switch not found"
+      ]
     },
     {
       "id": "parlay",
       "label": "Parlay",
       "source_url": "https://capping.pro/parlay-of-the-night",
-      "started_at": "2026-03-22T18:43:54.908Z",
-      "finished_at": "2026-03-22T18:44:05.439Z",
-      "page_url": "https://capping.pro/parlay-of-the-night",
-      "accepted_items": 54,
+      "started_at": "2026-03-23T02:37:55.991Z",
+      "finished_at": "2026-03-23T02:37:59.542Z",
+      "page_url": null,
+      "accepted_items": 0,
       "rejected_wrong_source": 0,
       "rejected_wrong_league": 0,
       "rejected_wrong_surface": 0,
-      "notes": []
+      "notes": [
+        "NBA sport switch not found"
+      ]
     },
     {
       "id": "degen",
       "label": "Degen",
       "source_url": "https://capping.pro/degen-theory",
-      "started_at": "2026-03-22T18:44:05.439Z",
-      "finished_at": "2026-03-22T18:44:23.236Z",
-      "page_url": "https://capping.pro/degen-theory",
-      "accepted_items": 120,
+      "started_at": "2026-03-23T02:37:59.542Z",
+      "finished_at": "2026-03-23T02:38:03.095Z",
+      "page_url": null,
+      "accepted_items": 0,
       "rejected_wrong_source": 0,
       "rejected_wrong_league": 0,
       "rejected_wrong_surface": 0,
-      "notes": []
+      "notes": [
+        "NBA sport switch not found"
+      ]
     },
     {
       "id": "exploits",
       "label": "Exploits",
       "source_url": "https://capping.pro/nba-matchup-exploits",
-      "started_at": "2026-03-22T18:44:23.236Z",
-      "finished_at": "2026-03-22T18:44:39.765Z",
-      "page_url": "https://capping.pro/nba-matchup-exploits",
-      "accepted_items": 20,
+      "started_at": "2026-03-23T02:38:03.095Z",
+      "finished_at": "2026-03-23T02:38:06.657Z",
+      "page_url": null,
+      "accepted_items": 0,
       "rejected_wrong_source": 0,
       "rejected_wrong_league": 0,
       "rejected_wrong_surface": 0,
-      "notes": []
+      "notes": [
+        "NBA sport switch not found"
+      ]
     }
   ],
   "totals": {
-    "unique_items": 428,
+    "unique_items": 0,
     "rejected_wrong_source": 0,
     "rejected_wrong_league": 0,
     "rejected_wrong_surface": 0
