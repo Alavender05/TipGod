@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-06-11T16:09:01.551Z",
+  "generated_at": "2026-06-11T20:26:26.655Z",
   "source_domain": "capping.pro",
   "league_id": "NBA",
   "sport": "Basketball",
@@ -10,90 +10,90 @@
       "id": "best-bets",
       "label": "Best Bets",
       "source_url": "https://capping.pro/nba-bestbets",
-      "started_at": "2026-06-11T16:09:01.551Z",
-      "finished_at": "2026-06-11T16:09:06.055Z",
+      "started_at": "2026-06-11T20:26:26.656Z",
+      "finished_at": "2026-06-11T20:27:26.658Z",
       "page_url": null,
       "accepted_items": 0,
       "rejected_wrong_source": 0,
       "rejected_wrong_league": 0,
       "rejected_wrong_surface": 0,
       "notes": [
-        "NBA sport switch not found"
+        "page.goto: Timeout 60000ms exceeded. Call log: - navigating to \"https://capping.pro/\", waiting until \"domcontentloaded\""
       ]
     },
     {
       "id": "edges",
       "label": "Edges",
       "source_url": "https://capping.pro/nba-edges",
-      "started_at": "2026-06-11T16:09:06.055Z",
-      "finished_at": "2026-06-11T16:09:09.681Z",
+      "started_at": "2026-06-11T20:27:26.659Z",
+      "finished_at": "2026-06-11T20:28:26.659Z",
       "page_url": null,
       "accepted_items": 0,
       "rejected_wrong_source": 0,
       "rejected_wrong_league": 0,
       "rejected_wrong_surface": 0,
       "notes": [
-        "NBA sport switch not found"
+        "page.goto: Timeout 60000ms exceeded. Call log: - navigating to \"https://capping.pro/\", waiting until \"domcontentloaded\""
       ]
     },
     {
       "id": "props",
       "label": "Props",
       "source_url": "https://capping.pro/nba-propfinder",
-      "started_at": "2026-06-11T16:09:09.681Z",
-      "finished_at": "2026-06-11T16:09:13.291Z",
+      "started_at": "2026-06-11T20:28:26.659Z",
+      "finished_at": "2026-06-11T20:28:42.620Z",
       "page_url": null,
       "accepted_items": 0,
       "rejected_wrong_source": 0,
       "rejected_wrong_league": 0,
       "rejected_wrong_surface": 0,
       "notes": [
-        "NBA sport switch not found"
+        "page.goto: net::ERR_CONNECTION_TIMED_OUT at https://capping.pro/ Call log: - navigating to \"https://capping.pro/\", waiting until \"domcontentloaded\""
       ]
     },
     {
       "id": "parlay",
       "label": "Parlay",
       "source_url": "https://capping.pro/parlay-of-the-night",
-      "started_at": "2026-06-11T16:09:13.291Z",
-      "finished_at": "2026-06-11T16:09:16.898Z",
+      "started_at": "2026-06-11T20:28:42.620Z",
+      "finished_at": "2026-06-11T20:29:39.963Z",
       "page_url": null,
       "accepted_items": 0,
       "rejected_wrong_source": 0,
       "rejected_wrong_league": 0,
       "rejected_wrong_surface": 0,
       "notes": [
-        "NBA sport switch not found"
+        "page.goto: net::ERR_CONNECTION_TIMED_OUT at https://capping.pro/ Call log: - navigating to \"https://capping.pro/\", waiting until \"domcontentloaded\""
       ]
     },
     {
       "id": "degen",
       "label": "Degen",
       "source_url": "https://capping.pro/degen-theory",
-      "started_at": "2026-06-11T16:09:16.898Z",
-      "finished_at": "2026-06-11T16:09:20.502Z",
+      "started_at": "2026-06-11T20:29:39.963Z",
+      "finished_at": "2026-06-11T20:30:39.962Z",
       "page_url": null,
       "accepted_items": 0,
       "rejected_wrong_source": 0,
       "rejected_wrong_league": 0,
       "rejected_wrong_surface": 0,
       "notes": [
-        "NBA sport switch not found"
+        "page.goto: Timeout 60000ms exceeded. Call log: - navigating to \"https://capping.pro/\", waiting until \"domcontentloaded\""
       ]
     },
     {
       "id": "exploits",
       "label": "Exploits",
       "source_url": "https://capping.pro/nba-matchup-exploits",
-      "started_at": "2026-06-11T16:09:20.502Z",
-      "finished_at": "2026-06-11T16:09:24.110Z",
+      "started_at": "2026-06-11T20:30:39.962Z",
+      "finished_at": "2026-06-11T20:30:41.403Z",
       "page_url": null,
       "accepted_items": 0,
       "rejected_wrong_source": 0,
       "rejected_wrong_league": 0,
       "rejected_wrong_surface": 0,
       "notes": [
-        "NBA sport switch not found"
+        "page.goto: net::ERR_CONNECTION_TIMED_OUT at https://capping.pro/ Call log: - navigating to \"https://capping.pro/\", waiting until \"domcontentloaded\""
       ]
     }
   ],
